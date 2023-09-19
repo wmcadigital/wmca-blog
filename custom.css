@@ -1,0 +1,10 @@
+.wmcads-footer {
+  -webkit-box-shadow: 0 100vh 0 100vh #231f20;
+  box-shadow: 0 100vh 0 100vh #231f20;
+}
+
+@media only screen and (min-width: 768px) {
+  .wmcads-search-filter .wmcads-search-filter__clear-all.wmcads-hide-mobile {
+    display: block;
+  }
+}

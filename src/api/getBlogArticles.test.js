@@ -15,7 +15,7 @@ describe("getData", () => {
     await getData();
 
     expect(fetch).toBeCalledWith(
-      "https://localhost:44353/umbraco/delivery/api/v1/content?filter=contentType%3AblogArticle&sort=name%3Aasc&skip=0&take=10"
+      "https://app-umbraco-multisite.azurewebsites.net/umbraco/delivery/api/v1/content?filter=contentType%3AblogArticle&sort=name%3Aasc&skip=0&take=10"
     );
   });
 

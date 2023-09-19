@@ -1,0 +1,46 @@
+{
+  "name": "wmca-blog",
+  "version": "1.0.0",
+  "description": "WMCA Blog",
+  "main": "index.js",
+  "scripts": {
+    "dev": "parcel src/index.html",
+    "build": "parcel build src/index.html",
+    "test": "jest",
+    "format": "prettier --write \"src/**/*.{js,jsx}\"",
+    "lint": "eslint  \"src/**/*.{js,jsx}\" --quiet"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-react": "^7.16.7",
+    "@testing-library/dom": "^8.13.0",
+    "@testing-library/react": "^13.1.1",
+    "@testing-library/user-event": "^14.1.1",
+    "eslint": "^7.18.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jest": "^26.1.4",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-react": "^7.22.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "jest": "^27.5.1",
+    "parcel": "^2.4.1",
+    "prettier": "^2.6.2",
+    "process": "^0.11.10",
+    "react-test-renderer": "^18.0.0"
+  },
+  "dependencies": {
+    "@swc/helpers": "^0.3.8",
+    "lodash": "^4.17.21",
+    "prop-types": "^15.8.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.14.2",
+    "regenerator-runtime": "^0.13.9"
+  },
+  "jest": {
+    "testEnvironment": "jsdom"
+  },
+  "author": "",
+  "license": "ISC"
+}

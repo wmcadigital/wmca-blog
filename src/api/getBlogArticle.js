@@ -1,4 +1,4 @@
-let getBlogEndPoint = "https://localhost:44353/umbraco/delivery/api/v1/content/item/";
+let getBlogEndPoint = "https://app-umbraco-multisite.azurewebsites.net/umbraco/delivery/api/v1/content/item/";
 
 const getBlogArticle = async (id) => {
    console.log(id);

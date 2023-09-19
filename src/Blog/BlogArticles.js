@@ -176,13 +176,13 @@ const BlogArticles = () => {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
 
-    if(currentParams.topics.length != 0){
-      // setsortDefault("ascending");
-      filteredBlogArticles = filterBlogArticlesByTopic(
-        filteredBlogArticles,
-        filter.topics
-      );
-    }
+    // if(currentParams.topics.length != 0){
+    //   // setsortDefault("ascending");
+    //   filteredBlogArticles = filterBlogArticlesByTopic(
+    //     filteredBlogArticles,
+    //     filter.topics
+    //   );
+    // }
 
   }, [filter, filterQueryString, returnedBlogArticles, searchButtonClicked, searchParams, searchTerm, setSearchParams, sortDefault, sortOrder]);
 

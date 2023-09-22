@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { chunk, flatten } from "lodash";
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 
 import getBlogArticles from "../api/getBlogArticles";
 
@@ -45,22 +45,13 @@ const BlogArticles = () => {
 
   let [searchParams, setSearchParams] = useSearchParams();
 
-  // const params = Object.fromEntries([...searchParams]);
-  // console.log('Mounted:', params);
-
-  console.log(filter);
-
-  let filterQueryString = Object.keys(filter).map(key => key + '=' + filter[key]).join('&');
-
-  console.log(filterQueryString);
-
-  // console.log(sortOrder);
-
-  const queryStringToObject = url =>
-  [...new URLSearchParams(url.split('?')[1])].reduce(
-    (a, [k, v]) => ((a[k] = v), a),
-    {}
-  );
+  let filterQueryString = Object.keys(filter).map(key => {
+    if (Array.isArray(filter[key])) {
+      return key + '=' + filter[key].join('/');
+    } else {
+      return key + '=' + filter[key];
+    }
+  }).join('&');
 
 
   const getBlogData = async () => {
@@ -68,15 +59,52 @@ const BlogArticles = () => {
     const response = await getBlogArticles();
     setLoading(false);
     const returnedBlogArticles = response?.items ?? [];
-    console.log(returnedBlogArticles);
+    // console.log(returnedBlogArticles);
     setReturnedBlogArticles(returnedBlogArticles);
     setBlogCategories(getBlogArticleTopics(returnedBlogArticles));
     setAuthors(getAuthors(returnedBlogArticles));
     setBlogArticles(chunk(returnedBlogArticles, 5));
   };
 
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+
+  const dates = queryParams.get('dates');
+  const sort = queryParams.get('sort');
+  const author = queryParams.get('author');
+  const topics = queryParams.get('topics');
+  
   useEffect(() => {
     getBlogData();
+
+    if (dates) {
+      setFilter((prevState) => ({
+        ...prevState,
+        dates: dates === 'null' ? null : dates,
+      }));
+    }
+    
+    if (sort) {
+      setFilter((prevState) => ({
+        ...prevState,
+        sort: sort,
+      }));
+    }
+    
+    if (topics) {
+      setFilter((prevState) => ({
+        ...prevState,
+        topics: topics.split('/'),
+      }));
+    }
+
+    if (author) {
+      setFilter((prevState) => ({
+        ...prevState,
+        author: author.split('/'),
+      }));
+    }
+
   }, []);
 
   useEffect(() => {
@@ -86,10 +114,10 @@ const BlogArticles = () => {
         returnedBlogArticles,
         searchTerm
       );
-      console.log(filteredBlogArticles);
     }
 
     if (filter.topics.length) {
+
       filteredBlogArticles = filterBlogArticlesByTopic(
         filteredBlogArticles,
         filter.topics
@@ -97,15 +125,10 @@ const BlogArticles = () => {
     }
 
     if (filter.author.length) {
-      let filteredBlogArticlesbyAuthor = filteredBlogArticles.map((
-        { name }) => ({ name }));
-        console.log(filteredBlogArticlesbyAuthor);
-
       filteredBlogArticles = filterBlogArticlesByAuthor(
         filteredBlogArticles,
         filter.author
       );
-      // setSearchParam('author', filter.author);
     }
 
     if (filter.dates) {
@@ -117,15 +140,6 @@ const BlogArticles = () => {
     
     // sort values
     const currentParams = Object.fromEntries([...searchParams]);
-    // console.log('useEffect:', currentParams);
-
-    // if(currentParams.author != null){
-    //   console.log(currentParams.author);
-    //   console.log(filter);
-    //   console.log(filterQueryString);
-    console.log(queryStringToObject('?' + currentParams));
-    //   // setFilter(filterQueryString);
-    // }
 
     if(currentParams.sort == "ascending"){
       setsortDefault("ascending");
@@ -139,20 +153,6 @@ const BlogArticles = () => {
     } else {
       setsortDefault("");
     }
-
-    // if (sortOrder === "ascending") {
-    //   setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
-    //   setSearchParams(filterQueryString);
-    //   // setFilter({ sort: "ascending" });
-    // } else if (sortOrder === "descending") {
-    //   setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles), 5));
-    //   setSearchParams(filterQueryString);
-    // }  else if (sortOrder === "name") {
-    //   setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, "name"), 5));
-    //   setSearchParams(filterQueryString);
-    // } else {
-    //   setBlogArticles(chunk(filteredBlogArticles, 5));
-    // }
 
     if (filter.sort === "ascending") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
@@ -169,20 +169,13 @@ const BlogArticles = () => {
     }
 
     // topic values
-    if (filter.topics.length != 0) {
+    if (filter.topics.length !== 0 || filter.author.length !== 0 || filter.dates !== null) {
+
       // setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
       setSearchParams(filterQueryString);
     } else {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
-
-    // if(currentParams.topics.length != 0){
-    //   // setsortDefault("ascending");
-    //   filteredBlogArticles = filterBlogArticlesByTopic(
-    //     filteredBlogArticles,
-    //     filter.topics
-    //   );
-    // }
 
   }, [filter, filterQueryString, returnedBlogArticles, searchButtonClicked, searchParams, searchTerm, setSearchParams, sortDefault, sortOrder]);
 
@@ -206,7 +199,7 @@ const BlogArticles = () => {
 
   const noOfResults = flatten(blogArticles).length;
 
-  console.log(blogArticles);
+  // console.log(blogArticles);
 
   return (
     <div className="wmcads-container">
@@ -231,7 +224,7 @@ const BlogArticles = () => {
               )}
               {blogArticles.length ? (
                 <>
-                  {blogArticles[page].map((blogArticle, index) => (
+                  {blogArticles[page]?.map((blogArticle, index) => (
                     <BlogArticleLink
                       key={index}
                       filter={filter}

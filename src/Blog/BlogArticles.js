@@ -80,10 +80,10 @@ const BlogArticles = () => {
     if (dates) {
       setFilter((prevState) => ({
         ...prevState,
-        dates: dates,
+        dates: dates === 'null' ? null : dates,
       }));
     }
-
+    
     if (sort) {
       setFilter((prevState) => ({
         ...prevState,
@@ -170,8 +170,6 @@ const BlogArticles = () => {
 
     // topic values
     if (filter.topics.length !== 0 || filter.author.length !== 0 || filter.dates !== null) {
-
-      console.log(filterQueryString, 'DATE!!!!');
 
       // setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
       setSearchParams(filterQueryString);

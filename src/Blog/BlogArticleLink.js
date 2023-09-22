@@ -16,38 +16,22 @@ const BlogArticleLink = ({
   publishDate,
   introductionText,
 }) => {
-  const handleAuthor = (event) => {
+  const handleAuthor = (event, item) => {
     event.preventDefault();
-    console.log("Author link clicked");
 
-    let desiredValue = (fruits_quantity, desired_key) => {
-      let desiredValue = fruits_quantity.map((element) => element[desired_key]);
-      return desiredValue;
-    };
-    let desired_key = "name";
-    let result = desiredValue(authors, desired_key);
+    let selectedAuthorWithNewAuthor = [...filter.author, item]
+    const isInFilterAuthorArray = filter.author.includes(item);
+    isInFilterAuthorArray ? '' : setFilter({ ...filter, author: selectedAuthorWithNewAuthor });
 
-    setFilter({ ...filter, author: result });
   };
 
-  const handleTopics = (event) => {
+  const handleTopics = (event, item) => {
     event.preventDefault();
-    console.log("Topic link clicked");
 
-    setFilter({ ...filter, categories: tags });
+    let selectedTopicsWithNewTopic = [...filter.topics, item]
+    const isInFilterTopicsArray = filter.topics.includes(item);
+    isInFilterTopicsArray ? '' : setFilter({ ...filter, topics: selectedTopicsWithNewTopic });
   };
-
-  // const renderAuthors = authors.map((item, index) => (
-  //   <a key={index} onClick={handleAuthor}>
-  //     {item.name},&nbsp;
-  //   </a>
-  // ));
-
-  // const renderTags = tags.map((item, index) => (
-  //   <a key={index} onClick={handleTopics}>
-  //     {item},&nbsp;
-  //   </a>
-  // ));
 
   return (
     <div className="wmcads-search-result">
@@ -57,9 +41,9 @@ const BlogArticleLink = ({
         </Link>
       </h2>
       <p className="wmcads-search-result__date">
-        {authors.map(function (item, index) {
+        {authors?.map(function (item, index) {
           return (
-            <a key={`${index}`} onClick={() => {}} onKeyUp={handleAuthor} role="link">
+            <a key={`${index}`} onClick={(e) => handleAuthor(e, item.name)} onKeyUp={handleAuthor} role="link">
               {(index ? ", " : "") + item.name}
             </a>
           );
@@ -69,9 +53,9 @@ const BlogArticleLink = ({
 
       <p className="wmcads-search-result__date">
         Topics:{" "}
-        {tags.map(function (item, index) {
+        {tags?.map(function (item, index) {
           return (
-            <a key={`${index}`} onClick={() => {}} onKeyUp={handleTopics} role="link">
+            <a key={`${index}`} onClick={(e) => handleTopics(e, item)} onKeyUp={handleTopics} role="link">
               {(index ? ", " : "") + item}
             </a>
           );
@@ -80,7 +64,7 @@ const BlogArticleLink = ({
 
       {image != "No Image" ? (
         <img
-          src={`https://localhost:44353/${image}?anchor=center&mode=crop&width=600&height=250`}
+          src={`https://app-umbraco-multisite.azurewebsites.net/${image}?anchor=center&mode=crop&width=600&height=250`}
           alt=""
           className="wmcads-m-t-md"
         />
@@ -88,7 +72,6 @@ const BlogArticleLink = ({
 
       <p
         className="wmcads-search-result__excerpt"
-        // dangerouslySetInnerHTML={introductionText}
       >
         {introductionText}
       </p>

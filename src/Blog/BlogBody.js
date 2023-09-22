@@ -61,7 +61,7 @@ const BlogBody = ({
 
       {image != "No Image" ? (
         <img
-          src={`https://localhost:44353/${image}?anchor=center&mode=crop&width=600&height=250`}
+          src={`https://app-umbraco-multisite.azurewebsites.net/${image}?anchor=center&mode=crop&width=600&height=250`}
           alt=""
           className="wmcads-m-t-md"
         />

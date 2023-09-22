@@ -15,10 +15,6 @@ export async function loader({ params }) {
 const BlogArticle = () => {
   const { article } = useLoaderData();
 
-  console.log(article);
-  // const [blogArticle, setBlogArticle] = useState([]);
-  // const [loading, setLoading] = useState(false);
-
   return (
     <>
     <ScrollToTop />

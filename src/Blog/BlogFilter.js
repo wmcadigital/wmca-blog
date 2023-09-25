@@ -4,17 +4,15 @@ import FilterAccordion from "./FilterAccordion";
 
 import { getSearchParam } from "../helpers/urlSearchParams";
 
-const dates = [
-  { value: "updatedLastWeek", label: "Posted in the last week" },
-  { value: "updatedLastMonth", label: "Posted in the last month" },
-  { value: "updatedLastYear", label: "Posted in the last year" },
-];
+import filterBlogArticlesByDate from "../helpers/filterBlogArticlesByDate";
+
 
 if (getSearchParam('author')) {
   console.log('url has authors');
 }
 
 const BlogFilter = ({
+  returnedBlogArticles,
   filter,
   setFilter,
   noOfResults,
@@ -23,6 +21,13 @@ const BlogFilter = ({
   blogCategories,
   authors
 }) => {
+
+  const dates = [
+    { value: "updatedLastWeek", label: "Posted in the last week", disabled: !!filterBlogArticlesByDate(returnedBlogArticles, 'updatedLastWeek').length },
+    { value: "updatedLastMonth", label: "Posted in the last month", disabled: !!filterBlogArticlesByDate(returnedBlogArticles, 'updatedLastMonth').length },
+    { value: "updatedLastYear", label: "Posted in the last year", disabled: !!filterBlogArticlesByDate(returnedBlogArticles, 'updatedLastYear').length },
+  ];
+
   return (
     <div
       id="search_filter"
@@ -163,6 +168,7 @@ const BlogFilter = ({
 export default BlogFilter;
 
 BlogFilter.propTypes = {
+  returnedBlogArticles: PropTypes.arrayOf(PropTypes.object),
   filter: PropTypes.object,
   setFilter: PropTypes.func,
   showFilterOverrideMobile: PropTypes.bool,
@@ -173,6 +179,7 @@ BlogFilter.propTypes = {
 };
 
 BlogFilter.defaultProps = {
+  returnedBlogArticles: [],
   filter: { sort: "", topics: [], author: [], dates: undefined },
   noOfResults: 0,
   setShowFilterOverrideMobile: () => {},

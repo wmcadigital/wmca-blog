@@ -59,7 +59,6 @@ const BlogArticles = () => {
     const response = await getBlogArticles();
     setLoading(false);
     const returnedBlogArticles = response?.items ?? [];
-    // console.log(returnedBlogArticles);
     setReturnedBlogArticles(returnedBlogArticles);
     setBlogCategories(getBlogArticleTopics(returnedBlogArticles));
     setAuthors(getAuthors(returnedBlogArticles));
@@ -76,6 +75,7 @@ const BlogArticles = () => {
   
   useEffect(() => {
     getBlogData();
+
 
     if (dates) {
       setFilter((prevState) => ({
@@ -109,6 +109,7 @@ const BlogArticles = () => {
 
   useEffect(() => {
     let filteredBlogArticles = returnedBlogArticles;
+
     if (searchTerm) {
       filteredBlogArticles = searchBlogArticles(
         returnedBlogArticles,
@@ -274,6 +275,7 @@ const BlogArticles = () => {
                 </button>
               </div>
               <BlogFilter
+                returnedBlogArticles={returnedBlogArticles}
                 filter={filter}
                 setFilter={setFilter}
                 showFilterOverrideMobile={showFilterOverrideMobile}

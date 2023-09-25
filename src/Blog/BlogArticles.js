@@ -59,6 +59,10 @@ const BlogArticles = () => {
     const response = await getBlogArticles();
     setLoading(false);
     const returnedBlogArticles = response?.items ?? [];
+<<<<<<< HEAD
+=======
+    // console.log(returnedBlogArticles);
+>>>>>>> release
     setReturnedBlogArticles(returnedBlogArticles);
     setBlogCategories(getBlogArticleTopics(returnedBlogArticles));
     setAuthors(getAuthors(returnedBlogArticles));
@@ -76,7 +80,10 @@ const BlogArticles = () => {
   useEffect(() => {
     getBlogData();
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> release
     if (dates) {
       setFilter((prevState) => ({
         ...prevState,

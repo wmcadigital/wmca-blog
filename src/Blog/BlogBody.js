@@ -16,8 +16,6 @@ const BlogBody = ({
 }) => {
   const handleAuthor = (event) => {
     event.preventDefault();
-    console.log("Author link clicked");
-
     let desiredValue = (fruits_quantity, desired_key) => {
       let desiredValue = fruits_quantity.map((element) => element[desired_key]);
       return desiredValue;
@@ -30,8 +28,6 @@ const BlogBody = ({
 
   const handleTopics = (event) => {
     event.preventDefault();
-    console.log("Topic link clicked");
-
     setFilter({ ...filter, categories: tags });
   };
 

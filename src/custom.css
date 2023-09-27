@@ -3,6 +3,24 @@
   box-shadow: 0 100vh 0 100vh #231f20;
 }
 
+.wmcads-fe-radios__container.disabled {
+  color: rgb(184, 184, 184, 0.5);
+  cursor: default;
+} 
+
+.wmcads-fe-radios__container.disabled:focus {
+  color: rgb(184, 184, 184, 0.5);
+  cursor: default;
+  background-color: none!important;
+} 
+
+
+.wmcads-fe-radios__container.disabled .wmcads-fe-radios__checkmark {
+  border-color: rgb(184, 184, 184, 0.5);
+  background: none;
+}
+
+
 @media only screen and (min-width: 768px) {
   .wmcads-search-filter .wmcads-search-filter__clear-all.wmcads-hide-mobile {
     display: block;

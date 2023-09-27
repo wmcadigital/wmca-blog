@@ -30,10 +30,11 @@ CheckOption.propTypes = {
 };
 
 const RadioOption = ({ title, option, optionSelected, optionSelectedFn }) => (
-  <label className="wmcads-fe-radios__container">
+  <label className={`wmcads-fe-radios__container ${!option.disabled ? 'disabled' : ''}`} >
     {option.label}
     <input
       className="wmcads-fe-radios__input"
+      disabled={!option.disabled}
       value={option.value}
       name={title}
       type="radio"
@@ -46,7 +47,7 @@ const RadioOption = ({ title, option, optionSelected, optionSelectedFn }) => (
 
 RadioOption.propTypes = {
   title: PropTypes.string,
-  option: PropTypes.shape({ label: PropTypes.string, value: PropTypes.string }),
+  option: PropTypes.shape({ label: PropTypes.string, value: PropTypes.string, disabled: PropTypes.bool }),
   optionSelected: PropTypes.func,
   optionSelectedFn: PropTypes.func,
 };
@@ -125,7 +126,7 @@ const FilterAccordion = ({
 FilterAccordion.propTypes = {
   title: PropTypes.string,
   options: PropTypes.arrayOf(
-    PropTypes.shape({ label: PropTypes.string, value: PropTypes.string })
+    PropTypes.shape({ label: PropTypes.string, value: PropTypes.string, disabled: PropTypes.bool })
   ),
   selectOne: PropTypes.bool,
   optionSelected: PropTypes.func,

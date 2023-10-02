@@ -60,7 +60,6 @@ const BlogArticles = () => {
     const response = await getBlogArticles();
     setLoading(false);
     const returnedBlogArticles = response?.items ?? [];
-
     setReturnedBlogArticles(returnedBlogArticles);
     setBlogCategories(getBlogArticleTopics(returnedBlogArticles));
     setAuthors(getAuthors(returnedBlogArticles));
@@ -114,7 +113,7 @@ const BlogArticles = () => {
       }));
     }
 
-  }, []);
+  }, [author, dates, sort, topics]);
 
   useEffect(() => {
     let filteredBlogArticles = returnedBlogArticles;

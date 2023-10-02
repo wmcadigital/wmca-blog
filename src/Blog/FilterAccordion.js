@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import PropTypes from "prop-types";
+
+import FilterByDateRange from "./FilterByDateRange";
 
 const CheckOption = ({ option, optionSelected, optionSelectedFn }) => (
   <label className="wmcads-fe-checkboxes__container">
@@ -58,10 +60,71 @@ const FilterAccordion = ({
   selectOne,
   optionSelected,
   optionSelectedFn,
+  selectedDate,
+  setDateRanges
 }) => {
   const [accordionOpen, setAccordionOpen] = useState(true);
+  const [dateAfter, setDateAfter] = useState({ day: '', month: '', year: '' });
+  const [dateBefore, setDateBefore] = useState({ day: '', month: '', year: '' });
 
   const toggleAccordion = () => setAccordionOpen(!accordionOpen);
+
+  const receivedDateChange = (val, field, name) => {
+    const updatedDateAfter = { ...dateAfter };
+    const updatedDateBefore = { ...dateBefore };
+
+    if (name === 'AFTER') { 
+      if (!/[^0-9]/.test(val)) {
+        updatedDateAfter[field] = val;
+        setDateAfter(updatedDateAfter);
+      } 
+    } else {
+      if (!/[^0-9]/.test(val)) {
+        updatedDateBefore[field] = val;
+        setDateBefore(updatedDateBefore);
+      } 
+    }
+  }
+  
+  useEffect(() => {
+
+    const updatedDateAfter = { ...dateAfter };
+    const updatedDateBefore = { ...dateBefore };
+
+    const isAnyValueEmpty = () => {
+      return Object.values(updatedDateAfter).some(value => !value) || Object.values(updatedDateBefore).some(value => !value)
+    };
+
+    const yearInputContains4characters = () => {
+      return updatedDateAfter.year.length === 4 && updatedDateBefore.year.length === 4 
+    }
+
+    // If false no fields are empty && yearly charachters are 4 
+    if (!isAnyValueEmpty() && yearInputContains4characters()) {
+      
+      const afterDateString = `${dateAfter.year}/${dateAfter.month}/${dateAfter.day}`
+      const afterDateObject = new Date(afterDateString)
+
+      const beforeDateString = `${dateBefore.year}/${dateBefore.month}/${dateBefore.day}`
+      const beforeDateObject = new Date(beforeDateString)
+
+      // before should be greater than after
+      const isDate1BeforeDate2 = beforeDateObject > afterDateObject;
+
+      const dateRanges = {
+        from: afterDateObject,
+        to: beforeDateObject
+      };
+
+      if (isDate1BeforeDate2) {
+        setDateRanges(dateRanges)
+      } else {
+        console.log('date added before must be greater than date added after')
+      }
+    }
+  }, [dateAfter, dateBefore]);
+  
+
 
   return (
     <div
@@ -118,6 +181,22 @@ const FilterAccordion = ({
             )}
           </div>
         </fieldset>
+        {selectedDate === 'updatedByRange' && 
+            <>
+              <FilterByDateRange
+                name="AFTER"
+                title='Added after'
+                handleDateChange={receivedDateChange}
+                value={dateAfter}
+              />
+              <FilterByDateRange
+                name="BEFORE"
+                title='Added before' 
+                handleDateChange={receivedDateChange}
+                value={dateBefore}
+              />
+            </>
+          }
       </div>
     </div>
   );
@@ -131,12 +210,15 @@ FilterAccordion.propTypes = {
   selectOne: PropTypes.bool,
   optionSelected: PropTypes.func,
   optionSelectedFn: PropTypes.func,
+  selectedDate: PropTypes.string,
+  setDateRanges: PropTypes.func,
 };
 
 FilterAccordion.defaultProps = {
   options: [],
   optionSelected: () => {},
   optionSelectedFn: () => {},
+  setDateRanges: () => { },
 };
 
 export default FilterAccordion;

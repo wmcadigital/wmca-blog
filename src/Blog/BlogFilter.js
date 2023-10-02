@@ -19,13 +19,15 @@ const BlogFilter = ({
   showFilterOverrideMobile,
   setShowFilterOverrideMobile,
   blogCategories,
-  authors
+  authors,
+  setDateRanges
 }) => {
 
   const dates = [
     { value: "updatedLastWeek", label: "Posted in the last week", disabled: !!filterBlogArticlesByDate(returnedBlogArticles, 'updatedLastWeek').length },
     { value: "updatedLastMonth", label: "Posted in the last month", disabled: !!filterBlogArticlesByDate(returnedBlogArticles, 'updatedLastMonth').length },
     { value: "updatedLastYear", label: "Posted in the last year", disabled: !!filterBlogArticlesByDate(returnedBlogArticles, 'updatedLastYear').length },
+    { value: "updatedByRange", label: "Posted within date range", disabled: !false },
   ];
 
   return (
@@ -122,12 +124,14 @@ const BlogFilter = ({
         title="Date"
         options={dates}
         selectOne
+        selectedDate={filter.dates}
         optionSelected={(optionValue) => {
           setFilter({ ...filter, dates: optionValue });
         }}
         optionSelectedFn={(value) =>
           filter.dates === value ? true : undefined
         }
+        setDateRanges={setDateRanges}
       />
       <div className="wmcads-search-filter__mobile-filter-update wmcads-hide-desktop">
         <button
@@ -137,11 +141,10 @@ const BlogFilter = ({
         >{`Show ${noOfResults} results`}</button>
       </div>
       {filter.topics.length != 0 || filter.author.length != 0 || filter.dates != undefined ? (
-      <a
-        href="#"
+      <a href="#"
         className="wmcads-search-filter__clear-all wmcads-hide-mobile"
         onClick={() =>
-          setFilter({ sort: "", topics: [], author: [], dates: undefined })
+          setFilter({ sort: "", topics: [], author: [], dates: null, dateRangeSet: undefined })
         }
       >
         <svg
@@ -176,6 +179,7 @@ BlogFilter.propTypes = {
   setShowFilterOverrideMobile: PropTypes.func,
   blogCategories: PropTypes.arrayOf(PropTypes.string),
   authors: PropTypes.arrayOf(PropTypes.string),
+  setDateRanges: PropTypes.func
 };
 
 BlogFilter.defaultProps = {
@@ -186,4 +190,5 @@ BlogFilter.defaultProps = {
   setFilter: () => {},
   blogCategories: [],
   authors: [],
+  setDateRanges: () => { },
 };

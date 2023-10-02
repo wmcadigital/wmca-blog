@@ -41,6 +41,7 @@ const BlogArticles = () => {
     topics: [],
     author: [],
     dates: null,
+    dateRangeSet: undefined
   });
 
   let [searchParams, setSearchParams] = useSearchParams();
@@ -59,10 +60,7 @@ const BlogArticles = () => {
     const response = await getBlogArticles();
     setLoading(false);
     const returnedBlogArticles = response?.items ?? [];
-<<<<<<< HEAD
-=======
-    // console.log(returnedBlogArticles);
->>>>>>> release
+
     setReturnedBlogArticles(returnedBlogArticles);
     setBlogCategories(getBlogArticleTopics(returnedBlogArticles));
     setAuthors(getAuthors(returnedBlogArticles));
@@ -76,14 +74,18 @@ const BlogArticles = () => {
   const sort = queryParams.get('sort');
   const author = queryParams.get('author');
   const topics = queryParams.get('topics');
-  
+
+  const setDateRanges = (newRanges) => {
+
+    setFilter((prevState) => ({
+      ...prevState,
+      dateRangeSet: newRanges,
+    }));
+  };
+
   useEffect(() => {
     getBlogData();
 
-<<<<<<< HEAD
-
-=======
->>>>>>> release
     if (dates) {
       setFilter((prevState) => ({
         ...prevState,
@@ -125,7 +127,6 @@ const BlogArticles = () => {
     }
 
     if (filter.topics.length) {
-
       filteredBlogArticles = filterBlogArticlesByTopic(
         filteredBlogArticles,
         filter.topics
@@ -140,10 +141,18 @@ const BlogArticles = () => {
     }
 
     if (filter.dates) {
-      filteredBlogArticles = filterBlogArticlesByDate(
+      filter.dates !== 'updatedByRange' ? filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
         filter.dates
-      );
+      ) : null
+    }
+
+    if (filter.dateRangeSet && filter.dates === 'updatedByRange') {
+      filteredBlogArticles = filterBlogArticlesByDate(
+        filteredBlogArticles,
+        filter.dates, 
+        filter.dateRangeSet
+      )
     }
     
     // sort values
@@ -290,6 +299,7 @@ const BlogArticles = () => {
                 noOfResults={noOfResults}
                 blogCategories={blogCategories}
                 authors={authors}
+                setDateRanges={setDateRanges}
               />
             </aside>
           </div>

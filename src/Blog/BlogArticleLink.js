@@ -19,18 +19,16 @@ const BlogArticleLink = ({
   const handleAuthor = (event, item) => {
     event.preventDefault();
 
-    let selectedAuthorWithNewAuthor = [...filter.author, item]
-    const isInFilterAuthorArray = filter.author.includes(item);
-    isInFilterAuthorArray ? '' : setFilter({ ...filter, author: selectedAuthorWithNewAuthor });
+    let selectedAuthor = [item]
+    setFilter({ ...filter, author: selectedAuthor });
 
   };
 
   const handleTopics = (event, item) => {
     event.preventDefault();
 
-    let selectedTopicsWithNewTopic = [...filter.topics, item]
-    const isInFilterTopicsArray = filter.topics.includes(item);
-    isInFilterTopicsArray ? '' : setFilter({ ...filter, topics: selectedTopicsWithNewTopic });
+    let selectedTopic = [item]
+    setFilter({ ...filter, topics: selectedTopic });
   };
 
   return (

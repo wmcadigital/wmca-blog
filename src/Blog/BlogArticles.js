@@ -215,8 +215,6 @@ const BlogArticles = () => {
 
   const noOfResults = flatten(blogArticles).length;
 
-  // console.log(blogArticles);
-
   return (
     <div className="wmcads-container">
       <main className="wmcads-container--main">
@@ -237,7 +235,29 @@ const BlogArticles = () => {
                 <p>
                   Found <b>{noOfResults}</b> matching results
                 </p>
+                
               )}
+
+              {noOfResults === 0 && (
+                <div className="wmcads-msg-summary wmcads-msg-summary--warning ">
+                  <div className="wmcads-msg-summary__header">
+                    <svg className="wmcads-msg-summary__icon">
+                      <use xlinkHref="#wmcads-general-warning-circle" href="#wmcads-general-warning-circle"></use>
+                    </svg>
+                    <h3 className="wmcads-msg-summary__title">There are no matching results</h3>
+                  </div>
+                  <div className="wmcads-msg-summary__info">
+                    <p>Improve your serach results by:</p>
+                    <ul className="wmcads-unordered-list">
+                      <li>Removing filters</li>
+                      <li>Double-checking your spelling</li>
+                      <li>Using fewer keywords</li>
+                      <li>Searching for something less specific</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+
               {blogArticles.length ? (
                 <>
                   {blogArticles[page]?.map((blogArticle, index) => (
@@ -274,7 +294,6 @@ const BlogArticles = () => {
                 <SortControl
                   filter={filter}
                   setFilter={setFilter}
-                  // sortChangedCallback={(sortOrder) => setSortOrder(sortOrder)}
                   defaultVal={sortDefault}
                 />
               </DelayedComponent>

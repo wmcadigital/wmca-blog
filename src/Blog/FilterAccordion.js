@@ -66,6 +66,7 @@ const FilterAccordion = ({
   const [accordionOpen, setAccordionOpen] = useState(true);
   const [dateAfter, setDateAfter] = useState({ day: '', month: '', year: '' });
   const [dateBefore, setDateBefore] = useState({ day: '', month: '', year: '' });
+  const [errors, setErrors] = useState(undefined);
 
   const toggleAccordion = () => setAccordionOpen(!accordionOpen);
 
@@ -117,14 +118,13 @@ const FilterAccordion = ({
       };
 
       if (isDate1BeforeDate2) {
+        setErrors(undefined)
         setDateRanges(dateRanges)
       } else {
-        console.log('date added before must be greater than date added after')
+        setErrors('Date to must be greater than date from')
       }
     }
   }, [dateAfter, dateBefore]);
-  
-
 
   return (
     <div
@@ -182,20 +182,22 @@ const FilterAccordion = ({
           </div>
         </fieldset>
         {selectedDate === 'updatedByRange' && 
-            <>
-              <FilterByDateRange
-                name="AFTER"
-                title='Added after'
-                handleDateChange={receivedDateChange}
-                value={dateAfter}
-              />
-              <FilterByDateRange
-                name="BEFORE"
-                title='Added before' 
-                handleDateChange={receivedDateChange}
-                value={dateBefore}
-              />
-            </>
+          <>
+            <FilterByDateRange
+              name="AFTER"
+              title='Date From'
+              handleDateChange={receivedDateChange}
+              value={dateAfter}
+            />
+            <FilterByDateRange
+              name="BEFORE"
+              title='Date To' 
+              handleDateChange={receivedDateChange}
+              value={dateBefore}
+              errors={errors}
+          
+            />
+          </>
           }
       </div>
     </div>

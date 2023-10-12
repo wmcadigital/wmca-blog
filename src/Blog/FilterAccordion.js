@@ -61,12 +61,17 @@ const FilterAccordion = ({
   optionSelected,
   optionSelectedFn,
   selectedDate,
-  setDateRanges
+  setDateRanges,
+  resets,
 }) => {
   const [accordionOpen, setAccordionOpen] = useState(true);
+
   const [dateAfter, setDateAfter] = useState({ day: '', month: '', year: '' });
   const [dateBefore, setDateBefore] = useState({ day: '', month: '', year: '' });
-  const [errors, setErrors] = useState(undefined);
+  const [afterErrors, setAfterErrors] = useState(undefined);
+  const [beforeErrors, setBeforeErrors] = useState(undefined);
+  const [isDate1BeforeDate2, setIsDate1BeforeDate2] = useState(undefined);
+  const [dateRanges, setDateRanges2] = useState(undefined);
 
   const toggleAccordion = () => setAccordionOpen(!accordionOpen);
 
@@ -86,6 +91,50 @@ const FilterAccordion = ({
       } 
     }
   }
+
+  const otherThanUndefined = (obj) => {
+    return Object.values(obj).some(value => value !== undefined);
+  }
+
+
+  const validationMonthDay = (updates, date, type) => {
+
+    let otherError = false;
+
+    if (date.day === '') {
+      updates.day = undefined;
+    } else if (
+      date.day < 1 ||
+      date.day > new Date(date.year, date.month, 0).getDate()) {
+      otherError = true
+      updates.day = 'Day is invalid';
+    } else {
+      updates.day = undefined;
+    }
+
+    if (date.month === '') {
+      updates.month = undefined;
+    } else if (date.month < 1 || date.month > 12) {
+      otherError = true
+      updates.month = 'Month is invalid';
+    } else {
+      updates.month = undefined;
+    }
+
+    if (type === 'before' && isDate1BeforeDate2) {
+      updates.ToosGreaterThanFrom = undefined;
+
+    } else if (type === 'before' && isDate1BeforeDate2 === false) {
+      updates.ToosGreaterThanFrom = 'Date to must be greater than date from';
+
+    }
+
+    if (otherError) {
+      updates.ToosGreaterThanFrom = undefined
+    }
+
+    return updates
+  }
   
   useEffect(() => {
 
@@ -102,29 +151,45 @@ const FilterAccordion = ({
 
     // If false no fields are empty && yearly charachters are 4 
     if (!isAnyValueEmpty() && yearInputContains4characters()) {
-      
       const afterDateString = `${dateAfter.year}/${dateAfter.month}/${dateAfter.day}`
-      const afterDateObject = new Date(afterDateString)
-
       const beforeDateString = `${dateBefore.year}/${dateBefore.month}/${dateBefore.day}`
-      const beforeDateObject = new Date(beforeDateString)
 
       // before should be greater than after
-      const isDate1BeforeDate2 = beforeDateObject > afterDateObject;
+      setIsDate1BeforeDate2(beforeDateString > afterDateString);
+      setDateRanges2({ from: afterDateString, to: beforeDateString });
 
-      const dateRanges = {
-        from: afterDateObject,
-        to: beforeDateObject
-      };
-
-      if (isDate1BeforeDate2) {
-        setErrors(undefined)
-        setDateRanges(dateRanges)
-      } else {
-        setErrors('Date to must be greater than date from')
-      }
+      const updatedBeforeErrorsSet = validationMonthDay({ ...beforeErrors }, dateBefore, 'before')
+      const updatedAfterErrorsSet = validationMonthDay({ ...afterErrors }, dateAfter, 'after')
+  
+      setBeforeErrors(updatedBeforeErrorsSet);
+      setAfterErrors(updatedAfterErrorsSet);  
     }
-  }, [dateAfter, dateBefore]);
+  }, [dateAfter, dateBefore, isDate1BeforeDate2]);
+
+  useEffect(() => {
+
+  }, [])
+  
+  
+  useEffect(() => {
+    if (!otherThanUndefined({ ...afterErrors }) && !otherThanUndefined({ ...beforeErrors })) {
+        setDateRanges(dateRanges);
+    }
+
+  }, [dateRanges])
+
+
+  useEffect(() => { 
+    if (resets) {
+      setDateAfter({ day: '', month: '', year: '' })
+      setDateBefore({ day: '', month: '', year: '' })
+      setAfterErrors(undefined)
+      setBeforeErrors(undefined)
+      setDateRanges(undefined)
+    }
+
+  },[resets])
+
 
   return (
     <div
@@ -188,17 +253,17 @@ const FilterAccordion = ({
               title='Date From'
               handleDateChange={receivedDateChange}
               value={dateAfter}
+              errors={afterErrors}
             />
             <FilterByDateRange
               name="BEFORE"
               title='Date To' 
               handleDateChange={receivedDateChange}
               value={dateBefore}
-              errors={errors}
-          
+              errors={beforeErrors}
             />
           </>
-          }
+        }
       </div>
     </div>
   );
@@ -214,6 +279,7 @@ FilterAccordion.propTypes = {
   optionSelectedFn: PropTypes.func,
   selectedDate: PropTypes.string,
   setDateRanges: PropTypes.func,
+  resets: PropTypes.bool
 };
 
 FilterAccordion.defaultProps = {
@@ -224,3 +290,5 @@ FilterAccordion.defaultProps = {
 };
 
 export default FilterAccordion;
+
+

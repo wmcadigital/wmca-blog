@@ -26,8 +26,8 @@ const filterBlogArticlesByDate = (blogArticles, dateFilter, dateRangeSet = undef
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   } 
   
-  const fromDate = formatDate(dateRangeSet?.from)
-  const toDate = formatDate(dateRangeSet?.to)
+  const fromDate = formatDate(new Date(dateRangeSet?.from))
+  const toDate = formatDate(new Date(dateRangeSet?.to))
 
   if (dateFilter === "updatedLastWeek") {
     return blogArticles.filter((article) => article.properties.date >= dateWeekAgo);

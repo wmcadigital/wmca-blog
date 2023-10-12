@@ -6,6 +6,7 @@ import { getSearchParam } from "../helpers/urlSearchParams";
 
 import filterBlogArticlesByDate from "../helpers/filterBlogArticlesByDate";
 
+import { useEffect } from "react";
 
 if (getSearchParam('author')) {
   console.log('url has authors');
@@ -22,6 +23,14 @@ const BlogFilter = ({
   authors,
   setDateRanges
 }) => {
+
+  useEffect(() => {
+    if (filter.resets) {
+      console.log('resets')
+      setFilter({ sort: "", topics: [], author: [], dates: null, dateRangeSet: undefined, resets: false })
+    }
+
+  }, [filter]); 
 
   const dates = [
     { value: "updatedLastWeek", label: "Posted in the last week", disabled: !!filterBlogArticlesByDate(returnedBlogArticles, 'updatedLastWeek').length },
@@ -124,6 +133,7 @@ const BlogFilter = ({
         title="Date"
         options={dates}
         selectOne
+        resets={filter.resets}
         selectedDate={filter.dates}
         optionSelected={(optionValue) => {
           setFilter({ ...filter, dates: optionValue });
@@ -144,7 +154,7 @@ const BlogFilter = ({
       <a href="#"
         className="wmcads-search-filter__clear-all wmcads-hide-mobile"
         onClick={() =>
-          setFilter({ sort: "", topics: [], author: [], dates: null, dateRangeSet: undefined })
+          setFilter({ ...filter, resets: true, dateRangeSet: undefined })
         }
       >
         <svg

@@ -41,7 +41,8 @@ const BlogArticles = () => {
     topics: [],
     author: [],
     dates: null,
-    dateRangeSet: undefined
+    dateRangeSet: undefined,
+    resets: false
   });
 
   let [searchParams, setSearchParams] = useSearchParams();
@@ -49,11 +50,14 @@ const BlogArticles = () => {
   let filterQueryString = Object.keys(filter).map(key => {
     if (Array.isArray(filter[key])) {
       return key + '=' + filter[key].join('/');
+    } else if (typeof filter[key] === "object") {
+      return key + '=' + JSON.stringify(filter[key])
     } else {
       return key + '=' + filter[key];
     }
   }).join('&');
 
+  // console.log(filterQueryString, 'here')
 
   const getBlogData = async () => {
     setLoading(true);
@@ -73,13 +77,11 @@ const BlogArticles = () => {
   const sort = queryParams.get('sort');
   const author = queryParams.get('author');
   const topics = queryParams.get('topics');
+  // const dateRangeSet = queryParams.get('dateRangeSet');
 
   const setDateRanges = (newRanges) => {
-
-    setFilter((prevState) => ({
-      ...prevState,
-      dateRangeSet: newRanges,
-    }));
+    console.log(newRanges, 'ranges')
+    setFilter({...filter, dateRangeSet: newRanges});
   };
 
   useEffect(() => {
@@ -146,7 +148,7 @@ const BlogArticles = () => {
       ) : null
     }
 
-    if (filter.dateRangeSet && filter.dates === 'updatedByRange') {
+    if (filter.dateRangeSet?.to > filter.dateRangeSet?.from && filter.dates === 'updatedByRange') {
       filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
         filter.dates, 

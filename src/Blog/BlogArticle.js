@@ -8,7 +8,6 @@ import formatDate from "../helpers/formatDate";
 
 export async function loader({ params }) {
   const article = await getBlogArticle(params.articleId);
-  console.log(article);
   return { article };
 }
 

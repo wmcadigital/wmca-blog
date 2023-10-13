@@ -41,6 +41,8 @@ const BlogArticles = () => {
     topics: [],
     author: [],
     dates: null,
+    dateRangeSet: undefined,
+    resets: false
   });
 
   let [searchParams, setSearchParams] = useSearchParams();
@@ -48,11 +50,14 @@ const BlogArticles = () => {
   let filterQueryString = Object.keys(filter).map(key => {
     if (Array.isArray(filter[key])) {
       return key + '=' + filter[key].join('/');
+    } else if (typeof filter[key] === "object") {
+      return key + '=' + JSON.stringify(filter[key])
     } else {
       return key + '=' + filter[key];
     }
   }).join('&');
 
+  // console.log(filterQueryString, 'here')
 
   const getBlogData = async () => {
     setLoading(true);
@@ -72,7 +77,13 @@ const BlogArticles = () => {
   const sort = queryParams.get('sort');
   const author = queryParams.get('author');
   const topics = queryParams.get('topics');
-  
+  // const dateRangeSet = queryParams.get('dateRangeSet');
+
+  const setDateRanges = (newRanges) => {
+    console.log(newRanges, 'ranges')
+    setFilter({...filter, dateRangeSet: newRanges});
+  };
+
   useEffect(() => {
     getBlogData();
 
@@ -117,7 +128,6 @@ const BlogArticles = () => {
     }
 
     if (filter.topics.length) {
-
       filteredBlogArticles = filterBlogArticlesByTopic(
         filteredBlogArticles,
         filter.topics
@@ -132,10 +142,18 @@ const BlogArticles = () => {
     }
 
     if (filter.dates) {
-      filteredBlogArticles = filterBlogArticlesByDate(
+      filter.dates !== 'updatedByRange' ? filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
         filter.dates
-      );
+      ) : null
+    }
+
+    if (filter.dateRangeSet?.to > filter.dateRangeSet?.from && filter.dates === 'updatedByRange') {
+      filteredBlogArticles = filterBlogArticlesByDate(
+        filteredBlogArticles,
+        filter.dates, 
+        filter.dateRangeSet
+      )
     }
     
     // sort values
@@ -199,8 +217,6 @@ const BlogArticles = () => {
 
   const noOfResults = flatten(blogArticles).length;
 
-  // console.log(blogArticles);
-
   return (
     <div className="wmcads-container">
       <main className="wmcads-container--main">
@@ -221,7 +237,29 @@ const BlogArticles = () => {
                 <p>
                   Found <b>{noOfResults}</b> matching results
                 </p>
+                
               )}
+
+              {noOfResults === 0 && (
+                <div className="wmcads-msg-summary wmcads-msg-summary--warning ">
+                  <div className="wmcads-msg-summary__header">
+                    <svg className="wmcads-msg-summary__icon">
+                      <use xlinkHref="#wmcads-general-warning-circle" href="#wmcads-general-warning-circle"></use>
+                    </svg>
+                    <h3 className="wmcads-msg-summary__title">There are no matching results</h3>
+                  </div>
+                  <div className="wmcads-msg-summary__info">
+                    <p>Improve your serach results by:</p>
+                    <ul className="wmcads-unordered-list">
+                      <li>Removing filters</li>
+                      <li>Double-checking your spelling</li>
+                      <li>Using fewer keywords</li>
+                      <li>Searching for something less specific</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+
               {blogArticles.length ? (
                 <>
                   {blogArticles[page]?.map((blogArticle, index) => (
@@ -258,7 +296,6 @@ const BlogArticles = () => {
                 <SortControl
                   filter={filter}
                   setFilter={setFilter}
-                  // sortChangedCallback={(sortOrder) => setSortOrder(sortOrder)}
                   defaultVal={sortDefault}
                 />
               </DelayedComponent>
@@ -282,6 +319,7 @@ const BlogArticles = () => {
                 noOfResults={noOfResults}
                 blogCategories={blogCategories}
                 authors={authors}
+                setDateRanges={setDateRanges}
               />
             </aside>
           </div>

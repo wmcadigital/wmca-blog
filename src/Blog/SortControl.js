@@ -33,7 +33,7 @@ SortControl.propTypes = {
 };
 
 SortControl.defaultProps = {
-  filter: { sort: "", topics: [], author: [], dates: undefined },
+  filter: { sort: "", topics: [], author: [], dates: null },
   setFilter: () => {},
   sortChangedCallback: () => {},
   defaultVal: "q",

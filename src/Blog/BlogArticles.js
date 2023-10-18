@@ -79,7 +79,6 @@ const BlogArticles = () => {
   const topics = queryParams.get('topics');
   const dateRangeSet = queryParams.get('dateRangeSet');
 
-
   const setDateRanges = (newRanges) => {
     setFilter({...filter, dateRangeSet: newRanges});
   };

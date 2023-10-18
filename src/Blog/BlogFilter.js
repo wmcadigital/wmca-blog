@@ -26,11 +26,10 @@ const BlogFilter = ({
 
   useEffect(() => {
     if (filter.resets) {
-      console.log('resets')
-      setFilter({ sort: "", topics: [], author: [], dates: null, dateRangeSet: undefined, resets: false })
+      setFilter({ sort: "", topics: [], author: [], dates: 'null', dateRangeSet: undefined, resets: false })
     }
 
-  }, [filter]); 
+  }, [filter.resets]); 
 
   const dates = [
     { value: "updatedLastWeek", label: "Posted in the last week", disabled: !!filterBlogArticlesByDate(returnedBlogArticles, 'updatedLastWeek').length },
@@ -55,7 +54,7 @@ const BlogFilter = ({
           href="#"
           className="wmcads-search-filter__clear-all wmcads-hide-desktop"
           onClick={() =>
-            setFilter({ sort: "", topics: [], author: [], dates: undefined })
+            setFilter({ sort: "", topics: [], author: [], dates: 'null' })
           }
         >
           Clear all
@@ -65,7 +64,7 @@ const BlogFilter = ({
           id="hide_filter_btn"
           className="wmcads-search-filter__close"
           onClick={() =>
-            setFilter({ sort: "", topics: [], author: [], dates: undefined })
+            setFilter({ sort: "", topics: [], author: [], dates: 'null' })
           }
         >
           <svg>
@@ -129,12 +128,12 @@ const BlogFilter = ({
           filter.author.includes(value) ? true : undefined
         }
       />
+      {/* pass the whole filter object into the filter accordion */}
       <FilterAccordion
         title="Date"
         options={dates}
         selectOne
-        resets={filter.resets}
-        selectedDate={filter.dates}
+        filter={filter}
         optionSelected={(optionValue) => {
           setFilter({ ...filter, dates: optionValue });
         }}
@@ -150,11 +149,11 @@ const BlogFilter = ({
           onClick={() => setShowFilterOverrideMobile(false)}
         >{`Show ${noOfResults} results`}</button>
       </div>
-      {filter.topics.length != 0 || filter.author.length != 0 || filter.dates != undefined ? (
+      {filter.topics.length != 0 || filter.author.length != 0 || filter.dates != null ? (
       <a href="#"
         className="wmcads-search-filter__clear-all wmcads-hide-mobile"
-        onClick={() =>
-          setFilter({ ...filter, resets: true, dateRangeSet: undefined })
+        onClick={() => 
+          setFilter({ ...filter, resets: true})
         }
       >
         <svg
@@ -194,7 +193,7 @@ BlogFilter.propTypes = {
 
 BlogFilter.defaultProps = {
   returnedBlogArticles: [],
-  filter: { sort: "", topics: [], author: [], dates: undefined },
+  filter: { sort: "", topics: [], author: [], dates: null },
   noOfResults: 0,
   setShowFilterOverrideMobile: () => {},
   setFilter: () => {},

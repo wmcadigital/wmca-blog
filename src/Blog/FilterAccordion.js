@@ -60,18 +60,17 @@ const FilterAccordion = ({
   selectOne,
   optionSelected,
   optionSelectedFn,
-  selectedDate,
   setDateRanges,
-  resets,
+  filter
 }) => {
   const [accordionOpen, setAccordionOpen] = useState(true);
-
   const [dateAfter, setDateAfter] = useState({ day: '', month: '', year: '' });
   const [dateBefore, setDateBefore] = useState({ day: '', month: '', year: '' });
   const [afterErrors, setAfterErrors] = useState(undefined);
   const [beforeErrors, setBeforeErrors] = useState(undefined);
   const [isDate1BeforeDate2, setIsDate1BeforeDate2] = useState(undefined);
   const [dateRanges, setDateRanges2] = useState(undefined);
+  const [urlset, setUrlSet] = useState(false);
 
   const toggleAccordion = () => setAccordionOpen(!accordionOpen);
 
@@ -95,7 +94,6 @@ const FilterAccordion = ({
   const otherThanUndefined = (obj) => {
     return Object.values(obj).some(value => value !== undefined);
   }
-
 
   const validationMonthDay = (updates, date, type) => {
 
@@ -123,10 +121,8 @@ const FilterAccordion = ({
 
     if (type === 'before' && isDate1BeforeDate2) {
       updates.ToosGreaterThanFrom = undefined;
-
     } else if (type === 'before' && isDate1BeforeDate2 === false) {
       updates.ToosGreaterThanFrom = 'Date to must be greater than date from';
-
     }
 
     if (otherError) {
@@ -135,7 +131,22 @@ const FilterAccordion = ({
 
     return updates
   }
-  
+
+  const setDateValuesFromUrl = () => {
+    const to = filter?.dateRangeSet?.to.split('/');
+    if (to?.length === 3) {
+      const [year, month, day] = to;
+      setDateBefore({ day, month, year });
+    }
+
+    const from = filter?.dateRangeSet?.from.split('/');
+    if (from?.length === 3) {
+      const [year, month, day] = from;
+      setDateAfter({ day, month, year });
+    }
+  }
+
+
   useEffect(() => {
 
     const updatedDateAfter = { ...dateAfter };
@@ -146,7 +157,7 @@ const FilterAccordion = ({
     };
 
     const yearInputContains4characters = () => {
-      return updatedDateAfter.year.length === 4 && updatedDateBefore.year.length === 4 
+      return updatedDateAfter.year.length === 4 && updatedDateBefore.year.length === 4
     }
 
     // If false no fields are empty && yearly charachters are 4 
@@ -157,6 +168,7 @@ const FilterAccordion = ({
       // before should be greater than after
       setIsDate1BeforeDate2(beforeDateString > afterDateString);
       setDateRanges2({ from: afterDateString, to: beforeDateString });
+
 
       const updatedBeforeErrorsSet = validationMonthDay({ ...beforeErrors }, dateBefore, 'before')
       const updatedAfterErrorsSet = validationMonthDay({ ...afterErrors }, dateAfter, 'after')
@@ -172,15 +184,18 @@ const FilterAccordion = ({
   
   
   useEffect(() => {
-    if (!otherThanUndefined({ ...afterErrors }) && !otherThanUndefined({ ...beforeErrors })) {
+    if (!otherThanUndefined({ ...afterErrors }) && !otherThanUndefined({ ...beforeErrors }) && isDate1BeforeDate2) {
         setDateRanges(dateRanges);
     }
-
   }, [dateRanges])
 
-
   useEffect(() => { 
-    if (resets) {
+    if (filter?.dateRangeSet && !urlset) {
+      setDateValuesFromUrl()
+      setUrlSet(true)
+    }
+
+    if (filter?.resets) {
       setDateAfter({ day: '', month: '', year: '' })
       setDateBefore({ day: '', month: '', year: '' })
       setAfterErrors(undefined)
@@ -188,7 +203,7 @@ const FilterAccordion = ({
       setDateRanges(undefined)
     }
 
-  },[resets])
+  }, [filter?.resets, filter?.dateRangeSet])
 
 
   return (
@@ -246,7 +261,7 @@ const FilterAccordion = ({
             )}
           </div>
         </fieldset>
-        {selectedDate === 'updatedByRange' && 
+        {filter?.dates === 'updatedByRange' && 
           <>
             <FilterByDateRange
               name="AFTER"
@@ -277,9 +292,13 @@ FilterAccordion.propTypes = {
   selectOne: PropTypes.bool,
   optionSelected: PropTypes.func,
   optionSelectedFn: PropTypes.func,
-  selectedDate: PropTypes.string,
   setDateRanges: PropTypes.func,
-  resets: PropTypes.bool
+  filter: PropTypes.shape({
+    // You can change the PropTypes type based on your specific needs, Add other PropTypes for other properties in the filter object if necessary
+    resets: PropTypes.bool,
+    dates: PropTypes.string,
+    dateRangeSet: PropTypes.object,
+  })
 };
 
 FilterAccordion.defaultProps = {

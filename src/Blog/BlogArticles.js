@@ -77,15 +77,20 @@ const BlogArticles = () => {
   const sort = queryParams.get('sort');
   const author = queryParams.get('author');
   const topics = queryParams.get('topics');
-  // const dateRangeSet = queryParams.get('dateRangeSet');
+  const dateRangeSet = queryParams.get('dateRangeSet');
 
   const setDateRanges = (newRanges) => {
-    console.log(newRanges, 'ranges')
     setFilter({...filter, dateRangeSet: newRanges});
   };
 
   useEffect(() => {
     getBlogData();
+    
+    if (dateRangeSet !== 'undefined' && dateRangeSet !== null) {
+      if (filter.dateRangeSet === undefined) {
+        setFilter({ ...filter, dateRangeSet: JSON.parse(dateRangeSet) });
+      }
+    }
 
     if (dates) {
       setFilter((prevState) => ({
@@ -115,7 +120,7 @@ const BlogArticles = () => {
       }));
     }
 
-  }, [author, dates, sort, topics]);
+  }, [author, dates, sort, topics, dateRangeSet]);
 
   useEffect(() => {
     let filteredBlogArticles = returnedBlogArticles;
@@ -145,10 +150,10 @@ const BlogArticles = () => {
       filter.dates !== 'updatedByRange' ? filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
         filter.dates
-      ) : null
-    }
-
-    if (filter.dateRangeSet?.to > filter.dateRangeSet?.from && filter.dates === 'updatedByRange') {
+        ) : null
+      }
+      
+    if (filter.dateRangeSet && filter.dates === 'updatedByRange') {
       filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
         filter.dates, 
@@ -188,7 +193,6 @@ const BlogArticles = () => {
 
     // topic values
     if (filter.topics.length !== 0 || filter.author.length !== 0 || filter.dates !== null) {
-
       // setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
       setSearchParams(filterQueryString);
     } else {
@@ -196,8 +200,7 @@ const BlogArticles = () => {
     }
 
   }, [filter, filterQueryString, returnedBlogArticles, searchButtonClicked, searchParams, searchTerm, setSearchParams, sortDefault, sortOrder]);
-
-
+ 
 
   const authorParam = () => {
     console.log('url has authors test');

@@ -170,6 +170,7 @@ const FilterAccordion = ({
       setIsDate1BeforeDate2(beforeDateString > afterDateString);
       setDateRanges2({ from: afterDateString, to: beforeDateString });
 
+
       const updatedBeforeErrorsSet = validationMonthDay({ ...beforeErrors }, dateBefore, 'before')
       const updatedAfterErrorsSet = validationMonthDay({ ...afterErrors }, dateAfter, 'after')
   

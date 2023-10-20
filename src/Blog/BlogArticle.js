@@ -1,4 +1,4 @@
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, Link } from "react-router-dom";
 import getBlogArticle from "../api/getBlogArticle";
 import ScrollToTop from "../helpers/ScrollToTop";
 
@@ -30,9 +30,9 @@ const BlogArticle = () => {
           <p className="wmcads-search-result__date">
             {article.properties.author.map(function (item, index) {
               return (
-                <a key={`demo_snap_${index}`}>
+                <Link to={`/?author=${item.name}`} key={`demo_snap_${index}`}>
                   {(index ? ", " : "") + item.name}
-                </a>
+                </Link>
               );
             })}
             ,{" "}
@@ -42,7 +42,7 @@ const BlogArticle = () => {
             -{" "}
             {article.properties.tags.map(function (item, index) {
               return (
-                <a key={`demo_snap_${index}`}>{(index ? ", " : "") + item}</a>
+                <Link to={`/?topics=${item}`} key={`demo_snap_${index}`}>{(index ? ", " : "") + item}here</Link>
               );
             })}
           </p>

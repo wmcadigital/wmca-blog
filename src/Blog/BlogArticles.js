@@ -59,13 +59,20 @@ const BlogArticles = () => {
 
   // console.log(filterQueryString, 'here')
 
-  const getBlogData = async () => {
+  const getBlogData = async (windowTopics) => {
     setLoading(true);
     const response = await getBlogArticles();
     setLoading(false);
     const returnedBlogArticles = response?.items ?? [];
     setReturnedBlogArticles(returnedBlogArticles);
-    setBlogCategories(getBlogArticleTopics(returnedBlogArticles));
+
+    // setBlogCategories(getBlogArticleTopics(returnedBlogArticles));
+    setBlogCategories(windowTopics);
+    console.log(windowTopics, 'windows topics')
+
+    console.log(getBlogArticleTopics(returnedBlogArticles), 'blog cats')
+
+
     setAuthors(getAuthors(returnedBlogArticles));
     setBlogArticles(chunk(returnedBlogArticles, 5));
   };
@@ -83,8 +90,20 @@ const BlogArticles = () => {
     setFilter({...filter, dateRangeSet: newRanges});
   };
 
+
   useEffect(() => {
-    getBlogData();
+    
+    const checkIfPropertyAdded = () => {
+      if ('setTopics' in window) {
+        getBlogData(window.setTopics);
+        // console.log(window.setTopics, 'property has been added 2');
+        clearInterval(intervalId);
+      }
+    };
+
+    // Run the check at regular intervals (e.g., every 1 second)
+    const intervalId = setInterval(checkIfPropertyAdded, 1000);
+
     
     if (dateRangeSet !== 'undefined' && dateRangeSet !== null) {
       if (filter.dateRangeSet === undefined) {
@@ -119,6 +138,10 @@ const BlogArticles = () => {
         author: author.split('/'),
       }));
     }
+
+    return () => {
+      clearInterval(intervalId);
+    };
 
   }, [author, dates, sort, topics, dateRangeSet]);
 

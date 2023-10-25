@@ -132,6 +132,7 @@ const FilterAccordion = ({
     return updates
   }
 
+  // Method get the date ranges from the URL and splits the string values back into the required object type before setting the local states
   const setDateValuesFromUrl = () => {
     const to = filter?.dateRangeSet?.to.split('/');
     if (to?.length === 3) {
@@ -184,17 +185,21 @@ const FilterAccordion = ({
   
   
   useEffect(() => {
+    // Here we check the the dates are required and valid before we filter the articles 
     if (!otherThanUndefined({ ...afterErrors }) && !otherThanUndefined({ ...beforeErrors }) && isDate1BeforeDate2) {
         setDateRanges(dateRanges);
     }
   }, [dateRanges])
 
   useEffect(() => { 
+
+    //Here is triggered when date ranges have been passed in via the URL
     if (filter?.dateRangeSet && !urlset) {
       setDateValuesFromUrl()
       setUrlSet(true)
     }
 
+    // When clearing the filters we reset everything here related to the date range 
     if (filter?.resets) {
       setDateAfter({ day: '', month: '', year: '' })
       setDateBefore({ day: '', month: '', year: '' })

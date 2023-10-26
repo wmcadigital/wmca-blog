@@ -225,7 +225,6 @@ const BlogArticles = () => {
       <main className="wmcads-container--main">
         <div className="template-search">
           <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-p-r-xl wmcads-m-t-lg wmcads-m-b-lg">
-            <h1>Blog</h1>
             <Search
               placeholder="Blog search..."
               changeCallback={setSearchTerm}

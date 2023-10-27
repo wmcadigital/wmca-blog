@@ -745,8 +745,8 @@ let parsedResponse = {
 
 
 const getBlogArticles = async () => {
-  const response = await fetch(getBlogEndPoint);
-  const parsedResponse = await response.json();
+  // const response = await fetch(getBlogEndPoint);
+  // const parsedResponse = await response.json();
 
   return parsedResponse;
 };

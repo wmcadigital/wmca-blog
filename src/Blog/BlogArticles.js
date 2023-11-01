@@ -96,7 +96,9 @@ const BlogArticles = () => {
 
   useEffect(() => {
     getBlogData();
+
     // const intervalId = setInterval(getWindowTopics, 1000);
+    
     if (dateRangeSet !== 'undefined' && dateRangeSet !== null) {
       if (filter.dateRangeSet === undefined) {
         setFilter({ ...filter, dateRangeSet: JSON.parse(dateRangeSet) });
@@ -230,6 +232,7 @@ const BlogArticles = () => {
   };
 
   const noOfResults = flatten(blogArticles).length;
+  console.log(noOfResults, '?????????')
 
   return (
     <div className="wmcads-container">
@@ -254,7 +257,7 @@ const BlogArticles = () => {
                 
               )}
 
-              {noOfResults === 0 && (
+              {noOfResults === 0 && !loading && (
                 <div className="wmcads-msg-summary wmcads-msg-summary--warning ">
                   <div className="wmcads-msg-summary__header">
                     <svg className="wmcads-msg-summary__icon">

@@ -28,6 +28,7 @@ const BlogArticles = () => {
   const [blogArticles, setBlogArticles] = useState([]);
   const [blogCategories, setBlogCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
+  const [windowTopics, setWindowTopics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState(null);
@@ -63,9 +64,19 @@ const BlogArticles = () => {
     setLoading(true);
     const response = await getBlogArticles();
     setLoading(false);
-    const returnedBlogArticles = response?.items ?? [];
+    let returnedBlogArticles = response?.items ?? [];
+
+    let blogTopics = window?.setTopics ?? getBlogArticleTopics(returnedBlogArticles)
+
+    if (typeof blogTopics === 'string') {
+      blogTopics = JSON.parse(blogTopics)
+    }
+
+    setBlogCategories(blogTopics)
+
+    returnedBlogArticles = returnedBlogArticles.filter(props => props.properties.tags.some(tags => blogTopics.includes(tags)));
+
     setReturnedBlogArticles(returnedBlogArticles);
-    setBlogCategories(getBlogArticleTopics(returnedBlogArticles));
     setAuthors(getAuthors(returnedBlogArticles));
     setBlogArticles(chunk(returnedBlogArticles, 5));
   };
@@ -80,12 +91,14 @@ const BlogArticles = () => {
   const dateRangeSet = queryParams.get('dateRangeSet');
 
   const setDateRanges = (newRanges) => {
-    setFilter({...filter, dateRangeSet: newRanges});
+    setFilter({ ...filter, dateRangeSet: newRanges });
   };
 
   useEffect(() => {
     getBlogData();
-    
+
+    // const intervalId = setInterval(getWindowTopics, 1000);
+
     if (dateRangeSet !== 'undefined' && dateRangeSet !== null) {
       if (filter.dateRangeSet === undefined) {
         setFilter({ ...filter, dateRangeSet: JSON.parse(dateRangeSet) });
@@ -98,14 +111,14 @@ const BlogArticles = () => {
         dates: dates === 'null' ? null : dates,
       }));
     }
-    
+
     if (sort) {
       setFilter((prevState) => ({
         ...prevState,
         sort: sort,
       }));
     }
-    
+
     if (topics) {
       setFilter((prevState) => ({
         ...prevState,
@@ -150,21 +163,21 @@ const BlogArticles = () => {
       filter.dates !== 'updatedByRange' ? filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
         filter.dates
-        ) : null
-      }
-      
+      ) : null
+    }
+
     if (filter.dateRangeSet && filter.dates === 'updatedByRange') {
       filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
-        filter.dates, 
+        filter.dates,
         filter.dateRangeSet
       )
     }
-    
+
     // sort values
     const currentParams = Object.fromEntries([...searchParams]);
 
-    if(currentParams.sort == "ascending"){
+    if (currentParams.sort == "ascending") {
       setsortDefault("ascending");
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
     } else if (currentParams.sort == "descending") {
@@ -184,7 +197,7 @@ const BlogArticles = () => {
     } else if (filter.sort === "descending") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles), 5));
       setSearchParams(filterQueryString);
-    }  else if (filter.sort === "name") {
+    } else if (filter.sort === "name") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, "name"), 5));
       setSearchParams(filterQueryString);
     } else {
@@ -199,12 +212,12 @@ const BlogArticles = () => {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
 
-  }, [filter, filterQueryString, returnedBlogArticles, searchButtonClicked, searchParams, searchTerm, setSearchParams, sortDefault, sortOrder]);
- 
+  }, [filter, filterQueryString, returnedBlogArticles, searchButtonClicked, searchParams, searchTerm, setSearchParams, sortDefault, sortOrder, windowTopics]);
+
 
   const authorParam = () => {
     console.log('url has authors test');
-      // filter.author = "Bob qwerty";
+    // filter.author = "Bob qwerty";
   };
 
   if (getSearchParam('author')) {
@@ -219,12 +232,14 @@ const BlogArticles = () => {
   };
 
   const noOfResults = flatten(blogArticles).length;
+  console.log(noOfResults, '?????????')
 
   return (
     <div className="wmcads-container">
       <main className="wmcads-container--main">
         <div className="template-search">
           <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-p-r-xl wmcads-m-t-lg wmcads-m-b-lg">
+            <h1>Blog</h1>
             <Search
               placeholder="Blog search..."
               changeCallback={setSearchTerm}
@@ -239,10 +254,10 @@ const BlogArticles = () => {
                 <p>
                   Found <b>{noOfResults}</b> matching results
                 </p>
-                
+
               )}
 
-              {noOfResults === 0 && (
+              {noOfResults === 0 && !loading && (
                 <div className="wmcads-msg-summary wmcads-msg-summary--warning ">
                   <div className="wmcads-msg-summary__header">
                     <svg className="wmcads-msg-summary__icon">

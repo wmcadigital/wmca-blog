@@ -57,7 +57,7 @@ const BlogArticles = () => {
     }
   }).join('&');
 
-  // console.log(filterQueryString, 'here')
+  console.log(filterQueryString, 'here')
 
   const getBlogData = async () => {
     setLoading(true);

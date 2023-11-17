@@ -28,13 +28,11 @@ const BlogArticles = () => {
   const [blogArticles, setBlogArticles] = useState([]);
   const [blogCategories, setBlogCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
-  const [windowTopics, setWindowTopics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState(null);
   const [searchButtonClicked, setSearchButtonClicked] = useState("tick");
   const [showFilterOverrideMobile, setShowFilterOverrideMobile] = useState(false);
-  const [sortOrder, setSortOrder] = useState(null);
   const [sortDefault, setsortDefault] = useState("");
 
   const [filter, setFilter] = useState({
@@ -58,14 +56,13 @@ const BlogArticles = () => {
     }
   }).join('&');
 
-  // console.log(filterQueryString, 'here')
 
   const getBlogData = async () => {
     setLoading(true);
     const response = await getBlogArticles();
     setLoading(false);
     let returnedBlogArticles = response?.items ?? [];
-
+    
     let blogTopics = window?.setTopics ?? getBlogArticleTopics(returnedBlogArticles)
 
     if (typeof blogTopics === 'string') {
@@ -97,8 +94,6 @@ const BlogArticles = () => {
   useEffect(() => {
     getBlogData();
 
-    // const intervalId = setInterval(getWindowTopics, 1000);
-    
     if (dateRangeSet !== 'undefined' && dateRangeSet !== null) {
       if (filter.dateRangeSet === undefined) {
         setFilter({ ...filter, dateRangeSet: JSON.parse(dateRangeSet) });
@@ -212,7 +207,7 @@ const BlogArticles = () => {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
 
-  }, [filter, filterQueryString, returnedBlogArticles, searchButtonClicked, searchParams, searchTerm, setSearchParams, sortDefault, sortOrder, windowTopics]);
+  }, [filter, filterQueryString, returnedBlogArticles, searchButtonClicked, searchParams, searchTerm, setSearchParams, sortDefault]);
  
 
   const authorParam = () => {
@@ -232,7 +227,6 @@ const BlogArticles = () => {
   };
 
   const noOfResults = flatten(blogArticles).length;
-  console.log(noOfResults, '?????????')
 
   return (
     <div className="wmcads-container">

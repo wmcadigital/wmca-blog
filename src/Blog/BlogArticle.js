@@ -1,10 +1,15 @@
 import { useLoaderData, Link } from "react-router-dom";
 import getBlogArticle from "../api/getBlogArticle";
 import ScrollToTop from "../helpers/ScrollToTop";
-
+import { useState, useEffect } from "react";
 // import BlogBody from "./BlogBody";
 
 import formatDate from "../helpers/formatDate";
+import VideoComponent from './VideoComponent'
+import TextComponent from './TextComponent'
+import ImageComponent from './ImageComponent'
+import SidebarCardComponent from './SidebarCardComponent'
+import AccordionComponent from './AccordionComponent'
 
 export async function loader({ params }) {
   const article = await getBlogArticle(params.articleId);
@@ -12,7 +17,59 @@ export async function loader({ params }) {
 }
 
 const BlogArticle = () => {
+  const [articleContentItems, setArticleContentItems] = useState([]);
+  const [articleSidebarContentItems, setArticleSidebarContentItems] = useState([]);
+  const [articleAccordionBlockItems, setArticleAccordionBlockItems] = useState([]);
   const { article } = useLoaderData();
+
+  const SetContent = (data) => {
+    // console.log(data, 'itemzzz')
+    switch (data.contentType) {
+      case 'videoBlock':
+
+        // console.log(data.properties.youtube, 'videoBlock')
+        return <VideoComponent url={data.properties.youtube} />
+      case 'textboxBlock':
+        return <TextComponent htmlContent={data.properties.textbox.markup} />
+      case 'imageBlock':
+        console.log(data.properties.image)
+        return <ImageComponent imageUrls={data.properties.image} />
+      case 'accordionBlock':
+        // console.log(data, 'accordionBlock')
+        return ('<h1>Video Block</h1>')
+      default:
+        return <h1>Video Block</h1>
+    }
+  }
+
+  useEffect(() => {
+    let accordion = [];
+
+    article?.properties.grid?.items.map((items) => {
+      console.log(items.content.properties?.content.items, 'content')
+
+      items.content.properties?.content.items.map(items => {
+        if (items.content.contentType === "accordionBlock") {
+          accordion.push(items)
+        }
+      })
+
+      setArticleContentItems(items.content.properties.content.items)
+      setArticleSidebarContentItems(items.content.properties?.sidebar?.items)
+    })
+    setArticleAccordionBlockItems(accordion)
+
+  }, [article]);
+
+  const accordionData = [
+    {
+      title: 'Accordion 1',
+      isOpen: false,
+      content: ['Some random subtitle', 'Lorem ipsum dolor...'],
+    },
+    // Add more objects for additional accordion rows
+  ];
+
 
   return (
     <>
@@ -42,7 +99,7 @@ const BlogArticle = () => {
             -{" "}
             {article.properties.tags.map(function (item, index) {
               return (
-                <Link to={`/?topics=${item}`} key={`demo_snap_${index}`}>{(index ? ", " : "") + item}here</Link>
+                <Link to={`/?topics=${item}`} key={`demo_snap_${index}`}>{(index ? ", " : "") + item}</Link>
               );
             })}
           </p>
@@ -95,27 +152,20 @@ const BlogArticle = () => {
                   );
                 }
               })
-            : null}
+              : null
+            }
 
-          {/* <BlogBody
-        key="0"
-        filter="null"
-        setFilter="null"
-        name={blogArticle.name}
-        authors={blogArticle.properties.author}
-        tags={blogArticle.properties.tags}
-        image="No Image"
-        publishDate={blogArticle.createDate}
-        introductionText={blogArticle.properties}
-      /> */}
-
+            {articleContentItems.map((item, index) => {
+              return item.content.contentType !== 'accordionBlock' && <SetContent key={index} {...item.content} />          
+            })}
+            <AccordionComponent data={articleAccordionBlockItems} />
           <hr />
 
           <p>
             Tags:{" "}
             {article.properties.tags.map(function (item, index) {
               return (
-                <a key={`demo_snap_${index}`}>{(index ? ", " : "") + item}</a>
+                <Link to={`/?topics=${item}`} key={`demo_snap_${index}`}>{(index ? ", " : "") + item}</Link>
               );
             })}
           </p>
@@ -170,7 +220,13 @@ const BlogArticle = () => {
               </div>
             );
           })}
-        </div>
+          </div>
+          <aside className="wmcads-col-1 wmcads-col-md-1-3">
+            {articleSidebarContentItems !== undefined && articleSidebarContentItems.map((data, index) => {
+              return <SidebarCardComponent key={index} {...data.content.properties} />
+
+            })}
+          </aside>
       </div>
     </main>
     </>

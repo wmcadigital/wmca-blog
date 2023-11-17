@@ -28,6 +28,8 @@ const router = createBrowserRouter([
     loader: blogLoader,
   },
 ],
+
+
 {
   basename: pathname,
 }

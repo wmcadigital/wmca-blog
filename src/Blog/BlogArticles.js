@@ -28,6 +28,7 @@ const BlogArticles = () => {
   const [blogArticles, setBlogArticles] = useState([]);
   const [blogCategories, setBlogCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
+  const [windowTopics, setWindowTopics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState(null);
@@ -88,7 +89,7 @@ const BlogArticles = () => {
   const dateRangeSet = queryParams.get('dateRangeSet');
 
   const setDateRanges = (newRanges) => {
-    setFilter({...filter, dateRangeSet: newRanges});
+    setFilter({ ...filter, dateRangeSet: newRanges });
   };
 
   useEffect(() => {
@@ -106,14 +107,14 @@ const BlogArticles = () => {
         dates: dates === 'null' ? null : dates,
       }));
     }
-    
+
     if (sort) {
       setFilter((prevState) => ({
         ...prevState,
         sort: sort,
       }));
     }
-    
+
     if (topics) {
       setFilter((prevState) => ({
         ...prevState,
@@ -158,21 +159,21 @@ const BlogArticles = () => {
       filter.dates !== 'updatedByRange' ? filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
         filter.dates
-        ) : null
-      }
-      
+      ) : null
+    }
+
     if (filter.dateRangeSet && filter.dates === 'updatedByRange') {
       filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
-        filter.dates, 
+        filter.dates,
         filter.dateRangeSet
       )
     }
-    
+
     // sort values
     const currentParams = Object.fromEntries([...searchParams]);
 
-    if(currentParams.sort == "ascending"){
+    if (currentParams.sort == "ascending") {
       setsortDefault("ascending");
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
     } else if (currentParams.sort == "descending") {
@@ -192,7 +193,7 @@ const BlogArticles = () => {
     } else if (filter.sort === "descending") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles), 5));
       setSearchParams(filterQueryString);
-    }  else if (filter.sort === "name") {
+    } else if (filter.sort === "name") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, "name"), 5));
       setSearchParams(filterQueryString);
     } else {
@@ -212,7 +213,7 @@ const BlogArticles = () => {
 
   const authorParam = () => {
     console.log('url has authors test');
-      // filter.author = "Bob qwerty";
+    // filter.author = "Bob qwerty";
   };
 
   if (getSearchParam('author')) {
@@ -227,6 +228,7 @@ const BlogArticles = () => {
   };
 
   const noOfResults = flatten(blogArticles).length;
+  console.log(noOfResults, '?????????')
 
   return (
     <div className="wmcads-container">
@@ -248,7 +250,7 @@ const BlogArticles = () => {
                 <p>
                   Found <b>{noOfResults}</b> matching results
                 </p>
-                
+
               )}
 
               {noOfResults === 0 && !loading && (

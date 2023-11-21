@@ -167,7 +167,7 @@ const FilterAccordion = ({
       const beforeDateString = `${dateBefore.year}/${dateBefore.month}/${dateBefore.day}`
 
       // before should be greater than after
-      setIsDate1BeforeDate2(beforeDateString > afterDateString);
+      setIsDate1BeforeDate2(beforeDateString >= afterDateString);
       setDateRanges2({ from: afterDateString, to: beforeDateString });
 
 

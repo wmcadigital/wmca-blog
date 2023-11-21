@@ -135,6 +135,7 @@ const BlogArticles = () => {
     let filteredBlogArticles = returnedBlogArticles;
 
     if (searchTerm) {
+      setPage(0)
       filteredBlogArticles = searchBlogArticles(
         returnedBlogArticles,
         searchTerm
@@ -142,6 +143,7 @@ const BlogArticles = () => {
     }
 
     if (filter.topics.length) {
+      setPage(0)
       filteredBlogArticles = filterBlogArticlesByTopic(
         filteredBlogArticles,
         filter.topics
@@ -149,6 +151,7 @@ const BlogArticles = () => {
     }
 
     if (filter.author.length) {
+      setPage(0)
       filteredBlogArticles = filterBlogArticlesByAuthor(
         filteredBlogArticles,
         filter.author
@@ -156,6 +159,7 @@ const BlogArticles = () => {
     }
 
     if (filter.dates) {
+      setPage(0)
       filter.dates !== 'updatedByRange' ? filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
         filter.dates
@@ -163,6 +167,7 @@ const BlogArticles = () => {
     }
 
     if (filter.dateRangeSet && filter.dates === 'updatedByRange') {
+      setPage(0)
       filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
         filter.dates,
@@ -174,12 +179,15 @@ const BlogArticles = () => {
     const currentParams = Object.fromEntries([...searchParams]);
 
     if (currentParams.sort == "ascending") {
+      console.log("ascending")
       setsortDefault("ascending");
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
     } else if (currentParams.sort == "descending") {
+      console.log("descending")
       setsortDefault("descending");
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles), 5));
     } else if (currentParams.sort == "name") {
+      console.log("name")
       setsortDefault("name");
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, "name"), 5));
     } else {
@@ -228,7 +236,6 @@ const BlogArticles = () => {
   };
 
   const noOfResults = flatten(blogArticles).length;
-  console.log(noOfResults, '?????????')
 
   return (
     <div className="wmcads-container">
@@ -262,7 +269,7 @@ const BlogArticles = () => {
                     <h3 className="wmcads-msg-summary__title">There are no matching results</h3>
                   </div>
                   <div className="wmcads-msg-summary__info">
-                    <p>Improve your serach results by:</p>
+                    <p>Improve your search results by:</p>
                     <ul className="wmcads-unordered-list">
                       <li>Removing filters</li>
                       <li>Double-checking your spelling</li>

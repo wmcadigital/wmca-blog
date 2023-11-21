@@ -1,3 +1,4 @@
+import React from 'react';
 import { useLoaderData, Link } from "react-router-dom";
 import getBlogArticle from "../api/getBlogArticle";
 import ScrollToTop from "../helpers/ScrollToTop";
@@ -32,7 +33,6 @@ const BlogArticle = () => {
       case 'textboxBlock':
         return <TextComponent htmlContent={data.properties.textbox.markup} />
       case 'imageBlock':
-        console.log(data.properties.image)
         return <ImageComponent imageUrls={data.properties.image} />
       case 'accordionBlock':
         // console.log(data, 'accordionBlock')
@@ -46,7 +46,6 @@ const BlogArticle = () => {
     let accordion = [];
 
     article?.properties.grid?.items.map((items) => {
-      console.log(items.content.properties?.content.items, 'content')
 
       items.content.properties?.content.items.map(items => {
         if (items.content.contentType === "accordionBlock") {
@@ -60,16 +59,6 @@ const BlogArticle = () => {
     setArticleAccordionBlockItems(accordion)
 
   }, [article]);
-
-  const accordionData = [
-    {
-      title: 'Accordion 1',
-      isOpen: false,
-      content: ['Some random subtitle', 'Lorem ipsum dolor...'],
-    },
-    // Add more objects for additional accordion rows
-  ];
-
 
   return (
     <>
@@ -85,22 +74,26 @@ const BlogArticle = () => {
         <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-xl wmcads-p-r-lg">
           <h1>{article.name}</h1>
           <p className="wmcads-search-result__date">
-            {article.properties.author.map(function (item, index) {
-              return (
-                <Link to={`/?author=${item.name}`} key={`demo_snap_${index}`}>
-                  {(index ? ", " : "") + item.name}
-                </Link>
-              );
+              {article.properties.author.map(function (item, index) {
+                return (
+                  <React.Fragment key={index}>
+                    {index > 0 && ', '}
+                    <Link to={`/?author=${item.name}`}>{item.name}</Link>
+                  </React.Fragment>
+                )
             })}
             ,{" "}
             {article.properties.date != ""
               ? formatDate(article.properties.date)
               : null}{" "}
             -{" "}
-            {article.properties.tags.map(function (item, index) {
-              return (
-                <Link to={`/?topics=${item}`} key={`demo_snap_${index}`}>{(index ? ", " : "") + item}</Link>
-              );
+              {article.properties.tags.map(function (item, index) {
+                return (
+                  <React.Fragment key={index}>
+                    {index > 0 && ', '}
+                    <Link to={`/?topics=${item}`}>{item}</Link>
+                  </React.Fragment>
+                )
             })}
           </p>
 
@@ -163,10 +156,13 @@ const BlogArticle = () => {
 
           <p>
             Tags:{" "}
-            {article.properties.tags.map(function (item, index) {
-              return (
-                <Link to={`/?topics=${item}`} key={`demo_snap_${index}`}>{(index ? ", " : "") + item}</Link>
-              );
+              {article.properties.tags.map(function (item, index) {
+                return (
+                  <React.Fragment key={index}>
+                    {index > 0 && ', '}
+                    <Link to={`/?topics=${item}`}>{item}</Link>
+                  </React.Fragment>
+                )
             })}
           </p>
 

@@ -63,6 +63,15 @@ const BlogArticles = () => {
     const response = await getBlogArticles();
     setLoading(false);
     let returnedBlogArticles = response?.items ?? [];
+
+
+    console.log(returnedBlogArticles, 'here')
+
+    returnedBlogArticles.map(val => {
+      console.log(val.properties.date, 'data')
+    })
+
+    console.log(returnedBlogArticles, 'here')
     
     let blogTopics = window?.setTopics ?? getBlogArticleTopics(returnedBlogArticles)
 

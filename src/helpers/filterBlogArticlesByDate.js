@@ -19,11 +19,11 @@ const filterBlogArticlesByDate = (blogArticles, dateFilter, dateRangeSet = undef
     const year = date?.getFullYear();
     const month = String(date?.getMonth() + 1).padStart(2, '0');
     const day = String(date?.getDate()).padStart(2, '0');
-    const hours = String(date?.getHours()).padStart(2, '0');
-    const minutes = String(date?.getMinutes()).padStart(2, '0');
-    const seconds = String(date?.getSeconds()).padStart(2, '0');
+    // const hours = String(date?.getHours()).padStart(2, '0');
+    // const minutes = String(date?.getMinutes()).padStart(2, '0');
+    // const seconds = String(date?.getSeconds()).padStart(2, '0');
 
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    return `${year}-${month}-${day}`;
   } 
   
   const fromDate = formatDate(new Date(dateRangeSet?.from))
@@ -36,7 +36,14 @@ const filterBlogArticlesByDate = (blogArticles, dateFilter, dateRangeSet = undef
   } else if (dateFilter === "updatedLastYear") {
     return blogArticles.filter((article) => article.properties.date >= dateYearAgo);
   } else if (dateFilter === "updatedByRange" && dateRangeSet !== undefined) {
-    return blogArticles.filter((article) => article.properties.date >= fromDate && article.properties.date <= toDate);
+    if (fromDate === toDate) {
+      return blogArticles.filter((article) => {
+        if (article.properties.date.split('T')[0] === fromDate) {
+          return article
+        }
+      });
+    }
+    return blogArticles.filter((article) => article.properties.date.split('T')[0] >= fromDate && article.properties.date.split('T')[0] <= toDate);
   }
 };
 

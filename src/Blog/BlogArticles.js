@@ -34,7 +34,6 @@ const BlogArticles = () => {
   const [searchTerm, setSearchTerm] = useState(null);
   const [searchButtonClicked, setSearchButtonClicked] = useState("tick");
   const [showFilterOverrideMobile, setShowFilterOverrideMobile] = useState(false);
-  const [sortOrder, setSortOrder] = useState(null);
   const [sortDefault, setsortDefault] = useState("");
 
   const [filter, setFilter] = useState({
@@ -58,21 +57,20 @@ const BlogArticles = () => {
     }
   }).join('&');
 
-  // console.log(filterQueryString, 'here')
 
   const getBlogData = async () => {
     setLoading(true);
     const response = await getBlogArticles();
     setLoading(false);
     let returnedBlogArticles = response?.items ?? [];
-
+    
     let blogTopics = window?.setTopics ?? getBlogArticleTopics(returnedBlogArticles)
 
     if (typeof blogTopics === 'string') {
       blogTopics = JSON.parse(blogTopics)
     }
 
-    setBlogCategories(blogTopics)
+    setBlogCategories(blogTopics) 
 
     returnedBlogArticles = returnedBlogArticles.filter(props => props.properties.tags.some(tags => blogTopics.includes(tags)));
 
@@ -96,8 +94,6 @@ const BlogArticles = () => {
 
   useEffect(() => {
     getBlogData();
-
-    // const intervalId = setInterval(getWindowTopics, 1000);
 
     if (dateRangeSet !== 'undefined' && dateRangeSet !== null) {
       if (filter.dateRangeSet === undefined) {
@@ -212,8 +208,8 @@ const BlogArticles = () => {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
 
-  }, [filter, filterQueryString, returnedBlogArticles, searchButtonClicked, searchParams, searchTerm, setSearchParams, sortDefault, sortOrder, windowTopics]);
-
+  }, [filter, filterQueryString, returnedBlogArticles, searchButtonClicked, searchParams, searchTerm, setSearchParams, sortDefault]);
+ 
 
   const authorParam = () => {
     console.log('url has authors test');
@@ -239,7 +235,6 @@ const BlogArticles = () => {
       <main className="wmcads-container--main">
         <div className="template-search">
           <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-p-r-xl wmcads-m-t-lg wmcads-m-b-lg">
-            <h1>Blog</h1>
             <Search
               placeholder="Blog search..."
               changeCallback={setSearchTerm}

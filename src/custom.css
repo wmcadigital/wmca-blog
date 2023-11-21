@@ -26,3 +26,11 @@
     display: block;
   }
 }
+
+.wmcads-content-card.sidebar {
+  margin-top: 1.5rem;
+}
+
+.wmcads-accordion {
+  margin: 20px 0; 
+}

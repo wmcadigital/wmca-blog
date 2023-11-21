@@ -1,3 +1,4 @@
+import React from 'react';
 /* eslint-disable jsx-a11y/interactive-supports-focus */
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
@@ -41,9 +42,12 @@ const BlogArticleLink = ({
       <p className="wmcads-search-result__date">
         {authors?.map(function (item, index) {
           return (
-            <a key={`${index}`} onClick={(e) => handleAuthor(e, item.name)} onKeyUp={handleAuthor} role="link">
-              {(index ? ", " : "") + item.name}
-            </a>
+            <React.Fragment key={index}>
+              {index > 0 && ', '}
+              <a key={`${index}`} onClick={(e) => handleAuthor(e, item.name)} onKeyUp={handleAuthor} role="link">
+                {item.name}
+              </a>
+            </React.Fragment>
           );
         })} - 
         {formatDate(publishDate)}
@@ -53,9 +57,12 @@ const BlogArticleLink = ({
         Topics:{" "}
         {tags?.map(function (item, index) {
           return (
-            <a key={`${index}`} onClick={(e) => handleTopics(e, item)} onKeyUp={handleTopics} role="link">
-              {(index ? ", " : "") + item}
-            </a>
+            <React.Fragment key={index}>
+              {index > 0 && ', '}
+              <a key={`${index}`} onClick={(e) => handleTopics(e, item)} onKeyUp={handleTopics} role="link">
+                {item}
+              </a>
+            </React.Fragment>
           );
         })}
       </p>

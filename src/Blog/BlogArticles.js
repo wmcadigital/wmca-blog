@@ -179,15 +179,12 @@ const BlogArticles = () => {
     const currentParams = Object.fromEntries([...searchParams]);
 
     if (currentParams.sort == "ascending") {
-      console.log("ascending")
       setsortDefault("ascending");
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
     } else if (currentParams.sort == "descending") {
-      console.log("descending")
       setsortDefault("descending");
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles), 5));
     } else if (currentParams.sort == "name") {
-      console.log("name")
       setsortDefault("name");
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, "name"), 5));
     } else {

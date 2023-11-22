@@ -107,7 +107,7 @@ const BlogArticle = () => {
             This blog post is an opinion and may not reflect WMCA’s views.
           </div>
 
-          <div className="wmcads-inset-text" aria-label="Introduction">
+          <div className="wmcads-inset-text wmcads-m-b-md" aria-label="Introduction">
             <p>{article.properties.introduction}</p>
           </div>
 

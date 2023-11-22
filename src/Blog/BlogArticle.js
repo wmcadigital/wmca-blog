@@ -12,12 +12,13 @@ import ImageComponent from './ImageComponent'
 import SidebarCardComponent from './SidebarCardComponent'
 import AccordionComponent from './AccordionComponent'
 
-export async function loader({ params }) {
-  const article = await getBlogArticle(params.articleId);
-  return { article };
+export async function loader({ params }) {  
+  const article = await getBlogArticle(params.articleTitle);
+    return { article };
 }
 
 const BlogArticle = () => {
+
   const [articleContentItems, setArticleContentItems] = useState([]);
   const [articleSidebarContentItems, setArticleSidebarContentItems] = useState([]);
   const [articleAccordionBlockItems, setArticleAccordionBlockItems] = useState([]);
@@ -27,7 +28,6 @@ const BlogArticle = () => {
     // console.log(data, 'itemzzz')
     switch (data.contentType) {
       case 'videoBlock':
-
         // console.log(data.properties.youtube, 'videoBlock')
         return <VideoComponent url={data.properties.youtube} />
       case 'textboxBlock':

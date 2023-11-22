@@ -97,8 +97,6 @@ const FilterAccordion = ({
 
   const validationMonthDay = (updates, date, type) => {
 
-    console.log(isDate1BeforeDate2, 'here!!!')
-
     let otherError = false;
 
     if (date.day === '') {

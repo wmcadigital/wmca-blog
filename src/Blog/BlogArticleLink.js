@@ -16,6 +16,7 @@ const BlogArticleLink = ({
   image,
   publishDate,
   introductionText,
+  route,
 }) => {
   const handleAuthor = (event, item) => {
     event.preventDefault();
@@ -27,15 +28,21 @@ const BlogArticleLink = ({
 
   const handleTopics = (event, item) => {
     event.preventDefault();
-
     let selectedTopic = [item]
     setFilter({ ...filter, topics: selectedTopic });
   };
 
+  const routePath = (path) => {
+    const regex = new RegExp(`/blog(/)?`);
+    const result = path.replace(regex, '');
+    console.log(result, 'route new')
+    return result;
+  }
+
   return (
     <div className="wmcads-search-result">
       <h2 className="wmcads-m-b-sm">
-        <Link className="h2" to={`article/${id}`}>
+        <Link className="h2" to={{ pathname: `article/${routePath(route)}`}} >
           {name}
         </Link>
       </h2>
@@ -66,7 +73,6 @@ const BlogArticleLink = ({
           );
         })}
       </p>
-
       {image != "No Image" ? (
         <img
           src={`https://app-umbraco-multisite.azurewebsites.net${image}?anchor=center&mode=crop&width=600&height=250`}
@@ -74,7 +80,6 @@ const BlogArticleLink = ({
           className="wmcads-m-t-md"
         />
       ) : null}
-
       <p
         className="wmcads-search-result__excerpt"
       >
@@ -94,6 +99,7 @@ BlogArticleLink.propTypes = {
   image: PropTypes.string,
   publishDate: PropTypes.string.isRequired,
   introductionText: PropTypes.string.isRequired,
+  route: PropTypes.string,
 };
 
 export default BlogArticleLink;

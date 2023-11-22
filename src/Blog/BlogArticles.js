@@ -64,15 +64,10 @@ const BlogArticles = () => {
     setLoading(false);
     let returnedBlogArticles = response?.items ?? [];
 
+    // returnedBlogArticles.map(val => {
+    //   console.log(val.properties.date, 'data')
+    // })
 
-    console.log(returnedBlogArticles, 'here')
-
-    returnedBlogArticles.map(val => {
-      console.log(val.properties.date, 'data')
-    })
-
-    console.log(returnedBlogArticles, 'here')
-    
     let blogTopics = window?.setTopics ?? getBlogArticleTopics(returnedBlogArticles)
 
     if (typeof blogTopics === 'string') {
@@ -290,6 +285,7 @@ const BlogArticles = () => {
                 <>
                   {blogArticles[page]?.map((blogArticle, index) => (
                     <BlogArticleLink
+                      route={blogArticle.route.path} 
                       key={index}
                       filter={filter}
                       setFilter={setFilter}

@@ -2,7 +2,8 @@
 let getBlogEndPoint = "https://app-umbraco-multisite-staging.azurewebsites.net/umbraco/delivery/api/v1/content/item/";
 
 const getBlogArticle = async (id) => {
-   const response = await fetch(getBlogEndPoint + id + "?expand=property%3Aauthor%2Cimage", {
+   
+   const response = await fetch(getBlogEndPoint + "%2Fblog%2F" + id + "?expand=property%3Aauthor%2Cimage", {
       method: 'GET', // or 'POST' or other HTTP methods
       headers: {
          'Content-Type': 'application/json',

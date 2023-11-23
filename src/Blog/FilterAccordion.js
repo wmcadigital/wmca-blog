@@ -161,13 +161,21 @@ const FilterAccordion = ({
       return updatedDateAfter.year.length === 4 && updatedDateBefore.year.length === 4
     }
 
+    const stringDateToNewDate = (dateString) => {
+      const formattedDateString = dateString.replace(/\//g, '-');
+      return new Date(formattedDateString);
+    }
+
     // If false no fields are empty && yearly charachters are 4 
     if (!isAnyValueEmpty() && yearInputContains4characters()) {
       const afterDateString = `${dateAfter.year}/${dateAfter.month}/${dateAfter.day}`
       const beforeDateString = `${dateBefore.year}/${dateBefore.month}/${dateBefore.day}`
 
+      const afterNewDate = stringDateToNewDate(afterDateString)
+      const beforeNewDate = stringDateToNewDate(beforeDateString)
+
       // before should be greater than after
-      setIsDate1BeforeDate2(beforeDateString > afterDateString);
+      setIsDate1BeforeDate2(beforeNewDate >= afterNewDate);
       setDateRanges2({ from: afterDateString, to: beforeDateString });
 
 

@@ -297,7 +297,7 @@ const BlogArticles = () => {
                           ? blogArticle.properties.image[0].url
                           : "No Image"
                       }
-                      publishDate={blogArticle.createDate}
+                      publishDate={blogArticle.properties.date}
                       introductionText={blogArticle.properties.introduction}
                     />
                   ))}

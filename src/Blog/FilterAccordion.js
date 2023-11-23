@@ -162,7 +162,11 @@ const FilterAccordion = ({
     }
 
     const stringDateToNewDate = (dateString) => {
-      const formattedDateString = dateString.replace(/\//g, '-');
+      // Replace / with - and ensure the month has two digits
+      const formattedDateString = dateString.replace(/(\d{1,2})\/(\d{1,2})\/(\d{4})/, (_, month, day, year) => {
+        return `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${year}`;
+      });
+
       return new Date(formattedDateString);
     }
 

@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import {
-  createBrowserRouter,
+  createHashRouter,
   RouterProvider,
 } from "react-router-dom";
 
@@ -30,7 +30,7 @@ const container = document.getElementById("root");
 
 const root = createRoot(container);
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: "/",
     element: <BlogArticles />,
@@ -41,16 +41,15 @@ const router = createBrowserRouter([
     element: <BlogArticle />,
     loader: blogLoader,
   },
-],
-
-
-{
-  basename: removePathIncludingArticle(pathname),
-}
+]
 );
 
 root.render(
   <StrictMode>
-    <RouterProvider router={router} />
+  <div className="wmcads-container">
+    <main className="wmcads-container--main">
+      <RouterProvider router={router} />
+    </main>
+  </div>
   </StrictMode>
 );

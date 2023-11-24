@@ -28,7 +28,6 @@ const BlogArticles = () => {
   const [blogArticles, setBlogArticles] = useState([]);
   const [blogCategories, setBlogCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
-  const [windowTopics, setWindowTopics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState(null);
@@ -36,13 +35,15 @@ const BlogArticles = () => {
   const [showFilterOverrideMobile, setShowFilterOverrideMobile] = useState(false);
   const [sortDefault, setsortDefault] = useState("");
 
+  const [clearFilters, setClearFilters] = useState(false)
+
+
   const [filter, setFilter] = useState({
     sort: "",
     topics: [],
     author: [],
     dates: null,
     dateRangeSet: undefined,
-    resets: false
   });
 
   let [searchParams, setSearchParams] = useSearchParams();
@@ -57,19 +58,12 @@ const BlogArticles = () => {
     }
   }).join('&');
 
-  console.log('Articles')
-
-
   const getBlogData = async () => {
     setLoading(true);
     const response = await getBlogArticles();
     setLoading(false);
+
     let returnedBlogArticles = response?.items ?? [];
-
-    // returnedBlogArticles.map(val => {
-    //   console.log(val.properties.date, 'data')
-    // })
-
     let blogTopics = window?.setTopics ?? getBlogArticleTopics(returnedBlogArticles)
 
     if (typeof blogTopics === 'string') {
@@ -97,6 +91,28 @@ const BlogArticles = () => {
   const setDateRanges = (newRanges) => {
     setFilter({ ...filter, dateRangeSet: newRanges });
   };
+
+  useEffect(() => { 
+    if (clearFilters) {
+      setFilter((prevState) => ({
+        ...prevState,
+        sort: "",
+        topics: [],
+        author: [],
+        dates: null,
+        dateRangeSet: undefined,
+      }));
+
+      setClearFilters(false)
+
+    }
+
+  }, [clearFilters])
+
+  useEffect(() => {
+    setSearchParams(filterQueryString)
+  }, [filter]);
+
 
   useEffect(() => {
     getBlogData();
@@ -135,7 +151,7 @@ const BlogArticles = () => {
       }));
     }
 
-  }, [author, dates, sort, topics, dateRangeSet]);
+  }, []);
 
   useEffect(() => {
     let filteredBlogArticles = returnedBlogArticles;
@@ -212,7 +228,7 @@ const BlogArticles = () => {
     }
 
     // topic values
-    if (filter.topics.length !== 0 || filter.author.length !== 0 || filter.dates !== null) {
+    if (filter.topics.length !== 0 || filter.author.length !== 0 || filter.dates !== null || clearFilters) {
       // setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
       setSearchParams(filterQueryString);
     } else {
@@ -283,7 +299,6 @@ const BlogArticles = () => {
               </div>
             </div>
           )}
-
           {blogArticles.length ? (
             <>
               {blogArticles[page]?.map((blogArticle, index) => (
@@ -336,8 +351,10 @@ const BlogArticles = () => {
             </button>
           </div>
           <BlogFilter
+            clearFilters={clearFilters}
             returnedBlogArticles={returnedBlogArticles}
             filter={filter}
+            setClearFilters={setClearFilters}
             setFilter={setFilter}
             showFilterOverrideMobile={showFilterOverrideMobile}
             setShowFilterOverrideMobile={setShowFilterOverrideMobile}

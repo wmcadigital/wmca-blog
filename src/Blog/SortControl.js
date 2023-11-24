@@ -19,7 +19,7 @@ const SortControl = ({ filter, setFilter, sortChangedCallback, defaultVal }) => 
         <option value="">Choose from list</option>
         <option value="descending">Most recent</option>
         <option value="ascending">Oldest</option>
-        <option value="name">Name</option>
+        {/* <option value="name">Name</option> */}
       </select>
     </div>
   </div>

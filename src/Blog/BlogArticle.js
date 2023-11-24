@@ -18,82 +18,76 @@ export async function loader({ params }) {
 }
 
 const BlogArticle = () => {
-
   const [articleContentItems, setArticleContentItems] = useState([]);
-  const [articleSidebarContentItems, setArticleSidebarContentItems] = useState([]);
-  const [articleAccordionBlockItems, setArticleAccordionBlockItems] = useState([]);
+  const [articleSidebarContentItems, setArticleSidebarContentItems] = useState(
+    []
+  );
+  const [articleAccordionBlockItems, setArticleAccordionBlockItems] = useState(
+    []
+  );
   const { article } = useLoaderData();
 
   const SetContent = (data) => {
     // console.log(data, 'itemzzz')
     switch (data.contentType) {
-      case 'videoBlock':
+      case "videoBlock":
         // console.log(data.properties.youtube, 'videoBlock')
-        return <VideoComponent url={data.properties.youtube} />
-      case 'textboxBlock':
-        return <TextComponent htmlContent={data.properties.textbox.markup} />
-      case 'imageBlock':
-        return <ImageComponent imageUrls={data.properties.image} />
-      case 'accordionBlock':
+        return <VideoComponent url={data.properties.youtube} />;
+      case "textboxBlock":
+        return <TextComponent htmlContent={data.properties.textbox.markup} />;
+      case "imageBlock":
+        return <ImageComponent imageUrls={data.properties.image} />;
+      case "accordionBlock":
         // console.log(data, 'accordionBlock')
-        return ('<h1>Video Block</h1>')
+        return "<h1>Video Block</h1>";
       default:
-        return <h1>Video Block</h1>
+        return <h1>Video Block</h1>;
     }
-  }
+  };
 
   useEffect(() => {
     let accordion = [];
 
     article?.properties.grid?.items.map((items) => {
-
-      items.content.properties?.content.items.map(items => {
+      items.content.properties?.content.items.map((items) => {
         if (items.content.contentType === "accordionBlock") {
-          accordion.push(items)
+          accordion.push(items);
         }
-      })
+      });
 
-      setArticleContentItems(items.content.properties.content.items)
-      setArticleSidebarContentItems(items.content.properties?.sidebar?.items)
-    })
-    setArticleAccordionBlockItems(accordion)
-
+      setArticleContentItems(items.content.properties.content.items);
+      setArticleSidebarContentItems(items.content.properties?.sidebar?.items);
+    });
+    setArticleAccordionBlockItems(accordion);
   }, [article]);
 
   return (
     <>
-    <ScrollToTop />
-    <main id="wmcads-main-content" className="wmcads-container wmcads-m-t-lg">
-      {/* {loading ? (
-        <div className="wmcads-loader wmcads-loader--small wmcads-m-l-xs"></div>
-      ) : (
-        <h1>{article.name}</h1>
-      )} */}
-
+      <ScrollToTop />
       <div className="wmcads-grid">
         <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-xl wmcads-p-r-lg">
           <h1>{article.name}</h1>
           <p className="wmcads-search-result__date">
-              {article.properties.author.map(function (item, index) {
-                return (
-                  <React.Fragment key={index}>
-                    {index > 0 && ', '}
-                    <Link to={`/?author=${item.name}`}>{item.name}</Link>
-                  </React.Fragment>
-                )
+            {article.properties.author.map(function (item, index) {
+              return (
+                <React.Fragment key={index}>
+                  {index > 0 && ", "}
+                  <Link to={`/?author=${item.name}`}>{item.name}</Link>
+                </React.Fragment>
+              );
             })}
             ,{" "}
             {article.properties.date != ""
               ? formatDate(article.properties.date)
               : null}{" "}
             -{" "}
-              {article.properties.tags.map(function (item, index) {
-                return (
-                  <React.Fragment key={index}>
-                    {index > 0 && ', '}
-                    <Link to={`/?topics=${item}`}>{item}</Link>
-                  </React.Fragment>
-                )
+            {article.properties.tags.map(function (item, index) {
+              return (
+                <React.Fragment key={index}>
+                  {index > 0 && ", "}
+                  <Link to={`/?topics=${item}`}>{item}</Link>
+                </React.Fragment>
+              );
             })}
           </p>
 
@@ -107,7 +101,10 @@ const BlogArticle = () => {
             This blog post is an opinion and may not reflect WMCA’s views.
           </div>
 
-          <div className="wmcads-inset-text wmcads-m-b-md" aria-label="Introduction">
+          <div
+            className="wmcads-inset-text wmcads-m-b-md"
+            aria-label="Introduction"
+          >
             <p>{article.properties.introduction}</p>
           </div>
 
@@ -135,7 +132,8 @@ const BlogArticle = () => {
 
                 if (item.content.contentType == "imageBlock") {
                   const imgSrc = item.content.properties.image[0].url;
-                  const imgAlt = item.content.properties.image[0].properties.altText;
+                  const imgAlt =
+                    item.content.properties.image[0].properties.altText;
                   return (
                     <img
                       key={`${index}`}
@@ -145,24 +143,27 @@ const BlogArticle = () => {
                   );
                 }
               })
-              : null
-            }
+            : null}
 
-            {articleContentItems.map((item, index) => {
-              return item.content.contentType !== 'accordionBlock' && <SetContent key={index} {...item.content} />          
-            })}
-            <AccordionComponent data={articleAccordionBlockItems} />
+          {articleContentItems.map((item, index) => {
+            return (
+              item.content.contentType !== "accordionBlock" && (
+                <SetContent key={index} {...item.content} />
+              )
+            );
+          })}
+          <AccordionComponent data={articleAccordionBlockItems} />
           <hr />
 
           <p>
             Tags:{" "}
-              {article.properties.tags.map(function (item, index) {
-                return (
-                  <React.Fragment key={index}>
-                    {index > 0 && ', '}
-                    <Link to={`/?topics=${item}`}>{item}</Link>
-                  </React.Fragment>
-                )
+            {article.properties.tags.map(function (item, index) {
+              return (
+                <React.Fragment key={index}>
+                  {index > 0 && ", "}
+                  <Link to={`/?topics=${item}`}>{item}</Link>
+                </React.Fragment>
+              );
             })}
           </p>
 
@@ -216,15 +217,19 @@ const BlogArticle = () => {
               </div>
             );
           })}
-          </div>
-          <aside className="wmcads-col-1 wmcads-col-md-1-3">
-            {articleSidebarContentItems !== undefined && articleSidebarContentItems.map((data, index) => {
-              return <SidebarCardComponent key={index} {...data.content.properties} />
-
+        </div>
+        <aside className="wmcads-col-1 wmcads-col-md-1-3">
+          {articleSidebarContentItems !== undefined &&
+            articleSidebarContentItems.map((data, index) => {
+              return (
+                <SidebarCardComponent
+                  key={index}
+                  {...data.content.properties}
+                />
+              );
             })}
-          </aside>
+        </aside>
       </div>
-    </main>
     </>
   );
 };

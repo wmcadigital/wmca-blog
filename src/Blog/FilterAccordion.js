@@ -61,6 +61,7 @@ const FilterAccordion = ({
   optionSelected,
   optionSelectedFn,
   setDateRanges,
+  clearFilters,
   filter
 }) => {
   const [accordionOpen, setAccordionOpen] = useState(true);
@@ -212,7 +213,7 @@ const FilterAccordion = ({
     }
 
     // When clearing the filters we reset everything here related to the date range 
-    if (filter?.resets) {
+    if (clearFilters) {
       setDateAfter({ day: '', month: '', year: '' })
       setDateBefore({ day: '', month: '', year: '' })
       setAfterErrors(undefined)
@@ -220,7 +221,7 @@ const FilterAccordion = ({
       setDateRanges(undefined)
     }
 
-  }, [filter?.resets, filter?.dateRangeSet])
+  }, [clearFilters, filter?.dateRangeSet])
 
 
   return (
@@ -312,7 +313,6 @@ FilterAccordion.propTypes = {
   setDateRanges: PropTypes.func,
   filter: PropTypes.shape({
     // You can change the PropTypes type based on your specific needs, Add other PropTypes for other properties in the filter object if necessary
-    resets: PropTypes.bool,
     dates: PropTypes.string,
     dateRangeSet: PropTypes.object,
   })

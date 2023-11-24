@@ -35,7 +35,6 @@ const BlogArticleLink = ({
   const routePath = (path) => {
     const regex = new RegExp(`/blog(/)?`);
     const result = path.replace(regex, '');
-    console.log(result, 'route new')
     return result;
   }
 

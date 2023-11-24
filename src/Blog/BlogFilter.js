@@ -15,7 +15,9 @@ if (getSearchParam('author')) {
 const BlogFilter = ({
   returnedBlogArticles,
   filter,
+  clearFilters,
   setFilter,
+  setClearFilters,
   noOfResults,
   showFilterOverrideMobile,
   setShowFilterOverrideMobile,
@@ -23,13 +25,6 @@ const BlogFilter = ({
   authors,
   setDateRanges
 }) => {
-
-  useEffect(() => {
-    if (filter.resets) {
-      setFilter({ sort: "", topics: [], author: [], dates: 'null', dateRangeSet: undefined, resets: false })
-    }
-
-  }, [filter.resets]); 
 
   const dates = [
     { value: "updatedLastWeek", label: "Posted in the last week", disabled: !!filterBlogArticlesByDate(returnedBlogArticles, 'updatedLastWeek').length },
@@ -53,9 +48,7 @@ const BlogFilter = ({
         <a
           href="#"
           className="wmcads-search-filter__clear-all wmcads-hide-desktop"
-          onClick={() =>
-            setFilter({ sort: "", topics: [], author: [], dates: 'null' })
-          }
+          onClick={() => setClearFilters(true)}
         >
           Clear all
         </a>
@@ -63,9 +56,7 @@ const BlogFilter = ({
           href="#"
           id="hide_filter_btn"
           className="wmcads-search-filter__close"
-          onClick={() =>
-            setFilter({ sort: "", topics: [], author: [], dates: 'null' })
-          }
+          onClick={() => setClearFilters(true)}
         >
           <svg>
             <title>Close</title>
@@ -134,6 +125,7 @@ const BlogFilter = ({
         options={dates}
         selectOne
         filter={filter}
+        clearFilters={clearFilters}
         optionSelected={(optionValue) => {
           setFilter({ ...filter, dates: optionValue });
         }}
@@ -152,9 +144,7 @@ const BlogFilter = ({
       {filter.topics.length != 0 || filter.author.length != 0 || filter.dates != null ? (
       <a href="#"
         className="wmcads-search-filter__clear-all wmcads-hide-mobile"
-        onClick={() => 
-          setFilter({ ...filter, resets: true})
-        }
+        onClick={() => setClearFilters(true)}
       >
         <svg
           style={{
@@ -182,13 +172,15 @@ export default BlogFilter;
 BlogFilter.propTypes = {
   returnedBlogArticles: PropTypes.arrayOf(PropTypes.object),
   filter: PropTypes.object,
+  clearFilters: PropTypes.bool,
   setFilter: PropTypes.func,
   showFilterOverrideMobile: PropTypes.bool,
   noOfResults: PropTypes.number,
   setShowFilterOverrideMobile: PropTypes.func,
   blogCategories: PropTypes.arrayOf(PropTypes.string),
   authors: PropTypes.arrayOf(PropTypes.string),
-  setDateRanges: PropTypes.func
+  setDateRanges: PropTypes.func,
+  setClearFilters: PropTypes.func
 };
 
 BlogFilter.defaultProps = {
@@ -200,4 +192,5 @@ BlogFilter.defaultProps = {
   blogCategories: [],
   authors: [],
   setDateRanges: () => { },
+  setClearFilters: () => {},
 };

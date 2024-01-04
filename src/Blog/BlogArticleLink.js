@@ -55,7 +55,7 @@ const BlogArticleLink = ({
               </a>
             </React.Fragment>
           );
-        })} - 
+        })}&nbsp;-&nbsp;
         {formatDate(publishDate)}
       </p>
 
@@ -74,7 +74,7 @@ const BlogArticleLink = ({
       </p>
       {image != "No Image" ? (
         <img
-          src={`https://app-umbraco-multisite.azurewebsites.net${image}?anchor=center&mode=crop&width=600&height=250`}
+          src={`https://cms.wmca.org.uk${image}?anchor=center&mode=crop&width=600&height=250`}
           alt=""
           className="wmcads-m-t-md"
         />
@@ -97,7 +97,7 @@ BlogArticleLink.propTypes = {
   tags: PropTypes.array,
   image: PropTypes.string,
   publishDate: PropTypes.string.isRequired,
-  introductionText: PropTypes.string.isRequired,
+  introductionText: PropTypes.string,
   route: PropTypes.string,
 };
 

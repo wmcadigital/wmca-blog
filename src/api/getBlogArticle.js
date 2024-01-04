@@ -1,5 +1,4 @@
-// let getBlogEndPoint = "https://app-umbraco-multisite.azurewebsites.net/umbraco/delivery/api/v1/content/item/";
-let getBlogEndPoint = "https://app-umbraco-multisite-staging.azurewebsites.net/umbraco/delivery/api/v1/content/item/";
+let getBlogEndPoint = "https://cms.wmca.org.uk/umbraco/delivery/api/v1/content/item/";
 
 const getBlogArticle = async (id) => {
    

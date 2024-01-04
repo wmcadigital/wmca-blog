@@ -29,10 +29,6 @@ const router = createHashRouter([
 
 root.render(
   <StrictMode>
-  <div className="wmcads-container">
-    <main className="wmcads-container--main">
       <RouterProvider router={router} />
-    </main>
-  </div>
   </StrictMode>
 );

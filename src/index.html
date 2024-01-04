@@ -160,6 +160,7 @@
         </div>
       </div>
     </header>
+
     <div id="root"></div>
 
     <footer class="wmcads-m-t-lg">
@@ -380,6 +381,35 @@
       </div>
     </footer>
     <script src="App.js" type="module"></script>
+    <script>
+        window.setTopics = {
+          topics: "[\"Inclusive growth\"]",
+          name: "xxx blog",
+            url: "http://localhost:1234/#/",
+            breadcrumbs: {
+            breadcrumb: [
+              [
+                "West Midlands Combined Authority",
+                "/"
+              ],
+              [
+                "What we do",
+                "/"
+              ],
+              [
+                "Inclusive Growth",
+                "/"
+              ]
+            ]
+          }
+      };
+      window.setBanner = {
+          name: "xxx blog",
+          summary: "The Inclusive Growth Framework translates inclusive growth from an intellectual concept to into a reality that can be put into practice to build a fairer, greener and better connected region",
+          bannerimg: "https://www.wmca.org.uk/media/2bijfni4/igp-banner.png",
+          position: "center"
+      };
+    </script>
     <script>
       const ajax = new XMLHttpRequest();
       ajax.open(

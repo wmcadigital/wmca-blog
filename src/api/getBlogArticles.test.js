@@ -15,7 +15,7 @@ describe("getData", () => {
     await getData();
 
     expect(fetch).toBeCalledWith(
-      "https://app-umbraco-multisite.azurewebsites.net/umbraco/delivery/api/v1/content?filter=contentType%3AblogArticle&sort=name%3Aasc&skip=0&take=10"
+      "https://cms.wmca.org.uk/umbraco/delivery/api/v1/content?filter=contentType%3AblogArticle&sort=name%3Aasc&skip=0&take=10"
     );
   });
 

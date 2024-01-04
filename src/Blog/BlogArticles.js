@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { chunk, flatten } from "lodash";
-import { useSearchParams, useLocation } from 'react-router-dom';
+import { useSearchParams, useLocation } from "react-router-dom";
 
 import getBlogArticles from "../api/getBlogArticles";
 
-// import Banner from "./Banner";
+import Banner from "./Banner";
 // import Link from "./Link";
 import BlogArticleLink from "./BlogArticleLink";
 import Search from "./Search";
@@ -19,6 +19,7 @@ import filterBlogArticlesByTopic from "../helpers/filterBlogArticlesByTopic";
 import filterBlogArticlesByAuthor from "../helpers/filterBlogArticlesByAuthor";
 import filterBlogArticlesByDate from "../helpers/filterBlogArticlesByDate";
 import DelayedComponent from "../helpers/delayedComponent";
+import Breadcrumb from "./Breadcrumb";
 
 // Import Helper functions
 import { getSearchParam } from "../helpers/urlSearchParams"; // (used to sync state with URL)
@@ -32,14 +33,14 @@ const BlogArticles = () => {
   const [page, setPage] = useState(0);
   const [searchTerm, setSearchTerm] = useState(null);
   const [searchButtonClicked, setSearchButtonClicked] = useState("tick");
-  const [showFilterOverrideMobile, setShowFilterOverrideMobile] = useState(false);
-  const [sortDefault, setsortDefault] = useState("");
+  const [showFilterOverrideMobile, setShowFilterOverrideMobile] =
+    useState(false);
+  const [sortDefault, setsortDefault] = useState("descending");
 
-  const [clearFilters, setClearFilters] = useState(false)
-
+  const [clearFilters, setClearFilters] = useState(false);
 
   const [filter, setFilter] = useState({
-    sort: "",
+    sort: "descending",
     topics: [],
     author: [],
     dates: null,
@@ -48,15 +49,17 @@ const BlogArticles = () => {
 
   let [searchParams, setSearchParams] = useSearchParams();
 
-  let filterQueryString = Object.keys(filter).map(key => {
-    if (Array.isArray(filter[key])) {
-      return key + '=' + filter[key].join('/');
-    } else if (typeof filter[key] === "object") {
-      return key + '=' + JSON.stringify(filter[key])
-    } else {
-      return key + '=' + filter[key];
-    }
-  }).join('&');
+  let filterQueryString = Object.keys(filter)
+    .map((key) => {
+      if (Array.isArray(filter[key])) {
+        return key + "=" + filter[key].join("/");
+      } else if (typeof filter[key] === "object") {
+        return key + "=" + JSON.stringify(filter[key]);
+      } else {
+        return key + "=" + filter[key];
+      }
+    })
+    .join("&");
 
   const getBlogData = async () => {
     setLoading(true);
@@ -64,15 +67,18 @@ const BlogArticles = () => {
     setLoading(false);
 
     let returnedBlogArticles = response?.items ?? [];
-    let blogTopics = window?.setTopics ?? getBlogArticleTopics(returnedBlogArticles)
+    let blogTopics =
+      window?.setTopics.topics ?? getBlogArticleTopics(returnedBlogArticles);
 
-    if (typeof blogTopics === 'string') {
-      blogTopics = JSON.parse(blogTopics)
+    if (typeof blogTopics === "string") {
+      blogTopics = JSON.parse(blogTopics);
     }
 
-    setBlogCategories(blogTopics) 
+    setBlogCategories(blogTopics);
 
-    returnedBlogArticles = returnedBlogArticles.filter(props => props.properties.tags.some(tags => blogTopics.includes(tags)));
+    returnedBlogArticles = returnedBlogArticles.filter((props) =>
+      props.properties.tags.some((tags) => blogTopics.includes(tags))
+    );
 
     setReturnedBlogArticles(returnedBlogArticles);
     setAuthors(getAuthors(returnedBlogArticles));
@@ -82,17 +88,17 @@ const BlogArticles = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
 
-  const dates = queryParams.get('dates');
-  const sort = queryParams.get('sort');
-  const author = queryParams.get('author');
-  const topics = queryParams.get('topics');
-  const dateRangeSet = queryParams.get('dateRangeSet');
+  const dates = queryParams.get("dates");
+  const sort = queryParams.get("sort");
+  const author = queryParams.get("author");
+  const topics = queryParams.get("topics");
+  const dateRangeSet = queryParams.get("dateRangeSet");
 
   const setDateRanges = (newRanges) => {
     setFilter({ ...filter, dateRangeSet: newRanges });
   };
 
-  useEffect(() => { 
+  useEffect(() => {
     if (clearFilters) {
       setFilter((prevState) => ({
         ...prevState,
@@ -103,21 +109,18 @@ const BlogArticles = () => {
         dateRangeSet: undefined,
       }));
 
-      setClearFilters(false)
-
+      setClearFilters(false);
     }
-
-  }, [clearFilters])
+  }, [clearFilters]);
 
   useEffect(() => {
-    setSearchParams(filterQueryString)
+    setSearchParams(filterQueryString);
   }, [filter]);
-
 
   useEffect(() => {
     getBlogData();
 
-    if (dateRangeSet !== 'undefined' && dateRangeSet !== null) {
+    if (dateRangeSet !== "undefined" && dateRangeSet !== null) {
       if (filter.dateRangeSet === undefined) {
         setFilter({ ...filter, dateRangeSet: JSON.parse(dateRangeSet) });
       }
@@ -126,7 +129,7 @@ const BlogArticles = () => {
     if (dates) {
       setFilter((prevState) => ({
         ...prevState,
-        dates: dates === 'null' ? null : dates,
+        dates: dates === "null" ? null : dates,
       }));
     }
 
@@ -140,24 +143,23 @@ const BlogArticles = () => {
     if (topics) {
       setFilter((prevState) => ({
         ...prevState,
-        topics: topics.split('/'),
+        topics: topics.split("/"),
       }));
     }
 
     if (author) {
       setFilter((prevState) => ({
         ...prevState,
-        author: author.split('/'),
+        author: author.split("/"),
       }));
     }
-
   }, []);
 
   useEffect(() => {
     let filteredBlogArticles = returnedBlogArticles;
 
     if (searchTerm) {
-      setPage(0)
+      setPage(0);
       filteredBlogArticles = searchBlogArticles(
         returnedBlogArticles,
         searchTerm
@@ -165,7 +167,7 @@ const BlogArticles = () => {
     }
 
     if (filter.topics.length) {
-      setPage(0)
+      setPage(0);
       filteredBlogArticles = filterBlogArticlesByTopic(
         filteredBlogArticles,
         filter.topics
@@ -173,7 +175,7 @@ const BlogArticles = () => {
     }
 
     if (filter.author.length) {
-      setPage(0)
+      setPage(0);
       filteredBlogArticles = filterBlogArticlesByAuthor(
         filteredBlogArticles,
         filter.author
@@ -181,20 +183,22 @@ const BlogArticles = () => {
     }
 
     if (filter.dates) {
-      setPage(0)
-      filter.dates !== 'updatedByRange' ? filteredBlogArticles = filterBlogArticlesByDate(
-        filteredBlogArticles,
-        filter.dates
-      ) : null
+      setPage(0);
+      filter.dates !== "updatedByRange"
+        ? (filteredBlogArticles = filterBlogArticlesByDate(
+            filteredBlogArticles,
+            filter.dates
+          ))
+        : null;
     }
 
-    if (filter.dateRangeSet && filter.dates === 'updatedByRange') {
-      setPage(0)
+    if (filter.dateRangeSet && filter.dates === "updatedByRange") {
+      setPage(0);
       filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
         filter.dates,
         filter.dateRangeSet
-      )
+      );
     }
 
     // sort values
@@ -210,7 +214,7 @@ const BlogArticles = () => {
       setsortDefault("name");
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, "name"), 5));
     } else {
-      setsortDefault("");
+      setsortDefault("descending");
     }
 
     if (filter.sort === "ascending") {
@@ -228,23 +232,35 @@ const BlogArticles = () => {
     }
 
     // topic values
-    if (filter.topics.length !== 0 || filter.author.length !== 0 || filter.dates !== null || clearFilters) {
+    if (
+      filter.topics.length !== 0 ||
+      filter.author.length !== 0 ||
+      filter.dates !== null ||
+      clearFilters
+    ) {
       // setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
       setSearchParams(filterQueryString);
     } else {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
-
-  }, [filter, filterQueryString, returnedBlogArticles, searchButtonClicked, searchParams, searchTerm, setSearchParams, sortDefault]);
- 
+  }, [
+    filter,
+    filterQueryString,
+    returnedBlogArticles,
+    searchButtonClicked,
+    searchParams,
+    searchTerm,
+    setSearchParams,
+    sortDefault,
+  ]);
 
   const authorParam = () => {
-    console.log('url has authors test');
+    console.log("url has authors test");
     // filter.author = "Bob qwerty";
   };
 
-  if (getSearchParam('author')) {
-    console.log('url has authors');
+  if (getSearchParam("author")) {
+    console.log("url has authors");
     authorParam();
   }
 
@@ -256,114 +272,142 @@ const BlogArticles = () => {
 
   const noOfResults = flatten(blogArticles).length;
 
+  // set url params for article breadcrumb
+  const urlParams = filterQueryString;
+  useEffect(() => {
+    sessionStorage.setItem('urlParams', urlParams);
+  }, [urlParams]); // reset params if filters updated
+
   return (
     <div className="template-search">
-      <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-p-r-xl wmcads-m-t-lg wmcads-m-b-lg">
-        <Search
-          placeholder="Blog search..."
-          changeCallback={setSearchTerm}
-          searchButtonClickedCallback={searchButtonClickedFn}
-        />
-      </div>
-      <div className="wmcads-grid">
-        <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-xl wmcads-p-r-lg">
-          {loading ? (
-            <div className="wmcads-loader wmcads-loader--small wmcads-m-l-xs"></div>
-          ) : (
-            <p>
-              Found <b>{noOfResults}</b> matching results
-            </p>
-          )}
+      <Breadcrumb
+        current={window?.setTopics.url}
+        name={window?.setTopics.name}
+        parent={window?.setTopics.breadcrumbs.breadcrumb[0]}
+        parent2={window?.setTopics.breadcrumbs.breadcrumb[1]}
+        parent3={window?.setTopics.breadcrumbs.breadcrumb[2]}
+        parent4={window?.setTopics.breadcrumbs.breadcrumb[3]}
+        parent5={window?.setTopics.breadcrumbs.breadcrumb[4]}
+        parent6={window?.setTopics.breadcrumbs.breadcrumb[5]}
+        parent7={window?.setTopics.breadcrumbs.breadcrumb[6]}
+        parent8={window?.setTopics.breadcrumbs.breadcrumb[7]}
+      />
+      <Banner
+        image={window?.setBanner.bannerimg}
+        title={window?.setBanner.name}
+        summary={window?.setBanner.summary}
+        position={window?.setBanner.position}
+      />
+      <div className="wmcads-container">
+        <main className="wmcads-container--main">
+          <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-p-r-xl wmcads-m-t-lg wmcads-m-b-lg">
+            <Search
+              placeholder="Blog search..."
+              changeCallback={setSearchTerm}
+              searchButtonClickedCallback={searchButtonClickedFn}
+            />
+          </div>
+          <div className="wmcads-grid">
+            <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-xl wmcads-p-r-lg">
+              {loading ? (
+                <div className="wmcads-loader wmcads-loader--small wmcads-m-l-xs"></div>
+              ) : (
+                <p>
+                  Found <b>{noOfResults}</b> matching results
+                </p>
+              )}
 
-          {noOfResults === 0 && !loading && (
-            <div className="wmcads-msg-summary wmcads-msg-summary--warning ">
-              <div className="wmcads-msg-summary__header">
-                <svg className="wmcads-msg-summary__icon">
-                  <use
-                    xlinkHref="#wmcads-general-warning-circle"
-                    href="#wmcads-general-warning-circle"
-                  ></use>
-                </svg>
-                <h3 className="wmcads-msg-summary__title">
-                  There are no matching results
-                </h3>
-              </div>
-              <div className="wmcads-msg-summary__info">
-                <p>Improve your search results by:</p>
-                <ul className="wmcads-unordered-list">
-                  <li>Removing filters</li>
-                  <li>Double-checking your spelling</li>
-                  <li>Using fewer keywords</li>
-                  <li>Searching for something less specific</li>
-                </ul>
-              </div>
+              {noOfResults === 0 && !loading && (
+                <div className="wmcads-msg-summary wmcads-msg-summary--warning ">
+                  <div className="wmcads-msg-summary__header">
+                    <svg className="wmcads-msg-summary__icon">
+                      <use
+                        xlinkHref="#wmcads-general-warning-circle"
+                        href="#wmcads-general-warning-circle"
+                      ></use>
+                    </svg>
+                    <h3 className="wmcads-msg-summary__title">
+                      There are no matching results
+                    </h3>
+                  </div>
+                  <div className="wmcads-msg-summary__info">
+                    <p>Improve your search results by:</p>
+                    <ul className="wmcads-unordered-list">
+                      <li>Removing filters</li>
+                      <li>Double-checking your spelling</li>
+                      <li>Using fewer keywords</li>
+                      <li>Searching for something less specific</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+              {blogArticles.length ? (
+                <>
+                  {blogArticles[page]?.map((blogArticle, index) => (
+                    <BlogArticleLink
+                      route={blogArticle.route.path}
+                      key={index}
+                      filter={filter}
+                      setFilter={setFilter}
+                      name={blogArticle.name}
+                      id={blogArticle.id}
+                      authors={blogArticle.properties.author}
+                      tags={blogArticle.properties.tags}
+                      image={
+                        blogArticle.properties.image != null
+                          ? blogArticle.properties.image[0].url
+                          : "No Image"
+                      }
+                      publishDate={blogArticle.properties.date}
+                      introductionText={blogArticle.properties.introduction}
+                    />
+                  ))}
+                  <div className="wmcads-m-t-lg">
+                    <Pagination
+                      numberOfPages={blogArticles.length}
+                      activePage={page}
+                      callBack={setPage}
+                    />
+                  </div>
+                </>
+              ) : null}
             </div>
-          )}
-          {blogArticles.length ? (
-            <>
-              {blogArticles[page]?.map((blogArticle, index) => (
-                <BlogArticleLink
-                  route={blogArticle.route.path}
-                  key={index}
+            <aside className="wmcads-col-1 wmcads-col-md-1-3 wmcads-m-b-lg">
+              <hr className="wmcads-hide-desktop" />
+              <DelayedComponent>
+                <SortControl
                   filter={filter}
                   setFilter={setFilter}
-                  name={blogArticle.name}
-                  id={blogArticle.id}
-                  authors={blogArticle.properties.author}
-                  tags={blogArticle.properties.tags}
-                  image={
-                    blogArticle.properties.image != null
-                      ? blogArticle.properties.image[0].url
-                      : "No Image"
-                  }
-                  publishDate={blogArticle.properties.date}
-                  introductionText={blogArticle.properties.introduction}
+                  defaultVal={sortDefault}
                 />
-              ))}
-              <div className="wmcads-m-t-lg">
-                <Pagination
-                  numberOfPages={blogArticles.length}
-                  activePage={page}
-                  callBack={setPage}
-                />
+              </DelayedComponent>
+              <div className="wmcads-hide-desktop">
+                <button
+                  className="wmcads-btn wmcads-btn--primary wmcads-btn--block"
+                  id="show_filter_btn"
+                  aria-controls="search_filter"
+                  aria-expanded="false"
+                  onClick={() => setShowFilterOverrideMobile(true)}
+                >
+                  Filter your results
+                </button>
               </div>
-            </>
-          ) : null}
-        </div>
-        <aside className="wmcads-col-1 wmcads-col-md-1-3 wmcads-m-b-lg">
-          <hr className="wmcads-hide-desktop" />
-          <DelayedComponent>
-            <SortControl
-              filter={filter}
-              setFilter={setFilter}
-              defaultVal={sortDefault}
-            />
-          </DelayedComponent>
-          <div className="wmcads-hide-desktop">
-            <button
-              className="wmcads-btn wmcads-btn--primary wmcads-btn--block"
-              id="show_filter_btn"
-              aria-controls="search_filter"
-              aria-expanded="false"
-              onClick={() => setShowFilterOverrideMobile(true)}
-            >
-              Filter your results
-            </button>
+              <BlogFilter
+                clearFilters={clearFilters}
+                returnedBlogArticles={returnedBlogArticles}
+                filter={filter}
+                setClearFilters={setClearFilters}
+                setFilter={setFilter}
+                showFilterOverrideMobile={showFilterOverrideMobile}
+                setShowFilterOverrideMobile={setShowFilterOverrideMobile}
+                noOfResults={noOfResults}
+                blogCategories={blogCategories}
+                authors={authors}
+                setDateRanges={setDateRanges}
+              />
+            </aside>
           </div>
-          <BlogFilter
-            clearFilters={clearFilters}
-            returnedBlogArticles={returnedBlogArticles}
-            filter={filter}
-            setClearFilters={setClearFilters}
-            setFilter={setFilter}
-            showFilterOverrideMobile={showFilterOverrideMobile}
-            setShowFilterOverrideMobile={setShowFilterOverrideMobile}
-            noOfResults={noOfResults}
-            blogCategories={blogCategories}
-            authors={authors}
-            setDateRanges={setDateRanges}
-          />
-        </aside>
+        </main>
       </div>
     </div>
   );

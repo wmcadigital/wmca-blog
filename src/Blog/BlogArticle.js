@@ -28,6 +28,7 @@ const BlogArticle = () => {
     []
   );
   const { article } = useLoaderData();
+  const [topics, setTopics] = useState([]);
 
   const SetContent = (data) => {
     switch (data.contentType) {
@@ -61,6 +62,19 @@ const BlogArticle = () => {
     });
     setArticleAccordionBlockItems(accordion);
   }, [article]);
+
+  useEffect(() => {
+    // match check to mark which topics should be linked
+    let blogTopics = window?.setTopics.topics;
+  
+    const topics = article.properties.tags.map((el1) => ({
+      name: el1,
+      match: blogTopics.some((el2) => el2 === el1),
+    }))
+  
+    setTopics(topics);
+  
+    }, [article.properties.tags]);
 
   return (
     <>
@@ -102,11 +116,18 @@ const BlogArticle = () => {
                   ? formatDate(article.properties.date)
                   : null}{" "}
                 -{" "}
-                {article.properties.tags.map(function (item, index) {
+                {topics.map(function (item, index) {
                   return (
                     <React.Fragment key={index}>
                       {index > 0 && ", "}
-                      <Link to={`/?topics=${item}`}>{item}</Link>
+                      {/* only link topics selected in the blog post */}
+                      {item.match ? (
+                        <Link key={`${index}`} to={`/?topics=${item.name}`}>
+                          {item.name}
+                        </Link>
+                      ) : (
+                        <span>{item.name}</span>
+                      )}
                     </React.Fragment>
                   );
                 })}

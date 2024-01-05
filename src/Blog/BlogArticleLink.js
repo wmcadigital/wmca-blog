@@ -1,4 +1,5 @@
-import React from 'react';
+import React from 'react'
+import { useState, useEffect } from "react";
 /* eslint-disable jsx-a11y/interactive-supports-focus */
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
@@ -18,9 +19,10 @@ const BlogArticleLink = ({
   introductionText,
   route,
 }) => {
+  const [topics, setTopics] = useState([]);
+
   const handleAuthor = (event, item) => {
     event.preventDefault();
-
     let selectedAuthor = [item]
     setFilter({ ...filter, author: selectedAuthor });
 
@@ -37,6 +39,19 @@ const BlogArticleLink = ({
     const result = path.replace(regex, '');
     return result;
   }
+
+  useEffect(() => {
+  // match check to mark which topics should be linked
+  let blogTopics = window?.setTopics.topics;
+
+  const topics = tags.map((el1) => ({
+    name: el1,
+    match: blogTopics.some((el2) => el2 === el1),
+  }))
+
+  setTopics(topics);
+
+  }, [name, tags]);
 
   return (
     <div className="wmcads-search-result">
@@ -61,13 +76,17 @@ const BlogArticleLink = ({
 
       <p className="wmcads-search-result__date">
         Topics:{" "}
-        {tags?.map(function (item, index) {
+        {topics?.map(function (item, index) {
           return (
             <React.Fragment key={index}>
               {index > 0 && ', '}
-              <a key={`${index}`} onClick={(e) => handleTopics(e, item)} onKeyUp={handleTopics} role="link">
-                {item}
-              </a>
+              {/* only link topics selected in the blog post */}
+              {item.match ? (
+              <a key={`${index}`} onClick={(e) => handleTopics(e, item.name)} onKeyUp={handleTopics} role="link">
+                {item.name}
+              </a>) : 
+              <span>{item.name}</span>
+              }
             </React.Fragment>
           );
         })}

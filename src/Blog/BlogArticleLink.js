@@ -1,8 +1,8 @@
 /* eslint-disable jsx-a11y/interactive-supports-focus */
 import PropTypes from "prop-types";
-import React from 'react'
-import {useEffect, useState} from "react";
-import {Link} from "react-router-dom";
+import React from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import formatDate from "../helpers/formatDate";
 
@@ -24,53 +24,63 @@ const BlogArticleLink = ({
 
   const handleAuthor = (event, item) => {
     event.preventDefault();
-    let selectedAuthor = [ item ]
-    setFilter({...filter, author : selectedAuthor});
+    let selectedAuthor = [item];
+    setFilter({ ...filter, author: selectedAuthor });
   };
 
   const handleTopics = (event, item) => {
     event.preventDefault();
-    let selectedTopic = [ item ]
-    setFilter({...filter, topics : selectedTopic});
+    let selectedTopic = [item];
+    setFilter({ ...filter, topics: selectedTopic });
   };
 
-  const routePath =
-      (path) => {
-        const regex = new RegExp(`/blog(/)?`);
-        const result = path.replace(regex, '');
-        return result;
-      }
+  const routePath = (path) => {
+    const regex = new RegExp(`/blog(/)?`);
+    const result = path.replace(regex, "");
+    return result;
+  };
 
   useEffect(() => {
     // match check to mark which topics should be linked
     let blogTopics = window?.setTopics.topics;
 
     const topics = tags.map((el1) => ({
-                              name : el1,
-                              match : blogTopics.some((el2) => el2 === el1),
-                            }))
+      name: el1,
+      match: blogTopics.some((el2) => el2 === el1),
+    }));
 
     setTopics(topics);
-  }, [ name, tags ]);
+  }, [name, tags]);
 
   return (
     <div className="wmcads-search-result">
       <h2 className="wmcads-m-b-sm">
-        <Link className="h2" to={{
-    pathname: `article/${routePath(route)}`}} >
+        <Link
+          className="h2"
+          to={{
+            pathname: `article/${routePath(route)}`,
+          }}
+        >
           {name}
         </Link>
       </h2>
       <p className="wmcads-search-result__date">
         {authors?.map(function (item, index) {
-    return (<React.Fragment key = {index}>{
-        index > 0 &&
-        ', '}<a key = {`${index}`} onClick = {(e) => handleAuthor(
-                                                  e, item.name)} onKeyUp =
-                  {handleAuthor} role = "link">{
-        item.name}</a>
-            </React.Fragment>);
-        })}&nbsp;-&nbsp;
+          return (
+            <React.Fragment key={index}>
+              {index > 0 && ", "}
+              <a
+                key={`${index}`}
+                onClick={(e) => handleAuthor(e, item.name)}
+                onKeyUp={handleAuthor}
+                role="link"
+              >
+                {item.name}
+              </a>
+            </React.Fragment>
+          );
+        })}
+        &nbsp;-&nbsp;
         {formatDate(publishDate)}
       </p>
 
@@ -79,19 +89,24 @@ const BlogArticleLink = ({
         {topics?.map(function (item, index) {
           return (
             <React.Fragment key={index}>
-              {index > 0 && ', '}
+              {index > 0 && ", "}
               {/* only link topics selected in the blog post */}
               {item.match ? (
-              <a key={`${index}`} onClick={(e) => handleTopics(e, item.name)} onKeyUp={handleTopics} role="link">
-                {item.name}
-              </a>) : 
-              <span>{item.name}</span>
-              }
+                <a
+                  key={`${index}`}
+                  onClick={(e) => handleTopics(e, item.name)}
+                  onKeyUp={handleTopics}
+                  role="link"
+                >
+                  {item.name}
+                </a>
+              ) : (
+                <span>{item.name}</span>
+              )}
             </React.Fragment>
           );
-        })
-}
-< /p>
+        })}
+      </p>
       {image != "No Image" ? (
         <img
           src={`https:/ /
@@ -101,11 +116,7 @@ const BlogArticleLink = ({
           className="wmcads-m-t-md"
         />
       ) : null}
-      <p
-        className="wmcads-search-result__excerpt"
-      >
-        {introductionText}
-      </p>
+      <p className="wmcads-search-result__excerpt">{introductionText}</p>
     </div>
   );
 };

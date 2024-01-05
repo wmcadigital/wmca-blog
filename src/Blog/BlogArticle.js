@@ -1,18 +1,20 @@
 import React from "react";
-import { useLoaderData, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLoaderData } from "react-router-dom";
+
 import getBlogArticle from "../api/getBlogArticle";
+import formatDate from "../helpers/formatDate";
 import ScrollToTop from "../helpers/ScrollToTop";
-import { useState, useEffect } from "react";
+
+import AccordionComponent from "./AccordionComponent";
 // import BlogBody from "./BlogBody";
 
 import Banner from "./Banner";
-import formatDate from "../helpers/formatDate";
-import VideoComponent from "./VideoComponent";
-import TextComponent from "./TextComponent";
+import Breadcrumb from "./Breadcrumb";
 import ImageComponent from "./ImageComponent";
 import SidebarCardComponent from "./SidebarCardComponent";
-import AccordionComponent from "./AccordionComponent";
-import Breadcrumb from "./Breadcrumb";
+import TextComponent from "./TextComponent";
+import VideoComponent from "./VideoComponent";
 
 export async function loader({ params }) {
   const article = await getBlogArticle(params.articleTitle);
@@ -22,10 +24,10 @@ export async function loader({ params }) {
 const BlogArticle = () => {
   const [articleContentItems, setArticleContentItems] = useState([]);
   const [articleSidebarContentItems, setArticleSidebarContentItems] = useState(
-    []
+    [],
   );
   const [articleAccordionBlockItems, setArticleAccordionBlockItems] = useState(
-    []
+    [],
   );
   const { article } = useLoaderData();
   const [topics, setTopics] = useState([]);
@@ -66,15 +68,14 @@ const BlogArticle = () => {
   useEffect(() => {
     // match check to mark which topics should be linked
     let blogTopics = window?.setTopics.topics;
-  
+
     const topics = article.properties.tags.map((el1) => ({
       name: el1,
       match: blogTopics.some((el2) => el2 === el1),
-    }))
-  
+    }));
+
     setTopics(topics);
-  
-    }, [article.properties.tags]);
+  }, [article.properties.tags]);
 
   return (
     <>

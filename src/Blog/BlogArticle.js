@@ -103,7 +103,7 @@ const BlogArticle = () => {
             <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-t-xl wmcads-m-b-xl wmcads-p-r-lg">
               <h1>{article.name}</h1>
               <p className="wmcads-search-result__date">
-                {article.properties.author.map(function (item, index) {
+                {article.properties.author && article.properties.author.map(function (item, index) {
                   return (
                     <React.Fragment key={index}>
                       {index > 0 && ", "}
@@ -211,13 +211,13 @@ const BlogArticle = () => {
                 })}
               </p>
 
-              {article.properties.author.length == 1 ? (
+              {article.properties.author && article.properties.author.length == 1 ? (
                 <h2>About the author</h2>
               ) : (
-                <h2>About the authors</h2>
+                (article.properties.author && <h2> About the authors</h2>)
               )}
 
-              {article.properties.author.map(function (item, index) {
+              {article.properties.author && article.properties.author.map(function (item, index) {
                 return (
                   <div
                     className="wmcads-inset-text wmcads-col-1 wmcads-m-b-md"

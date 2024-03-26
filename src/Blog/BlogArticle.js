@@ -47,7 +47,13 @@ const BlogArticle = () => {
     }
   };
 
+  // useEffect(() => {
+  //   // Set the title dynamically
+  //   document.title = "Dynamic Title"; // Replace "Dynamic Title" with your dynamic title value
+  // }, []);
+
   useEffect(() => {
+    document.title = article.name
     let accordion = [];
 
     article?.properties.grid?.items.map((items) => {

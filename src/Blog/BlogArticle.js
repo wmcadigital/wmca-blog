@@ -13,6 +13,7 @@ import ImageComponent from "./ImageComponent";
 import SidebarCardComponent from "./SidebarCardComponent";
 import AccordionComponent from "./AccordionComponent";
 import Breadcrumb from "./Breadcrumb";
+import { Helmet } from "react-helmet";
 
 export async function loader({ params }) {
   const article = await getBlogArticle(params.articleTitle);
@@ -84,6 +85,9 @@ const BlogArticle = () => {
 
   return (
     <>
+      <Helmet>
+        <title>{article?.name || "WMCA blog"}</title>
+      </Helmet>
       <ScrollToTop />
       <Breadcrumb
         article={article.name}

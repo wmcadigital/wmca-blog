@@ -2,11 +2,11 @@ const filterBlogArticlesByAuthor = (blogArticles, authorFilter) =>
   blogArticles.filter((article) => {
     let articleAuthor = article.properties.author;
     if (!article.properties.author) {
-      articleAuthor = "None";
+      articleAuthor = [{name: "None"}];
     }
 
-    let desiredValue = (fruits_quantity, desired_key) => {
-      let desiredValue = fruits_quantity.map((element) => element[desired_key]);
+    let desiredValue = (authorArrObj, desired_key) => {
+      let desiredValue = authorArrObj.map((element) => element[desired_key]);
       return desiredValue;
     };
 

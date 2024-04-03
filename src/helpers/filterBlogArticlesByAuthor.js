@@ -1,36 +1,34 @@
 const filterBlogArticlesByAuthor = (blogArticles, authorFilter) =>
-  blogArticles.filter((article) => {
-    let articleAuthor = article.properties.author;
-    if (!article.properties.author) {
-      articleAuthor = [{name: "None"}];
-    }
+    blogArticles.filter((article) => {
+      let articleAuthor = article.properties.author;
+      if (!article.properties.author) {
+        articleAuthor = [ {name : "None"} ];
+      }
 
-    let desiredValue = (authorArrObj, desired_key) => {
-      let desiredValue = authorArrObj.map((element) => element[desired_key]);
-      return desiredValue;
-    };
+      let desiredValue = (authorArrObj, desired_key) => {
+        let desiredValue = authorArrObj.map((element) => element[desired_key]);
+        return desiredValue;
+      };
 
-    let desired_key = "name";
+      let desired_key = "name";
 
-    let result = desiredValue(articleAuthor, desired_key);
+      let result = desiredValue(articleAuthor, desired_key);
 
-    if (
-      result.includes(authorFilter[0]) ||
-      result.includes(authorFilter[1]) ||
-      result.includes(authorFilter[2]) ||
-      result.includes(authorFilter[3]) ||
-      result.includes(authorFilter[4]) ||
-      result.includes(authorFilter[5]) ||
-      result.includes(authorFilter[6]) ||
-      result.includes(authorFilter[7]) ||
-      result.includes(authorFilter[8]) ||
-      result.includes(authorFilter[9]) ||
-      result.includes(authorFilter[10])
-    ) {
-      return true;
-    } else {
-      return false;
-    }
-  });
+      if (result.includes(authorFilter[0]) ||
+          result.includes(authorFilter[1]) ||
+          result.includes(authorFilter[2]) ||
+          result.includes(authorFilter[3]) ||
+          result.includes(authorFilter[4]) ||
+          result.includes(authorFilter[5]) ||
+          result.includes(authorFilter[6]) ||
+          result.includes(authorFilter[7]) ||
+          result.includes(authorFilter[8]) ||
+          result.includes(authorFilter[9]) ||
+          result.includes(authorFilter[10])) {
+        return true;
+      } else {
+        return false;
+      }
+    });
 
 export default filterBlogArticlesByAuthor;

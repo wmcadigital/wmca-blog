@@ -1,7 +1,7 @@
 import React from "react";
-import {useEffect, useState} from "react";
-import {Helmet} from "react-helmet";
-import {Link, useLoaderData} from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet";
+import { Link, useLoaderData } from "react-router-dom";
 
 import getBlogArticle from "../api/getBlogArticle";
 import formatDate from "../helpers/formatDate";
@@ -17,18 +17,18 @@ import SidebarCardComponent from "./SidebarCardComponent";
 import TextComponent from "./TextComponent";
 import VideoComponent from "./VideoComponent";
 
-export async function loader({params}) {
+export async function loader({ params }) {
   const article = await getBlogArticle(params.articleTitle);
-  return {article};
+  return { article };
 }
 
 const BlogArticle = () => {
   const [articleContentItems, setArticleContentItems] = useState([]);
   const [articleSidebarContentItems, setArticleSidebarContentItems] = useState(
-    []
+    [],
   );
   const [articleAccordionBlockItems, setArticleAccordionBlockItems] = useState(
-    []
+    [],
   );
   const { article } = useLoaderData();
   const [topics, setTopics] = useState([]);
@@ -56,7 +56,7 @@ const BlogArticle = () => {
   // }, []);
 
   useEffect(() => {
-    document.title = article.name
+    document.title = article.name;
     let accordion = [];
 
     article?.properties.grid?.items.map((items) => {
@@ -75,15 +75,14 @@ const BlogArticle = () => {
   useEffect(() => {
     // match check to mark which topics should be linked
     let blogTopics = window?.setTopics.topics;
-  
+
     const topics = article.properties.tags.map((el1) => ({
       name: el1,
       match: blogTopics.some((el2) => el2 === el1),
-    }))
-  
+    }));
+
     setTopics(topics);
-  
-    }, [article.properties.tags]);
+  }, [article.properties.tags]);
 
   return (
     <>
@@ -115,14 +114,15 @@ const BlogArticle = () => {
             <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-t-xl wmcads-m-b-xl wmcads-p-r-lg">
               <h1>{article.name}</h1>
               <p className="wmcads-search-result__date">
-                {article.properties.author && article.properties.author.map(function (item, index) {
-                  return (
-                    <React.Fragment key={index}>
-                      {index > 0 && ", "}
-                      <Link to={`/?author=${item.name}`}>{item.name}</Link>
-                    </React.Fragment>
-                  );
-                })}
+                {article.properties.author &&
+                  article.properties.author.map(function (item, index) {
+                    return (
+                      <React.Fragment key={index}>
+                        {index > 0 && ", "}
+                        <Link to={`/?author=${item.name}`}>{item.name}</Link>
+                      </React.Fragment>
+                    );
+                  })}
                 ,{" "}
                 {article.properties.date != ""
                   ? formatDate(article.properties.date)
@@ -223,56 +223,58 @@ const BlogArticle = () => {
                 })}
               </p>
 
-              {article.properties.author && article.properties.author.length == 1 ? (
+              {article.properties.author &&
+              article.properties.author.length == 1 ? (
                 <h2>About the author</h2>
               ) : (
-                (article.properties.author && <h2> About the authors</h2>)
+                article.properties.author && <h2> About the authors</h2>
               )}
 
-              {article.properties.author && article.properties.author.map(function (item, index) {
-                return (
-                  <div
-                    className="wmcads-inset-text wmcads-col-1 wmcads-m-b-md"
-                    aria-label="About the author"
-                    key={`${index}`}
-                  >
-                    {item.name != null ? <p>{item.name}</p> : null}
+              {article.properties.author &&
+                article.properties.author.map(function (item, index) {
+                  return (
+                    <div
+                      className="wmcads-inset-text wmcads-col-1 wmcads-m-b-md"
+                      aria-label="About the author"
+                      key={`${index}`}
+                    >
+                      {item.name != null ? <p>{item.name}</p> : null}
 
-                    {item.properties.jobTitle != null ? (
-                      <p>{item.properties.jobTitle}</p>
-                    ) : null}
+                      {item.properties.jobTitle != null ? (
+                        <p>{item.properties.jobTitle}</p>
+                      ) : null}
 
-                    {item.properties.twitter != null ||
-                    item.properties.linkedin != null ? (
-                      <ul className="wmcads-bare-list">
-                        {item.properties.twitter != null ? (
-                          <li>
-                            <a
-                              href={item.properties.twitter[0].url}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Twitter
-                            </a>
-                          </li>
-                        ) : null}
+                      {item.properties.twitter != null ||
+                      item.properties.linkedin != null ? (
+                        <ul className="wmcads-bare-list">
+                          {item.properties.twitter != null ? (
+                            <li>
+                              <a
+                                href={item.properties.twitter[0].url}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                Twitter
+                              </a>
+                            </li>
+                          ) : null}
 
-                        {item.properties.linkedin != null ? (
-                          <li>
-                            <a
-                              href={item.properties.linkedin[0].url}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Linkedin
-                            </a>
-                          </li>
-                        ) : null}
-                      </ul>
-                    ) : null}
-                  </div>
-                );
-              })}
+                          {item.properties.linkedin != null ? (
+                            <li>
+                              <a
+                                href={item.properties.linkedin[0].url}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                Linkedin
+                              </a>
+                            </li>
+                          ) : null}
+                        </ul>
+                      ) : null}
+                    </div>
+                  );
+                })}
             </div>
             <aside className="wmcads-col-1 wmcads-col-md-1-3">
               {articleSidebarContentItems !== undefined &&

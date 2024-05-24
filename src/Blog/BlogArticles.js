@@ -20,8 +20,6 @@ import filterBlogArticlesByAuthor from "../helpers/filterBlogArticlesByAuthor";
 import filterBlogArticlesByDate from "../helpers/filterBlogArticlesByDate";
 import DelayedComponent from "../helpers/delayedComponent";
 import Breadcrumb from "./Breadcrumb";
-import ReactGA from 'react-ga4';
-const TRACKING_ID = "G-PL6P8LRKHT";
 
 // Import Helper functions
 import { getSearchParam } from "../helpers/urlSearchParams"; // (used to sync state with URL)
@@ -99,12 +97,6 @@ const BlogArticles = () => {
   const setDateRanges = (newRanges) => {
     setFilter({ ...filter, dateRangeSet: newRanges });
   };
-
-  useEffect(() => {
-    ReactGA.initialize(TRACKING_ID);
-    // Send pageview with a custom path
-    ReactGA.send({ hitType: "pageview", page: window.location.pathname, title: window?.setTopics?.name });
-}, [])
 
   useEffect(() => {
     if (clearFilters) {

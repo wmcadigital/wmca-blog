@@ -27,6 +27,8 @@ const router = createHashRouter([
 ]
 );
 
+console.log('v1.0.11');
+
 root.render(
   <StrictMode>
       <RouterProvider router={router} />

@@ -14,6 +14,8 @@ import SidebarCardComponent from "./SidebarCardComponent";
 import AccordionComponent from "./AccordionComponent";
 import Breadcrumb from "./Breadcrumb";
 import { Helmet } from "react-helmet";
+import ReactGA from 'react-ga4';
+const TRACKING_ID = "G-PL6P8LRKHT";
 
 export async function loader({ params }) {
   const article = await getBlogArticle(params.articleTitle);
@@ -48,10 +50,11 @@ const BlogArticle = () => {
     }
   };
 
-  // useEffect(() => {
-  //   // Set the title dynamically
-  //   document.title = "Dynamic Title"; // Replace "Dynamic Title" with your dynamic title value
-  // }, []);
+  useEffect(() => {
+    ReactGA.initialize(TRACKING_ID);
+    // Send pageview with a custom path
+    ReactGA.send({ hitType: "pageview", page: window.location.pathname + window.location.hash, title: article?.name });
+}, [article?.name])
 
   useEffect(() => {
     document.title = article.name
@@ -82,8 +85,6 @@ const BlogArticle = () => {
     setTopics(topics);
   
     }, [article.properties.tags]);
-
-    console.log(article);
 
   return (
     <>

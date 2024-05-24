@@ -83,6 +83,8 @@ const BlogArticle = () => {
   
     }, [article.properties.tags]);
 
+    console.log(article);
+
   return (
     <>
       <Helmet>
@@ -91,37 +93,41 @@ const BlogArticle = () => {
       <ScrollToTop />
       <Breadcrumb
         article={article.name}
-        current={window?.setTopics.url}
-        name={window?.setTopics.name}
-        parent={window?.setTopics.breadcrumbs.breadcrumb[0]}
-        parent2={window?.setTopics.breadcrumbs.breadcrumb[1]}
-        parent3={window?.setTopics.breadcrumbs.breadcrumb[2]}
-        parent4={window?.setTopics.breadcrumbs.breadcrumb[3]}
-        parent5={window?.setTopics.breadcrumbs.breadcrumb[4]}
-        parent6={window?.setTopics.breadcrumbs.breadcrumb[5]}
-        parent7={window?.setTopics.breadcrumbs.breadcrumb[6]}
-        parent8={window?.setTopics.breadcrumbs.breadcrumb[7]}
+        current={window?.setTopics?.url}
+        name={window?.setTopics?.name}
+        parent={window?.setTopics?.breadcrumbs?.breadcrumb[0]}
+        parent2={window?.setTopics?.breadcrumbs?.breadcrumb[1]}
+        parent3={window?.setTopics?.breadcrumbs?.breadcrumb[2]}
+        parent4={window?.setTopics?.breadcrumbs?.breadcrumb[3]}
+        parent5={window?.setTopics?.breadcrumbs?.breadcrumb[4]}
+        parent6={window?.setTopics?.breadcrumbs?.breadcrumb[5]}
+        parent7={window?.setTopics?.breadcrumbs?.breadcrumb[6]}
+        parent8={window?.setTopics?.breadcrumbs?.breadcrumb[7]}
       />
       <Banner
-        image={window?.setBanner.bannerimg}
-        title={window?.setBanner.name}
-        summary={window?.setBanner.summary}
+        image={window?.setBanner?.bannerimg}
+        title={window?.setBanner?.name}
+        summary={window?.setBanner?.summary}
+        article={true}
       />
       <div className="wmcads-container">
         <main className="wmcads-container--main">
           <div className="wmcads-grid">
-            <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-t-xl wmcads-m-b-xl wmcads-p-r-lg">
+            <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-md wmcads-p-r-lg">
               <h1>{article.name}</h1>
               <p className="wmcads-search-result__date">
                 {article.properties.author && article.properties.author.map(function (item, index) {
                   return (
+                    <>
                     <React.Fragment key={index}>
                       {index > 0 && ", "}
                       <Link to={`/?author=${item.name}`}>{item.name}</Link>
                     </React.Fragment>
+                    ,{" "}
+                    </>
                   );
                 })}
-                ,{" "}
+                
                 {article.properties.date != ""
                   ? formatDate(article.properties.date)
                   : null}{" "}
@@ -143,6 +149,7 @@ const BlogArticle = () => {
                 })}
               </p>
 
+              {article.properties.hideOpinionMessage != true ? (
               <div className="wmcads-warning-text wmcads-m-t-md wmcads-m-b-md">
                 <svg className="wmcads-warning-text__icon">
                   <use
@@ -152,6 +159,7 @@ const BlogArticle = () => {
                 </svg>
                 This blog post is an opinion and may not reflect WMCA’s views.
               </div>
+              ) : <div className="wmcads-m-t-md wmcads-m-b-md"></div>}
 
               {article.properties.introduction != null ? (
                 <div
@@ -162,7 +170,7 @@ const BlogArticle = () => {
                 </div>
               ) : null}
 
-              {article.properties.image != null ? (
+              {article.properties.hideImageInBlog != true && article.properties.image != null ? (
                 <img
                   src={`https://cms.wmca.org.uk${article.properties.image[0].url}?anchor=center&mode=crop&width=620&height=300`}
                   alt={article.properties.image[0].properties.altText}
@@ -263,6 +271,18 @@ const BlogArticle = () => {
                               rel="noreferrer"
                             >
                               Linkedin
+                            </a>
+                          </li>
+                        ) : null}
+
+                        {item.properties.facebook != null ? (
+                          <li>
+                            <a
+                              href={item.properties.facebook[0].url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Facebook
                             </a>
                           </li>
                         ) : null}

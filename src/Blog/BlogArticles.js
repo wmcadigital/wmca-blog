@@ -281,26 +281,26 @@ const BlogArticles = () => {
   return (
     <div className="template-search">
       <Breadcrumb
-        current={window?.setTopics.url}
-        name={window?.setTopics.name}
-        parent={window?.setTopics.breadcrumbs.breadcrumb[0]}
-        parent2={window?.setTopics.breadcrumbs.breadcrumb[1]}
-        parent3={window?.setTopics.breadcrumbs.breadcrumb[2]}
-        parent4={window?.setTopics.breadcrumbs.breadcrumb[3]}
-        parent5={window?.setTopics.breadcrumbs.breadcrumb[4]}
-        parent6={window?.setTopics.breadcrumbs.breadcrumb[5]}
-        parent7={window?.setTopics.breadcrumbs.breadcrumb[6]}
-        parent8={window?.setTopics.breadcrumbs.breadcrumb[7]}
+        current={window?.setTopics?.url}
+        name={window?.setTopics?.name}
+        parent={window?.setTopics?.breadcrumbs?.breadcrumb[0]}
+        parent2={window?.setTopics?.breadcrumbs?.breadcrumb[1]}
+        parent3={window?.setTopics?.breadcrumbs?.breadcrumb[2]}
+        parent4={window?.setTopics?.breadcrumbs?.breadcrumb[3]}
+        parent5={window?.setTopics?.breadcrumbs?.breadcrumb[4]}
+        parent6={window?.setTopics?.breadcrumbs?.breadcrumb[5]}
+        parent7={window?.setTopics?.breadcrumbs?.breadcrumb[6]}
+        parent8={window?.setTopics?.breadcrumbs?.breadcrumb[7]}
       />
       <Banner
-        image={window?.setBanner.bannerimg}
-        title={window?.setBanner.name}
-        summary={window?.setBanner.summary}
-        position={window?.setBanner.position}
+        image={window?.setBanner?.bannerimg}
+        title={window?.setBanner?.name}
+        summary={window?.setBanner?.summary}
+        position={window?.setBanner?.position}
       />
       <div className="wmcads-container">
         <main className="wmcads-container--main">
-          <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-p-r-xl wmcads-m-t-lg wmcads-m-b-lg">
+          <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-p-r-xl wmcads-m-b-lg">
             <Search
               placeholder="Blog search..."
               changeCallback={setSearchTerm}

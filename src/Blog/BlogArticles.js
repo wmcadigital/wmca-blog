@@ -3,6 +3,7 @@ import { chunk, flatten } from "lodash";
 import { useSearchParams, useLocation } from "react-router-dom";
 
 import getBlogArticles from "../api/getBlogArticles";
+import ReactGA from "react-ga4";
 
 import Banner from "./Banner";
 // import Link from "./Link";
@@ -76,8 +77,8 @@ const BlogArticles = () => {
 
     setBlogCategories(blogTopics);
 
-    returnedBlogArticles = returnedBlogArticles.filter((props) =>
-      props.properties.tags.some((tags) => blogTopics.includes(tags))
+    returnedBlogArticles = returnedBlogArticles.filter((prop) =>
+      prop.properties.tags.some((tags) => blogTopics.includes(tags))
     );
 
     setReturnedBlogArticles(returnedBlogArticles);
@@ -115,7 +116,7 @@ const BlogArticles = () => {
 
   useEffect(() => {
     setSearchParams(filterQueryString);
-  }, [filter]);
+  }, [filter, filterQueryString, setSearchParams]);
 
   useEffect(() => {
     getBlogData();
@@ -153,7 +154,7 @@ const BlogArticles = () => {
         author: author.split("/"),
       }));
     }
-  }, []);
+  }, [author, dateRangeSet, dates, filter, sort, topics]);
 
   useEffect(() => {
     let filteredBlogArticles = returnedBlogArticles;
@@ -243,16 +244,7 @@ const BlogArticles = () => {
     } else {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
-  }, [
-    filter,
-    filterQueryString,
-    returnedBlogArticles,
-    searchButtonClicked,
-    searchParams,
-    searchTerm,
-    setSearchParams,
-    sortDefault,
-  ]);
+  }, [clearFilters, filter, filterQueryString, returnedBlogArticles, searchButtonClicked, searchParams, searchTerm, setSearchParams, sortDefault]);
 
   const authorParam = () => {
     console.log("url has authors test");
@@ -277,6 +269,15 @@ const BlogArticles = () => {
   useEffect(() => {
     sessionStorage.setItem('urlParams', urlParams);
   }, [urlParams]); // reset params if filters updated
+
+  useEffect(() => {
+    ReactGA.send({
+      hitType: "pageview",
+      page: window.location.pathname,
+      title: window?.setTopics?.name,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="template-search">

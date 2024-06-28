@@ -8,6 +8,9 @@ import {
 import BlogArticles from "./Blog/BlogArticles";
 import BlogArticle, { loader as blogLoader, } from "./Blog/BlogArticle";
 import ErrorPage from "./error-page";
+import ReactGA from "react-ga4";
+
+ReactGA.initialize("G-PL6P8LRKHT");
 
 const container = document.getElementById("root");
 
@@ -27,7 +30,7 @@ const router = createHashRouter([
 ]
 );
 
-console.log('v1.0.11');
+console.log('v1.0.14');
 
 root.render(
   <StrictMode>

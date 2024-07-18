@@ -116,7 +116,8 @@ const BlogArticles = () => {
 
   useEffect(() => {
     setSearchParams(filterQueryString);
-  }, [filter, filterQueryString, setSearchParams]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter]);
 
   useEffect(() => {
     getBlogData();
@@ -154,7 +155,8 @@ const BlogArticles = () => {
         author: author.split("/"),
       }));
     }
-  }, [author, dateRangeSet, dates, filter, sort, topics]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     let filteredBlogArticles = returnedBlogArticles;

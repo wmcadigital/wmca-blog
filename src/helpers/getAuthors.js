@@ -5,7 +5,7 @@ const getAuthors = (blogArticles) => {
     // console.log(article.properties.author[0].name);
     if (article.properties.author) {
       // console.log('test yes');
-        categorySet.add(article.properties.author[0].name);
+        categorySet.add(article.properties.author[0]?.name);
     } else {
       // console.log('test no');
       categorySet.add("None");

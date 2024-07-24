@@ -1,16 +1,18 @@
 const getAuthors = (blogArticles) => {
   const categorySet = new Set();
   blogArticles.forEach((article) => {
-    // console.log(article);
-    // console.log(article.properties.author[0].name);
-    if (article.properties.author) {
-      // console.log('test yes');
-        categorySet.add(article.properties.author[0]?.name);
+    var nullCheck = article.properties.author !== null;
+    var emptyArryCheck = article.properties.author?.length !== 0;
+
+    // if author is not null or empty array add to categorySet
+    if (nullCheck && emptyArryCheck) {
+      const authors = article.properties.author.map(authors => authors.name); // get all author name
+      authors.forEach(item => categorySet.add(item)); // add each author to the categorySet
     } else {
-      // console.log('test no');
       categorySet.add("None");
     }
   });
+
   const sortedBlogAuthors = Array.from(categorySet).sort((a, b) => {
     if (a > b) {
       return 1;

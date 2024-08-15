@@ -2,9 +2,9 @@
 // let getBlogEndPoint = "https://localhost:44353/umbraco/delivery/api/v1/content/item/";
 //let getBlogEndPoint = "https://cms.wmca.org.uk/umbraco/delivery/api/v1/content/item/";
 
-const getBlogArticle = async (id) => {
-   
-   const response = await fetch(getBlogEndPoint + "%2Fblog%2F" + id + "?expand=property%3Aauthor%2Cimage", {
+const getAuthor = async (id) => {
+console.log("testabc")   
+   const response = await fetch(getBlogEndPoint + id + "?fields=properties%5B%24all%5D", {
       method: 'GET', // or 'POST' or other HTTP methods
       headers: {
          'Content-Type': 'application/json',
@@ -15,8 +15,9 @@ const getBlogArticle = async (id) => {
      console.log(response.status, response.statusText);
   } else {
      const data = await response.json();
+     console.log(data);
      return data;
   }
 };
 
-export default getBlogArticle;
+export default getAuthor;

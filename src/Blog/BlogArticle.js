@@ -1,5 +1,5 @@
 import React from "react";
-import { useLoaderData, Link } from "react-router-dom";
+import { useNavigate, useLoaderData, Link } from "react-router-dom";
 import getBlogArticle from "../api/getBlogArticle";
 import ScrollToTop from "../helpers/ScrollToTop";
 import { useState, useEffect } from "react";
@@ -22,6 +22,7 @@ export async function loader({ params }) {
 }
 
 const BlogArticle = () => {
+  const navigate = useNavigate();
   const [articleContentItems, setArticleContentItems] = useState([]);
   const [articleSidebarContentItems, setArticleSidebarContentItems] = useState(
     []
@@ -86,7 +87,14 @@ const BlogArticle = () => {
     }));
 
     setTopics(topics);
-  }, [article.properties.tags]);
+  }, [article.properties?.tags]);
+
+  console.log(article);
+
+  const authorClick = (authorId) => {
+    console.log(authorId);
+    navigate('/author/', { state: { authorUrl: authorId} });
+  };
 
   return (
     <>
@@ -250,7 +258,9 @@ const BlogArticle = () => {
                       aria-label="About the author"
                       key={`${index}`}
                     >
-                      {item.name != null ? <p>{item.name}</p> : null}
+                      {item.name != null ? <button className="wmcads-btn wmcads-btn--link"
+                        onClick={() => authorClick(item.id)}
+                      ><p>{item.name}</p></button> : null}
 
                       {item.properties.jobTitle != null ? (
                         <p>{item.properties.jobTitle}</p>

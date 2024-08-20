@@ -1,5 +1,6 @@
 import React from "react";
 import getAuthor from "../api/getAuthor";
+import getAuthorArticles from "../api/getAuthorArticles";
 import ScrollToTop from "../helpers/ScrollToTop";
 import { useState, useEffect } from "react";
 // import BlogBody from "./BlogBody";
@@ -36,6 +37,16 @@ const BlogAuthor = () => {
   
     useEffect(() => {
       getAuthorData();
+  }, []);
+
+  const getAuthorsArticles = async () => {
+    console.log("getAuthorArticles")
+    const response = await getAuthorArticles();
+    console.log(response);
+  };
+  
+    useEffect(() => {
+      getAuthorsArticles();
   }, []);
 
 
@@ -98,6 +109,8 @@ const BlogAuthor = () => {
             </div>
             <div className="wmcads-col-1 wmcads-col-md-2-3">
               {author.name && <h2>Recent articles written by {author.name}</h2>}
+
+              {getAuthorArticles}
 
               {author.name && <a className="wmcads-link">View more posts written by {author.name}</a>}
             </div>

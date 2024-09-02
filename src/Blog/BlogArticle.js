@@ -89,9 +89,16 @@ const BlogArticle = () => {
     setTopics(topics);
   }, [article.properties?.tags]);
 
-  const authorClick = (authorId) => {
-    navigate('/author/', { state: { authorUrl: authorId} });
-  };
+  // const authorClick = (authorId) => {
+  //   navigate('/author/', { state: { authorUrl: authorId} });
+  // };
+
+  // remove authors from url
+  const routePath = (path) => {
+    const regex = new RegExp(`/authors(/)?`);
+    const result = path.replace(regex, '');
+    return result;
+  }
 
   return (
     <>
@@ -255,9 +262,13 @@ const BlogArticle = () => {
                       aria-label="About the author"
                       key={`${index}`}
                     >
-                      {item.name != null ? <button className="wmcads-btn wmcads-btn--link"
+                      {/* {item.name != null ? <button className="wmcads-btn wmcads-btn--link"
                         onClick={() => authorClick(item.id)}
-                      ><p>{item.name}</p></button> : null}
+                      ><p>{item.name}</p></button> : null} */}
+
+                      <Link className="wmcads-btn wmcads-btn--link" to={{ pathname: `/author/${routePath(item.route.path)}`}} state={{ authorUrl: item.id}} >
+                        {item.name}
+                      </Link>
 
                       {item.properties.jobTitle != null ? (
                         <p>{item.properties.jobTitle}</p>

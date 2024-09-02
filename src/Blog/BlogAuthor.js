@@ -4,7 +4,12 @@ import getAuthor from "../api/getAuthor";
 import getAuthorArticles from "../api/getAuthorArticles";
 import ScrollToTop from "../helpers/ScrollToTop";
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation }from "react-router-dom";
+import {
+  useNavigate,
+  useLoaderData,
+  useLocation,
+  useParams,
+} from "react-router-dom";
 // import Banner from "./Banner";
 import Breadcrumb from "./Breadcrumb";
 import { Helmet } from "react-helmet";
@@ -13,24 +18,40 @@ import ReactGA from "react-ga4";
 import sortBlogArticles from "../helpers/sortBlogArticles";
 import getBlogArticleTopics from "../helpers/getBlogArticleTopics";
 
+// export async function loader({ params }) {
+//   console.log("get author data");
+//   console.log(params.authorName);
+//   const article = await getAuthor(params.authorName);
+//   console.log(article);
+//   return { article };
+// }
+
 const BlogAuthor = () => {
   const location = useLocation();
   const { state } = location;
-  const authorUrl = state?.authorUrl || '';
+  const authorUrl = state?.authorUrl || "";
   const [loading, setLoading] = useState(false);
-  
   const [author, setAuthor] = useState([]);
   const [authorArticles, setAuthorArticles] = useState([]);
 
+  // remove authors from url
+  const routePath = (path) => {
+    const regex = new RegExp(`/author(/)?`);
+    const result = path.replace(regex, "");
+    return result;
+  };
+
+  const authorNames = routePath(location.pathname);
+
   const getAuthorData = async () => {
     setLoading(true);
-    const response = await getAuthor(authorUrl);
+    const response = await getAuthor(authorNames);
     setAuthor(response);
     setLoading(false);
   };
-  
-    useEffect(() => {
-      getAuthorData();
+
+  useEffect(() => {
+    getAuthorData();
   }, []);
 
   const getAuthorsArticles = async () => {
@@ -38,23 +59,24 @@ const BlogAuthor = () => {
     let returnedBlogArticles = response?.items ?? [];
 
     let blogTopics =
-    window?.setTopics.topics ?? getBlogArticleTopics(returnedBlogArticles);
+      window?.setTopics.topics ?? getBlogArticleTopics(returnedBlogArticles);
 
-  if (typeof blogTopics === "string") {
-    blogTopics = JSON.parse(blogTopics);
-  }
+    if (typeof blogTopics === "string") {
+      blogTopics = JSON.parse(blogTopics);
+    }
 
-  returnedBlogArticles = returnedBlogArticles.filter((prop) =>
-    prop.properties.tags.some((tags) => blogTopics.includes(tags))
-  );
+    returnedBlogArticles = returnedBlogArticles.filter((prop) =>
+      prop.properties.tags.some((tags) => blogTopics.includes(tags))
+    );
 
     // Sort the data by date in descending order
-    setAuthorArticles(chunk(sortBlogArticles(returnedBlogArticles, "descending"), 4));
+    setAuthorArticles(
+      chunk(sortBlogArticles(returnedBlogArticles, "descending"), 4)
+    );
   };
 
-
-    useEffect(() => {
-      getAuthorsArticles();
+  useEffect(() => {
+    getAuthorsArticles();
   }, []);
 
   useEffect(() => {
@@ -64,7 +86,7 @@ const BlogAuthor = () => {
       page: window.location.pathname + window.location.hash,
       //title: author?.name,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -94,59 +116,140 @@ const BlogAuthor = () => {
       /> */}
       <div className="wmcads-container">
         <main className="wmcads-container--main">
-          <div className="wmcads-grid">
-            <div className="wmcads-banner-container wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-md wmcads-md-p-r-lg">
-              <>
-                <div className="wmcads-float-left wmcads-col-1 wmcads-col-sm-1-4 wmcads-m-r-lg">
-                {author.properties?.image !== null ? (<img alt={author.name} src={`https://cms-stg.wmca.org.uk${author.properties?.image[0].url}`}/>) : (<></>)}
-                </div>
-                {/* {author.properties?.image !== null && <img alt={author.name} src={`https://cms-stg.wmca.org.uk${author.properties?.image[0].url}`}/>} */}
-                <div className="wmcads-float-left">
-                  {author.name && <h1>{author.name}</h1>}
-                  {author.properties?.jobTitle !== null ? (<strong>{author.properties?.jobTitle}</strong>) : (<></>)}
-                </div>
-              </>
-            </div>
-            <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-md wmcads-p-r-lg">
-              <>
-                {author.properties?.bio !== null ? (<div className="wmcads-col-1" dangerouslySetInnerHTML={{ __html: author.properties?.bio.markup }} />) : (<></>)}
-              </>
-            </div>
-            {authorArticles[0]?.length ? (
-            <div className="wmcads-col-1 wmcads-col-md-2-3">
-              {author.name && <h2>Recent articles written by {author.name}</h2>}
-              
-                <div className="wmcads-css-grid-3-col">
+          {author == "Not found" ? (
+            <h1>Author Not Found</h1>
+          ) : (
+            <div className="wmcads-grid">
+              <div className="wmcads-banner-container wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-md wmcads-md-p-r-lg">
                 <>
-                  {authorArticles[0]?.map((article, index) => (
-                    <>
-                    <div className="wmcads-content-card wmcads-content-card--news">
-                    <img alt={article.properties.image[0].name} src={`https://cms.wmca.org.uk${article.properties.image[0].url}?anchor=center&mode=crop&width=600&height=250`}></img>
-                    <p>{formatDate(article.properties.date)}</p>
-                    <a className="wmcads-link" key={index} href={article.route.path}>{article.name}</a>
-                    </div>
-                    </>
-                  ))}
+                  <div className="wmcads-float-left wmcads-col-1 wmcads-col-sm-1-4 wmcads-m-r-lg">
+                    {author.properties?.image !== null ? (
+                      <img
+                        alt={author.name}
+                        src={`https://cms-stg.wmca.org.uk${author.properties?.image[0].url}`}
+                      />
+                    ) : (
+                      <></>
+                    )}
+                  </div>
+                  {/* {author.properties?.image !== null && <img alt={author.name} src={`https://cms-stg.wmca.org.uk${author.properties?.image[0].url}`}/>} */}
+                  <div className="wmcads-float-left">
+                    {author.name && <h1>{author.name}</h1>}
+                    {author.properties?.jobTitle !== null ? (
+                      <strong>{author.properties?.jobTitle}</strong>
+                    ) : (
+                      <></>
+                    )}
+                  </div>
                 </>
-                </div>
-              {author.name && <a className="wmcads-link">View more posts written by {author.name}</a>}
-            </div>
-            ) : null}
-
-            {/* Check to not display this div unless there is at least one child list item */}
-            {author.properties?.facebook || author.properties?.linkedin || author.properties?.twitter !== null ? (<>
-            
-              <div className="wmcads-col-1 wmcads-col-md-2-3">
-                {author.name && <h3>Follow {author.name} on social media</h3>}
-                <ul>
-                  {author.properties?.facebook !== null ? (<li><a href={author.properties?.facebook[0].url} target="_blank" rel="noreferrer">Facebook</a></li>) : (<></>)}
-                  {author.properties?.linkedin !== null ? (<li><a href={author.properties?.linkedin[0].url} target="_blank" rel="noreferrer">LinkedIn</a></li>) : (<></>)}
-                  {author.properties?.twitter !== null ? (<li><a href={author.properties?.twitter[0].url} target="_blank" rel="noreferrer">Twitter</a></li>) : (<></>)}
-                </ul> 
               </div>
+              <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-md wmcads-p-r-lg">
+                <>
+                  {author.properties?.bio !== null ? (
+                    <div
+                      className="wmcads-col-1"
+                      dangerouslySetInnerHTML={{
+                        __html: author.properties?.bio.markup,
+                      }}
+                    />
+                  ) : (
+                    <></>
+                  )}
+                </>
+              </div>
+              {authorArticles[0]?.length ? (
+                <div className="wmcads-col-1 wmcads-col-md-2-3">
+                  {author.name && (
+                    <h2>Recent articles written by {author.name}</h2>
+                  )}
 
-            </>) : (<></>)}
-          </div>
+                  <div className="wmcads-css-grid-3-col">
+                    <>
+                      {authorArticles[0]?.map((article, index) => (
+                        <>
+                          <div className="wmcads-content-card wmcads-content-card--news">
+                            <img
+                              alt={article.properties.image[0].name}
+                              src={`https://cms.wmca.org.uk${article.properties.image[0].url}?anchor=center&mode=crop&width=600&height=250`}
+                            ></img>
+                            <p>{formatDate(article.properties.date)}</p>
+                            <a
+                              className="wmcads-link"
+                              key={index}
+                              href={article.route.path}
+                            >
+                              {article.name}
+                            </a>
+                          </div>
+                        </>
+                      ))}
+                    </>
+                  </div>
+                  {author.name && (
+                    <a className="wmcads-link">
+                      View more posts written by {author.name}
+                    </a>
+                  )}
+                </div>
+              ) : null}
+
+              {/* Check to not display this div unless there is at least one child list item */}
+              {author.properties?.facebook ||
+              author.properties?.linkedin ||
+              author.properties?.twitter !== null ? (
+                <>
+                  <div className="wmcads-col-1 wmcads-col-md-2-3">
+                    {author.name && (
+                      <h3>Follow {author.name} on social media</h3>
+                    )}
+                    <ul>
+                      {author.properties?.facebook !== null ? (
+                        <li>
+                          <a
+                            href={author.properties?.facebook[0].url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Facebook
+                          </a>
+                        </li>
+                      ) : (
+                        <></>
+                      )}
+                      {author.properties?.linkedin !== null ? (
+                        <li>
+                          <a
+                            href={author.properties?.linkedin[0].url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            LinkedIn
+                          </a>
+                        </li>
+                      ) : (
+                        <></>
+                      )}
+                      {author.properties?.twitter !== null ? (
+                        <li>
+                          <a
+                            href={author.properties?.twitter[0].url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Twitter
+                          </a>
+                        </li>
+                      ) : (
+                        <></>
+                      )}
+                    </ul>
+                  </div>
+                </>
+              ) : (
+                <></>
+              )}
+            </div>
+          )}
         </main>
       </div>
     </>

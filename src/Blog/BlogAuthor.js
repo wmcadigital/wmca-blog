@@ -1,30 +1,22 @@
 import React from "react";
+import { chunk } from "lodash";
 import getAuthor from "../api/getAuthor";
 import getAuthorArticles from "../api/getAuthorArticles";
 import ScrollToTop from "../helpers/ScrollToTop";
 import { useState, useEffect } from "react";
-// import BlogBody from "./BlogBody";
 import { useNavigate, useLocation }from "react-router-dom";
 import Banner from "./Banner";
 import Breadcrumb from "./Breadcrumb";
 import { Helmet } from "react-helmet";
 import formatDate from "../helpers/formatDate";
-//import ImageComponent from "./ImageComponent";
 import ReactGA from "react-ga4";
-//import { object } from "prop-types";
-
-// export async function loader() {
-//   console.log("loader");
-//   const author = await getAuthor("b7da28a2-4a25-4f0b-b4d3-a563a69adddf");
-//   return { author };
-// }
+import sortBlogArticles from "../helpers/sortBlogArticles";
 
 const BlogAuthor = () => {
   const location = useLocation();
   const { state } = location;
   const authorUrl = state?.authorUrl || '';
   const [loading, setLoading] = useState(false);
-  //console.log(loading);
   
   const [author, setAuthor] = useState([]);
   const [authorArticles, setAuthorArticles] = useState([]);
@@ -42,20 +34,16 @@ const BlogAuthor = () => {
 
   const getAuthorsArticles = async () => {
     const response = await getAuthorArticles(authorUrl);
+    let returnedBlogArticles = response?.items ?? [];
+
     // Sort the data by date in descending order
-    //const sortedData = response.sort((a, b) => new Date(b.date) - new Date(a.date));
-    //console.log(sortedData);
-    setAuthorArticles(response);
+    setAuthorArticles(chunk(sortBlogArticles(returnedBlogArticles, "descending"), 2));
   };
-  
-  
-    // console.log(authorArticles);  
-    // console.log(authorArticles.items?.length);
+
 
     useEffect(() => {
       getAuthorsArticles();
   }, []);
-
 
   useEffect(() => {
     // Send pageview with a custom path
@@ -66,8 +54,6 @@ const BlogAuthor = () => {
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-
 
   return (
     <>
@@ -114,13 +100,13 @@ const BlogAuthor = () => {
                 {author.properties?.bio !== null ? (<div className="wmcads-col-1" dangerouslySetInnerHTML={{ __html: author.properties?.bio.markup }} />) : (<></>)}
               </>
             </div>
+            {authorArticles[0]?.length ? (
             <div className="wmcads-col-1 wmcads-col-md-2-3">
               {author.name && <h2>Recent articles written by {author.name}</h2>}
               
-              {authorArticles.items?.length ? (
-                <div className="wmcads-css-grid-2-col">
+                <div className="wmcads-css-grid-3-col">
                 <>
-                  {authorArticles.items?.map((article, index) => (
+                  {authorArticles[0]?.map((article, index) => (
                     <>
                     <div className="wmcads-content-card wmcads-content-card--news">
                     <img alt={article.properties.image[0].name} src={`https://cms.wmca.org.uk${article.properties.image[0].url}?anchor=center&mode=crop&width=600&height=250`}></img>
@@ -131,10 +117,9 @@ const BlogAuthor = () => {
                   ))}
                 </>
                 </div>
-              ) : null}
-
               {author.name && <a className="wmcads-link">View more posts written by {author.name}</a>}
             </div>
+            ) : null}
 
             {/* Check to not display this div unless there is at least one child list item */}
             {author.properties?.facebook || author.properties?.linkedin || author.properties?.twitter !== null ? (<>

@@ -4,7 +4,6 @@ let getBlogEndPoint = "https://cms-stg.wmca.org.uk/umbraco/delivery/api/v2/conte
 
 
 const getBlogArticles = async () => {
-  console.log("test2");
   const response = await fetch(getBlogEndPoint, {
     method: 'GET', // or 'POST' or other HTTP methods
     headers: {

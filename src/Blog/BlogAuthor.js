@@ -134,7 +134,7 @@ const BlogAuthor = () => {
                   </div>
                   {/* {author.properties?.image !== null && <img alt={author.name} src={`https://cms-stg.wmca.org.uk${author.properties?.image[0].url}`}/>} */}
                   <div className="wmcads-float-left">
-                    {author.name && <h1>{author.name}</h1>}
+                    {author.name && <h1 className="wmcads-m-b-sm">{author.name}</h1>}
                     {author.properties?.jobTitle !== null ? (
                       <strong>{author.properties?.jobTitle}</strong>
                     ) : (
@@ -186,7 +186,7 @@ const BlogAuthor = () => {
                     </>
                   </div>
                   {author.name && (
-                    <a className="wmcads-link">
+                    <a className="wmcads-link wmcads-m-t-lg">
                       View more posts written by {author.name}
                     </a>
                   )}
@@ -198,7 +198,7 @@ const BlogAuthor = () => {
               author.properties?.linkedin ||
               author.properties?.twitter !== null ? (
                 <>
-                  <div className="wmcads-col-1 wmcads-col-md-2-3">
+                  <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-m-t-lg">
                     {author.name && (
                       <h3>Follow {author.name} on social media</h3>
                     )}

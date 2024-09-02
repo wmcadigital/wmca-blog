@@ -249,7 +249,6 @@ const BlogArticles = () => {
   }, [clearFilters, filter, filterQueryString, returnedBlogArticles, searchButtonClicked, searchParams, searchTerm, setSearchParams, sortDefault]);
 
   const authorParam = () => {
-    console.log("url has authors test");
     // filter.author = "Bob qwerty";
   };
 

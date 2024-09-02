@@ -8,6 +8,8 @@ import { useNavigate, useLocation }from "react-router-dom";
 import Banner from "./Banner";
 import Breadcrumb from "./Breadcrumb";
 import { Helmet } from "react-helmet";
+import formatDate from "../helpers/formatDate";
+//import ImageComponent from "./ImageComponent";
 import ReactGA from "react-ga4";
 //import { object } from "prop-types";
 
@@ -21,16 +23,15 @@ const BlogAuthor = () => {
   const location = useLocation();
   const { state } = location;
   const authorUrl = state?.authorUrl || '';
-  console.log(authorUrl);
   const [loading, setLoading] = useState(false);
-  console.log(loading);
+  //console.log(loading);
   
   const [author, setAuthor] = useState([]);
+  const [authorArticles, setAuthorArticles] = useState([]);
 
   const getAuthorData = async () => {
     setLoading(true);
     const response = await getAuthor(authorUrl);
-    console.log(response);
     setAuthor(response);
     setLoading(false);
   };
@@ -40,11 +41,17 @@ const BlogAuthor = () => {
   }, []);
 
   const getAuthorsArticles = async () => {
-    console.log("getAuthorArticles")
-    const response = await getAuthorArticles();
-    console.log(response);
+    const response = await getAuthorArticles(authorUrl);
+    // Sort the data by date in descending order
+    //const sortedData = response.sort((a, b) => new Date(b.date) - new Date(a.date));
+    //console.log(sortedData);
+    setAuthorArticles(response);
   };
   
+  
+    // console.log(authorArticles);  
+    // console.log(authorArticles.items?.length);
+
     useEffect(() => {
       getAuthorsArticles();
   }, []);
@@ -109,8 +116,22 @@ const BlogAuthor = () => {
             </div>
             <div className="wmcads-col-1 wmcads-col-md-2-3">
               {author.name && <h2>Recent articles written by {author.name}</h2>}
-
-              {getAuthorArticles}
+              
+              {authorArticles.items?.length ? (
+                <div className="wmcads-css-grid-2-col">
+                <>
+                  {authorArticles.items?.map((article, index) => (
+                    <>
+                    <div className="wmcads-content-card wmcads-content-card--news">
+                    <img alt={article.properties.image[0].name} src={`https://cms.wmca.org.uk${article.properties.image[0].url}?anchor=center&mode=crop&width=600&height=250`}></img>
+                    <p>{formatDate(article.properties.date)}</p>
+                    <a className="wmcads-link" key={index} href={article.route.path}>{article.name}</a>
+                    </div>
+                    </>
+                  ))}
+                </>
+                </div>
+              ) : null}
 
               {author.name && <a className="wmcads-link">View more posts written by {author.name}</a>}
             </div>

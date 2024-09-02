@@ -3,7 +3,7 @@
 //let getBlogEndPoint = "https://cms.wmca.org.uk/umbraco/delivery/api/v1/content/item/";
 
 const getAuthor = async (id) => {
-console.log("testabc")   
+   console.log("test1");
    const response = await fetch(getBlogEndPoint + id + "?fields=properties%5B%24all%5D", {
       method: 'GET', // or 'POST' or other HTTP methods
       headers: {
@@ -12,10 +12,8 @@ console.log("testabc")
       },
    });
   if (!response.ok) {
-     console.log(response.status, response.statusText);
   } else {
      const data = await response.json();
-     console.log(data);
      return data;
   }
 };

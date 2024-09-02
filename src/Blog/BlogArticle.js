@@ -89,10 +89,7 @@ const BlogArticle = () => {
     setTopics(topics);
   }, [article.properties?.tags]);
 
-  console.log(article);
-
   const authorClick = (authorId) => {
-    console.log(authorId);
     navigate('/author/', { state: { authorUrl: authorId} });
   };
 

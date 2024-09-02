@@ -5,12 +5,13 @@ import getAuthorArticles from "../api/getAuthorArticles";
 import ScrollToTop from "../helpers/ScrollToTop";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation }from "react-router-dom";
-import Banner from "./Banner";
+// import Banner from "./Banner";
 import Breadcrumb from "./Breadcrumb";
 import { Helmet } from "react-helmet";
 import formatDate from "../helpers/formatDate";
 import ReactGA from "react-ga4";
 import sortBlogArticles from "../helpers/sortBlogArticles";
+import getBlogArticleTopics from "../helpers/getBlogArticleTopics";
 
 const BlogAuthor = () => {
   const location = useLocation();
@@ -36,8 +37,19 @@ const BlogAuthor = () => {
     const response = await getAuthorArticles(authorUrl);
     let returnedBlogArticles = response?.items ?? [];
 
+    let blogTopics =
+    window?.setTopics.topics ?? getBlogArticleTopics(returnedBlogArticles);
+
+  if (typeof blogTopics === "string") {
+    blogTopics = JSON.parse(blogTopics);
+  }
+
+  returnedBlogArticles = returnedBlogArticles.filter((prop) =>
+    prop.properties.tags.some((tags) => blogTopics.includes(tags))
+  );
+
     // Sort the data by date in descending order
-    setAuthorArticles(chunk(sortBlogArticles(returnedBlogArticles, "descending"), 2));
+    setAuthorArticles(chunk(sortBlogArticles(returnedBlogArticles, "descending"), 4));
   };
 
 

@@ -271,14 +271,14 @@ const BlogArticle = () => {
                       </Link>
 
                       {item.properties.jobTitle != null ? (
-                        <p>{item.properties.jobTitle}</p>
+                        <p className="wmcads-m-t-md">{item.properties.jobTitle}</p>
                       ) : null}
 
                       {item.properties.twitter != null ||
                       item.properties.linkedin != null ? (
-                        <ul className="wmcads-bare-list">
+                        <ul className="wmcads-bare-list wmcads-m-t-md">
                           {item.properties.twitter != null ? (
-                            <li>
+                            <li className="wmcads-m-b-none">
                               <a
                                 href={item.properties.twitter[0].url}
                                 target="_blank"
@@ -290,7 +290,7 @@ const BlogArticle = () => {
                           ) : null}
 
                           {item.properties.linkedin != null ? (
-                            <li>
+                            <li className="wmcads-m-b-none">
                               <a
                                 href={item.properties.linkedin[0].url}
                                 target="_blank"
@@ -302,7 +302,7 @@ const BlogArticle = () => {
                           ) : null}
 
                           {item.properties.facebook != null ? (
-                            <li>
+                            <li className="wmcads-m-b-none">
                               <a
                                 href={item.properties.facebook[0].url}
                                 target="_blank"

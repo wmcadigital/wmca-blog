@@ -4,7 +4,7 @@
 
 const getBlogArticle = async (id) => {
    
-   const response = await fetch(getBlogEndPoint + "%2Fblog%2F" + id + "?expand=property%3Aauthor%2Cimage", {
+   const response = await fetch(getBlogEndPoint + "%2Fblog%2F" + id + "?expand=properties%5Bauthor%5D&fields=properties%5B%24all%5D", {
       method: 'GET', // or 'POST' or other HTTP methods
       headers: {
          'Content-Type': 'application/json',

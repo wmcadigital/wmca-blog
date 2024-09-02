@@ -28,7 +28,7 @@ const router = createHashRouter([
     element: <BlogArticle />,
     loader: blogLoader,
   },
-  {path: "author",
+  {path: "author/:authorName",
     element: <BlogAuthor />,
     loader: blogLoader,
   },

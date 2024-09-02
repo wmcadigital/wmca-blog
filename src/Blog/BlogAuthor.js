@@ -102,7 +102,7 @@ const BlogAuthor = () => {
                 </div>
                 {/* {author.properties?.image !== null && <img alt={author.name} src={`https://cms-stg.wmca.org.uk${author.properties?.image[0].url}`}/>} */}
                 <div className="wmcads-float-left">
-                  {author.name && <h1>{author.name}</h1>}
+                  {author.name && <h1 className="wmcads-m-b-sm">{author.name}</h1>}
                   {author.properties?.jobTitle !== null ? (<strong>{author.properties?.jobTitle}</strong>) : (<></>)}
                 </div>
               </>
@@ -129,14 +129,14 @@ const BlogAuthor = () => {
                   ))}
                 </>
                 </div>
-              {author.name && <a className="wmcads-link">View more posts written by {author.name}</a>}
+              {author.name && <a className="wmcads-link wmcads-m-t-lg">View more posts written by {author.name}</a>}
             </div>
             ) : null}
 
             {/* Check to not display this div unless there is at least one child list item */}
             {author.properties?.facebook || author.properties?.linkedin || author.properties?.twitter !== null ? (<>
             
-              <div className="wmcads-col-1 wmcads-col-md-2-3">
+              <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-m-t-lg">
                 {author.name && <h3>Follow {author.name} on social media</h3>}
                 <ul>
                   {author.properties?.facebook !== null ? (<li><a href={author.properties?.facebook[0].url} target="_blank" rel="noreferrer">Facebook</a></li>) : (<></>)}

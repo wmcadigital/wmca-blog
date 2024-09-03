@@ -1,5 +1,5 @@
 import React from "react";
-import { useLoaderData, Link } from "react-router-dom";
+import { useNavigate, useLoaderData, Link } from "react-router-dom";
 import getBlogArticle from "../api/getBlogArticle";
 import ScrollToTop from "../helpers/ScrollToTop";
 import { useState, useEffect } from "react";
@@ -22,6 +22,7 @@ export async function loader({ params }) {
 }
 
 const BlogArticle = () => {
+  const navigate = useNavigate();
   const [articleContentItems, setArticleContentItems] = useState([]);
   const [articleSidebarContentItems, setArticleSidebarContentItems] = useState(
     []
@@ -86,7 +87,18 @@ const BlogArticle = () => {
     }));
 
     setTopics(topics);
-  }, [article.properties.tags]);
+  }, [article.properties?.tags]);
+
+  // const authorClick = (authorId) => {
+  //   navigate('/author/', { state: { authorUrl: authorId} });
+  // };
+
+  // remove authors from url
+  const routePath = (path) => {
+    const regex = new RegExp(`/authors(/)?`);
+    const result = path.replace(regex, '');
+    return result;
+  }
 
   return (
     <>
@@ -250,17 +262,23 @@ const BlogArticle = () => {
                       aria-label="About the author"
                       key={`${index}`}
                     >
-                      {item.name != null ? <p>{item.name}</p> : null}
+                      {/* {item.name != null ? <button className="wmcads-btn wmcads-btn--link"
+                        onClick={() => authorClick(item.id)}
+                      ><p>{item.name}</p></button> : null} */}
+
+                      <Link className="wmcads-btn wmcads-btn--link" to={{ pathname: `/author/${routePath(item.route.path)}`}} >
+                        {item.name}
+                      </Link>
 
                       {item.properties.jobTitle != null ? (
-                        <p>{item.properties.jobTitle}</p>
+                        <p className="wmcads-m-t-md">{item.properties.jobTitle}</p>
                       ) : null}
 
                       {item.properties.twitter != null ||
                       item.properties.linkedin != null ? (
-                        <ul className="wmcads-bare-list">
+                        <ul className="wmcads-bare-list wmcads-m-t-md">
                           {item.properties.twitter != null ? (
-                            <li>
+                            <li className="wmcads-m-b-none">
                               <a
                                 href={item.properties.twitter[0].url}
                                 target="_blank"
@@ -272,7 +290,7 @@ const BlogArticle = () => {
                           ) : null}
 
                           {item.properties.linkedin != null ? (
-                            <li>
+                            <li className="wmcads-m-b-none">
                               <a
                                 href={item.properties.linkedin[0].url}
                                 target="_blank"
@@ -284,7 +302,7 @@ const BlogArticle = () => {
                           ) : null}
 
                           {item.properties.facebook != null ? (
-                            <li>
+                            <li className="wmcads-m-b-none">
                               <a
                                 href={item.properties.facebook[0].url}
                                 target="_blank"

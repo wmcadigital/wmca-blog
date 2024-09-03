@@ -1,10 +1,9 @@
-// let getBlogEndPoint = "https://cms-stg.wmca.org.uk/umbraco/delivery/api/v2/content?filter=contentType%3AblogArticle&sort=name%3Aasc&skip=0&take=500";
-// let getBlogEndPoint = "https://localhost:44353/umbraco/delivery/api/v2/content?filter=contentType%3AblogArticle&sort=name%3Aasc&skip=0&take=500";
-let getBlogEndPoint = "https://cms.wmca.org.uk/umbraco/delivery/api/v2/content?filter=contentType%3AblogArticle&sort=name%3Aasc&skip=0&take=500";
+// let getBlogEndPoint = "https://cms-stg.wmca.org.uk/umbraco/delivery/api/v1/content?filter=contentType%3AblogArticle&sort=name%3Aasc&skip=0&take=500";
+// let getBlogEndPoint = "https://localhost:44353/umbraco/delivery/api/v1/content?filter=contentType%3AblogArticle&sort=name%3Aasc&skip=0&take=500";
+let getBlogEndPoint = "https://cms-stg.wmca.org.uk/umbraco/delivery/api/v2/content?filter=contentType%3AblogArticle&sort=name%3Aasc&skip=0&take=500";
 
 
 const getBlogArticles = async () => {
-
   const response = await fetch(getBlogEndPoint, {
     method: 'GET', // or 'POST' or other HTTP methods
     headers: {
@@ -13,7 +12,7 @@ const getBlogArticles = async () => {
     },
   });
   const parsedResponse = await response.json();
-  // console.log(parsedResponse, 'parse')
+   console.log(parsedResponse, 'parse')
 
   return parsedResponse;
 };

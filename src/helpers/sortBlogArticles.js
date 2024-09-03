@@ -1,5 +1,5 @@
 const sortBlogArticles = (blogArticles, ascending) => {
-  if (ascending) {
+  if (ascending === "ascending") {
     return blogArticles.sort((blogArticleA, blogArticleB) => {
       if (blogArticleA.properties.date < blogArticleB.properties.date) {
         return -1;

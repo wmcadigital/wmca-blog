@@ -5,6 +5,7 @@ import getAuthorArticles from "../api/getAuthorArticles";
 import ScrollToTop from "../helpers/ScrollToTop";
 import { useState, useEffect } from "react";
 import {
+  useLoaderData,
   useLocation,
   Link
 } from "react-router-dom";
@@ -16,28 +17,26 @@ import ReactGA from "react-ga4";
 import sortBlogArticles from "../helpers/sortBlogArticles";
 import getBlogArticleTopics from "../helpers/getBlogArticleTopics";
 
-// export async function loader({ params }) {
-//   console.log("get author data");
-//   console.log(params.authorName);
-//   const article = await getAuthor(params.authorName);
-//   console.log(article);
-//   return { article };
-// }
+export async function loader({ params }) {
+  const author = await getAuthor(params.authorName);
+  return { author };
+}
 
 const BlogAuthor = () => {
   const location = useLocation();
   const { state } = location;
   const authorUrl = state?.authorUrl || "";
   const [loading, setLoading] = useState(false);
-  const [author, setAuthor] = useState([]);
+  // const [author, setAuthor] = useState([]);
   const [authorArticles, setAuthorArticles] = useState([]);
+  const { author } = useLoaderData();
 
   // remove authors from url
-  const routePath = (path) => {
-    const regex = new RegExp(`/author(/)?`);
-    const result = path.replace(regex, "");
-    return result;
-  };
+  // const routePath = (path) => {
+  //   const regex = new RegExp(`/author(/)?`);
+  //   const result = path.replace(regex, "");
+  //   return result;
+  // };
 
   const routePathArticle = (path) => {
     const regex = new RegExp(`/blog(/)?`);
@@ -53,21 +52,21 @@ const BlogAuthor = () => {
     return data;
   };
 
-  const authorNames = routePath(location.pathname);
+  // const authorNames = routePath(location.pathname);
 
-  const getAuthorData = async () => {
-    setLoading(true);
-    const response = await getAuthor(authorNames);
-    setAuthor(response);
-    setLoading(false);
-  };
+  // const getAuthorData = async () => {
+  //   setLoading(true);
+  //   const response = await getAuthor(authorNames);
+  //   setAuthor(response);
+  //   setLoading(false);
+  // };
 
-  useEffect(() => {
-    getAuthorData();
-  }, []);
+  // useEffect(() => {
+  //   getAuthorData();
+  // }, []);
 
   const getAuthorsArticles = async () => {
-    const response = await getAuthorArticles(authorUrl);
+    const response = await getAuthorArticles(author.id);
     let returnedBlogArticles = response?.items ?? [];
 
     let blogTopics =
@@ -110,7 +109,7 @@ const BlogAuthor = () => {
       </Helmet>
       <ScrollToTop />
       <Breadcrumb
-        // article={article.name}
+
         current={window?.setTopics?.url}
         name={window?.setTopics?.name}
         parent={window?.setTopics?.breadcrumbs?.breadcrumb[0]}
@@ -122,12 +121,7 @@ const BlogAuthor = () => {
         parent7={window?.setTopics?.breadcrumbs?.breadcrumb[6]}
         parent8={window?.setTopics?.breadcrumbs?.breadcrumb[7]}
       />
-      {/* <Banner
-        image={window?.setBanner?.bannerimg}
-        title={window?.setBanner?.name}
-        summary={window?.setBanner?.summary}
-        article={true}
-      /> */}
+
       <div className="wmcads-container">
         <main className="wmcads-container--main">
           {author == "Not found" ? (

@@ -1,9 +1,9 @@
-import {chunk} from "lodash";
+import { chunk } from "lodash";
 import React from "react";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import ReactGA from "react-ga4";
-import {Helmet} from "react-helmet";
-import {useLoaderData} from "react-router-dom";
+import { Helmet } from "react-helmet";
+import { useLoaderData } from "react-router-dom";
 
 import getAuthor from "../api/getAuthor";
 import getAuthorArticles from "../api/getAuthorArticles";
@@ -14,9 +14,9 @@ import sortBlogArticles from "../helpers/sortBlogArticles";
 
 import Breadcrumb from "./Breadcrumb";
 
-export async function loader({params}) {
+export async function loader({ params }) {
   const author = await getAuthor(params.authorName);
-  return {author};
+  return { author };
 }
 
 const BlogAuthor = () => {
@@ -36,12 +36,12 @@ const BlogAuthor = () => {
     }
 
     returnedBlogArticles = returnedBlogArticles.filter((prop) =>
-      prop.properties.tags.some((tags) => blogTopics.includes(tags))
+      prop.properties.tags.some((tags) => blogTopics.includes(tags)),
     );
 
     // Sort the data by date in descending order
     setAuthorArticles(
-      chunk(sortBlogArticles(returnedBlogArticles, "descending"), 4)
+      chunk(sortBlogArticles(returnedBlogArticles, "descending"), 4),
     );
   };
 
@@ -97,7 +97,9 @@ const BlogAuthor = () => {
                   </div>
                   {/* {author.properties?.image !== null && <img alt={author.name} src={`https://cms-stg.wmca.org.uk${author.properties?.image[0].url}`}/>} */}
                   <div className="wmcads-float-left">
-                    {author.name && <h1 className="wmcads-m-b-sm">{author.name}</h1>}
+                    {author.name && (
+                      <h1 className="wmcads-m-b-sm">{author.name}</h1>
+                    )}
                     {author.properties?.jobTitle !== null ? (
                       <strong>{author.properties?.jobTitle}</strong>
                     ) : (

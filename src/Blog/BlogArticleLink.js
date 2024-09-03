@@ -66,7 +66,7 @@ const BlogArticleLink = ({
             <>
             <React.Fragment key={index}>
               {index > 0 && ', '}
-              <a key={`${index}`} onClick={(e) => handleAuthor(e, item.name)} onKeyUp={handleAuthor} role="link">
+              <a key={index} onClick={(e) => handleAuthor(e, item.name)} onKeyUp={handleAuthor} role="link">
                 {item.name}
               </a>
             </React.Fragment>

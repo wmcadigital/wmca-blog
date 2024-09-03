@@ -13,7 +13,7 @@ const getAuthorArticles = async (id) => {
     },
   });
   const parsedResponse = await response.json();
-
+  // console.log(parsedResponse);
   return parsedResponse;
 };
 

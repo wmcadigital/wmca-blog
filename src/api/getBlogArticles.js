@@ -12,7 +12,7 @@ const getBlogArticles = async () => {
     },
   });
   const parsedResponse = await response.json();
-   console.log(parsedResponse, 'parse')
+   // console.log(parsedResponse, 'parse')
 
   return parsedResponse;
 };

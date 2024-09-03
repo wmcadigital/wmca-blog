@@ -1,20 +1,22 @@
+import {chunk} from "lodash";
 import React from "react";
-import { chunk } from "lodash";
+import {useEffect, useState} from "react";
+import ReactGA from "react-ga4";
+import {Helmet} from "react-helmet";
+import {useLoaderData} from "react-router-dom";
+
 import getAuthor from "../api/getAuthor";
 import getAuthorArticles from "../api/getAuthorArticles";
-import ScrollToTop from "../helpers/ScrollToTop";
-import { useState, useEffect } from "react";
-import { useLoaderData } from "react-router-dom";
-import Breadcrumb from "./Breadcrumb";
-import { Helmet } from "react-helmet";
 import formatDate from "../helpers/formatDate";
-import ReactGA from "react-ga4";
-import sortBlogArticles from "../helpers/sortBlogArticles";
 import getBlogArticleTopics from "../helpers/getBlogArticleTopics";
+import ScrollToTop from "../helpers/ScrollToTop";
+import sortBlogArticles from "../helpers/sortBlogArticles";
 
-export async function loader({ params }) {
+import Breadcrumb from "./Breadcrumb";
+
+export async function loader({params}) {
   const author = await getAuthor(params.authorName);
-  return { author };
+  return {author};
 }
 
 const BlogAuthor = () => {

@@ -70,10 +70,10 @@ const BlogArticleLink = ({
                 {item.name}
               </a>
             </React.Fragment>
-            &nbsp;-&nbsp;
             </>
           );
         })}
+        &nbsp;-&nbsp;
         {formatDate(publishDate)}
       </p>
 

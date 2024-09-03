@@ -5,10 +5,8 @@ import getAuthorArticles from "../api/getAuthorArticles";
 import ScrollToTop from "../helpers/ScrollToTop";
 import { useState, useEffect } from "react";
 import {
-  useNavigate,
-  useLoaderData,
   useLocation,
-  useParams,
+  Link
 } from "react-router-dom";
 // import Banner from "./Banner";
 import Breadcrumb from "./Breadcrumb";
@@ -39,6 +37,20 @@ const BlogAuthor = () => {
     const regex = new RegExp(`/author(/)?`);
     const result = path.replace(regex, "");
     return result;
+  };
+
+  const routePathArticle = (path) => {
+    const regex = new RegExp(`/blog(/)?`);
+    const result = path.replace(regex, "");
+    return result;
+  };
+
+  function formatAuthorFilterUrl(path) {
+    const regex = new RegExp(`/authors(/)?`);
+    const result = path.replace(regex, "");
+    const capitalized = result.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('-');
+    const data = capitalized.replace(/-/g, '+');
+    return data;
   };
 
   const authorNames = routePath(location.pathname);
@@ -78,6 +90,8 @@ const BlogAuthor = () => {
   useEffect(() => {
     getAuthorsArticles();
   }, []);
+
+
 
   useEffect(() => {
     // Send pageview with a custom path
@@ -173,22 +187,29 @@ const BlogAuthor = () => {
                               src={`https://cms.wmca.org.uk${article.properties.image[0].url}?anchor=center&mode=crop&width=600&height=250`}
                             ></img>
                             <p>{formatDate(article.properties.date)}</p>
-                            <a
+                            {/* <a
                               className="wmcads-link"
                               key={index}
                               href={article.route.path}
                             >
                               {article.name}
-                            </a>
+                            </a> */}
+                            <Link to={{ pathname: `/article/${routePathArticle(article.route.path)}`}} >
+                              {article.name}
+                            </Link>
                           </div>
                         </>
                       ))}
                     </>
                   </div>
                   {author.name && (
-                    <a className="wmcads-link wmcads-m-t-lg">
-                      View more posts written by {author.name}
-                    </a>
+                    // <a className="wmcads-link wmcads-m-t-lg">
+                    //   View more posts written by {author.name}
+                    // </a>
+                    <>
+                    <Link className="wmcads-link wmcads-m-t-lg" to={{ pathname: `/`, search: `?sort=descending&topics=&author=${formatAuthorFilterUrl(author.route.path)}&dates=null&dateRangeSet=undefined`}} >View more posts written by {author.name}</Link>
+                    </>
+                    //localhost:1234/#/Maisie+Edmond
                   )}
                 </div>
               ) : null}

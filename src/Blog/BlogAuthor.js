@@ -1,9 +1,9 @@
-import {chunk} from "lodash";
+import { chunk } from "lodash";
 import React from "react";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import ReactGA from "react-ga4";
-import {Helmet} from "react-helmet";
-import {Link, useLoaderData, useLocation} from "react-router-dom";
+import { Helmet } from "react-helmet";
+import { Link, useLoaderData, useLocation } from "react-router-dom";
 
 import getAuthor from "../api/getAuthor";
 import getAuthorArticles from "../api/getAuthorArticles";
@@ -15,9 +15,9 @@ import sortBlogArticles from "../helpers/sortBlogArticles";
 // import Banner from "./Banner";
 import Breadcrumb from "./Breadcrumb";
 
-export async function loader({params}) {
+export async function loader({ params }) {
   const author = await getAuthor(params.authorName);
-  return {author};
+  return { author };
 }
 
 const BlogAuthor = () => {
@@ -45,10 +45,13 @@ const BlogAuthor = () => {
   function formatAuthorFilterUrl(path) {
     const regex = new RegExp(`/authors(/)?`);
     const result = path.replace(regex, "");
-    const capitalized = result.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('-');
-    const data = capitalized.replace(/-/g, '+');
+    const capitalized = result
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join("-");
+    const data = capitalized.replace(/-/g, "+");
     return data;
-  };
+  }
 
   // const authorNames = routePath(location.pathname);
 
@@ -75,20 +78,18 @@ const BlogAuthor = () => {
     }
 
     returnedBlogArticles = returnedBlogArticles.filter((prop) =>
-      prop.properties.tags.some((tags) => blogTopics.includes(tags))
+      prop.properties.tags.some((tags) => blogTopics.includes(tags)),
     );
 
     // Sort the data by date in descending order
     setAuthorArticles(
-      chunk(sortBlogArticles(returnedBlogArticles, "descending"), 4)
+      chunk(sortBlogArticles(returnedBlogArticles, "descending"), 4),
     );
   };
 
   useEffect(() => {
     getAuthorsArticles();
   }, []);
-
-
 
   useEffect(() => {
     // Send pageview with a custom path
@@ -107,7 +108,6 @@ const BlogAuthor = () => {
       </Helmet>
       <ScrollToTop />
       <Breadcrumb
-
         current={window?.setTopics?.url}
         name={window?.setTopics?.name}
         parent={window?.setTopics?.breadcrumbs?.breadcrumb[0]}
@@ -140,7 +140,9 @@ const BlogAuthor = () => {
                   </div>
                   {/* {author.properties?.image !== null && <img alt={author.name} src={`https://cms-stg.wmca.org.uk${author.properties?.image[0].url}`}/>} */}
                   <div className="wmcads-float-left">
-                    {author.name && <h1 className="wmcads-m-b-sm">{author.name}</h1>}
+                    {author.name && (
+                      <h1 className="wmcads-m-b-sm">{author.name}</h1>
+                    )}
                     {author.properties?.jobTitle !== null ? (
                       <strong>{author.properties?.jobTitle}</strong>
                     ) : (
@@ -186,7 +188,11 @@ const BlogAuthor = () => {
                             >
                               {article.name}
                             </a> */}
-                            <Link to={{ pathname: `/article/${routePathArticle(article.route.path)}`}} >
+                            <Link
+                              to={{
+                                pathname: `/article/${routePathArticle(article.route.path)}`,
+                              }}
+                            >
                               {article.name}
                             </Link>
                           </div>
@@ -199,7 +205,15 @@ const BlogAuthor = () => {
                     //   View more posts written by {author.name}
                     // </a>
                     <>
-                    <Link className="wmcads-link wmcads-m-t-lg" to={{ pathname: `/`, search: `?sort=descending&topics=&author=${formatAuthorFilterUrl(author.route.path)}&dates=null&dateRangeSet=undefined`}} >View more posts written by {author.name}</Link>
+                      <Link
+                        className="wmcads-link wmcads-m-t-lg"
+                        to={{
+                          pathname: `/`,
+                          search: `?sort=descending&topics=&author=${formatAuthorFilterUrl(author.route.path)}&dates=null&dateRangeSet=undefined`,
+                        }}
+                      >
+                        View more posts written by {author.name}
+                      </Link>
                     </>
                     //localhost:1234/#/Maisie+Edmond
                   )}

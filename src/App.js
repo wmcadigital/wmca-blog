@@ -35,7 +35,7 @@ const router = createHashRouter([
 ]
 );
 
-console.log('v1.0.14');
+console.log('v1.0.16');
 
 root.render(
   <StrictMode>

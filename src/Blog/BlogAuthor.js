@@ -125,7 +125,10 @@ const BlogAuthor = () => {
       <div className="wmcads-container">
         <main className="wmcads-container--main">
           {author == "Not found" ? (
+            <>
             <h1>Author Not Found</h1>
+            <a href="/">Return to blog</a>
+            </>
           ) : (
             <div className="wmcads-grid">
               <div className="wmcads-banner-container wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-md wmcads-md-p-r-lg">

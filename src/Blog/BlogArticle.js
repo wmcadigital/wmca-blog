@@ -266,7 +266,7 @@ const BlogArticle = () => {
                         onClick={() => authorClick(item.id)}
                       ><p>{item.name}</p></button> : null} */}
 
-                      <Link className="wmcads-btn wmcads-btn--link" to={{ pathname: `/author/${routePath(item.route.path)}`}} state={{ authorUrl: item.id}} >
+                      <Link className="wmcads-btn wmcads-btn--link" to={{ pathname: `/author/${routePath(item.route.path)}`}} >
                         {item.name}
                       </Link>
 

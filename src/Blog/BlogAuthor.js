@@ -25,18 +25,11 @@ export async function loader({ params }) {
 const BlogAuthor = () => {
   const location = useLocation();
   const { state } = location;
-  const authorUrl = state?.authorUrl || "";
-  const [loading, setLoading] = useState(false);
+  // const authorUrl = state?.authorUrl || "";
+  // const [loading, setLoading] = useState(false);
   // const [author, setAuthor] = useState([]);
   const [authorArticles, setAuthorArticles] = useState([]);
   const { author } = useLoaderData();
-
-  // remove authors from url
-  // const routePath = (path) => {
-  //   const regex = new RegExp(`/author(/)?`);
-  //   const result = path.replace(regex, "");
-  //   return result;
-  // };
 
   const routePathArticle = (path) => {
     const regex = new RegExp(`/blog(/)?`);
@@ -51,19 +44,6 @@ const BlogAuthor = () => {
     const data = capitalized.replace(/-/g, '+');
     return data;
   };
-
-  // const authorNames = routePath(location.pathname);
-
-  // const getAuthorData = async () => {
-  //   setLoading(true);
-  //   const response = await getAuthor(authorNames);
-  //   setAuthor(response);
-  //   setLoading(false);
-  // };
-
-  // useEffect(() => {
-  //   getAuthorData();
-  // }, []);
 
   const getAuthorsArticles = async () => {
     const response = await getAuthorArticles(author.id);

@@ -6,10 +6,9 @@ import ScrollToTop from "../helpers/ScrollToTop";
 import { useState, useEffect } from "react";
 import {
   useLoaderData,
-  useLocation,
   Link
 } from "react-router-dom";
-// import Banner from "./Banner";
+
 import Breadcrumb from "./Breadcrumb";
 import { Helmet } from "react-helmet";
 import formatDate from "../helpers/formatDate";
@@ -23,11 +22,6 @@ export async function loader({ params }) {
 }
 
 const BlogAuthor = () => {
-  const location = useLocation();
-  const { state } = location;
-  // const authorUrl = state?.authorUrl || "";
-  // const [loading, setLoading] = useState(false);
-  // const [author, setAuthor] = useState([]);
   const [authorArticles, setAuthorArticles] = useState([]);
   const { author } = useLoaderData();
 
@@ -158,18 +152,13 @@ const BlogAuthor = () => {
                       {authorArticles[0]?.map((article, index) => (
                         <>
                           <div className="wmcads-content-card wmcads-content-card--news">
+                          {article.properties.image && (
                             <img
                               alt={article.properties.image[0].name}
                               src={`https://cms.wmca.org.uk${article.properties.image[0].url}?anchor=center&mode=crop&width=600&height=250`}
                             ></img>
+                          )}
                             <p>{formatDate(article.properties.date)}</p>
-                            {/* <a
-                              className="wmcads-link"
-                              key={index}
-                              href={article.route.path}
-                            >
-                              {article.name}
-                            </a> */}
                             <Link to={{ pathname: `/article/${routePathArticle(article.route.path)}`}} >
                               {article.name}
                             </Link>
@@ -179,13 +168,9 @@ const BlogAuthor = () => {
                     </>
                   </div>
                   {author.name && (
-                    // <a className="wmcads-link wmcads-m-t-lg">
-                    //   View more posts written by {author.name}
-                    // </a>
                     <>
                     <Link className="wmcads-link wmcads-m-t-lg" to={{ pathname: `/`, search: `?sort=descending&topics=&author=${formatAuthorFilterUrl(author.route.path)}&dates=null&dateRangeSet=undefined`}} >View more posts written by {author.name}</Link>
                     </>
-                    //localhost:1234/#/Maisie+Edmond
                   )}
                 </div>
               ) : null}

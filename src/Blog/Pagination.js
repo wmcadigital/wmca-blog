@@ -1,10 +1,10 @@
 import PropTypes from "prop-types";
-import React, {useState} from 'react';
+import React, { useState } from "react";
 
-const Pagination = ({numberOfPages, activePage, callBack}) => {
+const Pagination = ({ numberOfPages, activePage, callBack }) => {
   const paginationArray = new Array(numberOfPages).fill(null);
   const [callBackPage, setCallbackPage] = useState(0);
-  callBack(callBackPage)
+  callBack(callBackPage);
 
   return (
     <div className="wmcads-pagination">

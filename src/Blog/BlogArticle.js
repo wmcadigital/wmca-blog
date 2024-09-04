@@ -132,7 +132,6 @@ const BlogArticle = () => {
                     return (
                       <>
                         <React.Fragment key={index}>
-                          {index > 0 && ", "}
                           <Link to={`/?author=${item.name}`}>{item.name}</Link>
                         </React.Fragment>
                         ,{" "}
@@ -247,7 +246,7 @@ const BlogArticle = () => {
               article.properties.author.length == 1 ? (
                 <h2>About the author</h2>
               ) : (
-                article.properties.author && <h2> About the authors</h2>
+                article.properties.author && <h2>About the authors</h2>
               )}
 
               {article.properties.author &&

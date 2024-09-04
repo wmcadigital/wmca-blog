@@ -1,8 +1,8 @@
 import React from "react";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import ReactGA from "react-ga4";
-import {Helmet} from "react-helmet";
-import {Link, useLoaderData, useNavigate} from "react-router-dom";
+import { Helmet } from "react-helmet";
+import { Link, useLoaderData, useNavigate } from "react-router-dom";
 
 import getBlogArticle from "../api/getBlogArticle";
 import formatDate from "../helpers/formatDate";
@@ -18,19 +18,19 @@ import SidebarCardComponent from "./SidebarCardComponent";
 import TextComponent from "./TextComponent";
 import VideoComponent from "./VideoComponent";
 
-export async function loader({params}) {
+export async function loader({ params }) {
   const article = await getBlogArticle(params.articleTitle);
-  return {article};
+  return { article };
 }
 
 const BlogArticle = () => {
   const navigate = useNavigate();
   const [articleContentItems, setArticleContentItems] = useState([]);
   const [articleSidebarContentItems, setArticleSidebarContentItems] = useState(
-    []
+    [],
   );
   const [articleAccordionBlockItems, setArticleAccordionBlockItems] = useState(
-    []
+    [],
   );
   const { article } = useLoaderData();
   const [topics, setTopics] = useState([]);
@@ -97,7 +97,7 @@ const BlogArticle = () => {
     const result = path.replace(regex, "");
     return result;
   };
-  
+
   return (
     <>
       <Helmet>
@@ -269,7 +269,9 @@ const BlogArticle = () => {
                           {item.name}
                         </Link>
                       ) : (
-                        <p><strong>{item.name}</strong></p>
+                        <p>
+                          <strong>{item.name}</strong>
+                        </p>
                       )}
 
                       {item.properties.jobTitle != null ? (

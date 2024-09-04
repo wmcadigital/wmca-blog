@@ -1,7 +1,10 @@
+import React, { useState } from 'react';
 import PropTypes from "prop-types";
 
 const Pagination = ({ numberOfPages, activePage, callBack }) => {
   const paginationArray = new Array(numberOfPages).fill(null);
+  const [callBackPage, setCallbackPage] = useState(0);
+  callBack(callBackPage)
 
   return (
     <div className="wmcads-pagination">
@@ -24,7 +27,7 @@ const Pagination = ({ numberOfPages, activePage, callBack }) => {
                 <a
                   className="wmcads-link"
                   href="#"
-                  onClick={() => callBack(index)}
+                  onClick={() => setCallbackPage(index)}
                 >
                   {index + 1}
                 </a>
@@ -36,7 +39,7 @@ const Pagination = ({ numberOfPages, activePage, callBack }) => {
       {activePage !== 0 ? (
         <a
           href="#"
-          onClick={() => callBack(activePage - 1)}
+          onClick={() => setCallbackPage(activePage - 1)}
           className="wmcads-pagination__prev wmcads-link wmcads-link--with-chevron"
         >
           <svg className="wmcads-link__chevron wmcads-link__chevron--left">
@@ -51,7 +54,7 @@ const Pagination = ({ numberOfPages, activePage, callBack }) => {
       {activePage + 1 < numberOfPages ? (
         <a
           href="#"
-          onClick={() => callBack(activePage + 1)}
+          onClick={() => setCallbackPage(activePage + 1)}
           className="wmcads-pagination__next wmcads-link wmcads-link--with-chevron"
         >
           Next page{" "}

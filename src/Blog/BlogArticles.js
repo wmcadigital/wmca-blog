@@ -280,6 +280,8 @@ const BlogArticles = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  console.log(blogArticles);
+
   return (
     <div className="template-search">
       <Breadcrumb

@@ -84,7 +84,7 @@ const BlogAuthor = () => {
   return (
     <>
       <Helmet>
-        (<title>{author.name}</title>)
+        <title>{author.name  || "WMCA blog"}</title>
       </Helmet>
       <ScrollToTop />
       <Breadcrumb

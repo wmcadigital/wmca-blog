@@ -57,7 +57,7 @@ const BlogArticle = () => {
       page: window.location.pathname + window.location.hash,
       title: article?.name,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -89,17 +89,13 @@ const BlogArticle = () => {
     setTopics(topics);
   }, [article.properties?.tags]);
 
-  // const authorClick = (authorId) => {
-  //   navigate('/author/', { state: { authorUrl: authorId} });
-  // };
-
   // remove authors from url
   const routePath = (path) => {
     const regex = new RegExp(`/authors(/)?`);
-    const result = path.replace(regex, '');
+    const result = path.replace(regex, "");
     return result;
-  }
-
+  };
+  
   return (
     <>
       <Helmet>
@@ -262,16 +258,23 @@ const BlogArticle = () => {
                       aria-label="About the author"
                       key={`${index}`}
                     >
-                      {/* {item.name != null ? <button className="wmcads-btn wmcads-btn--link"
-                        onClick={() => authorClick(item.id)}
-                      ><p>{item.name}</p></button> : null} */}
-
-                      <Link className="wmcads-btn wmcads-btn--link" to={{ pathname: `/author/${routePath(item.route.path)}`}} >
-                        {item.name}
-                      </Link>
+                      {item.properties.bio != null ? (
+                        <Link
+                          className="wmcads-btn wmcads-btn--link"
+                          to={{
+                            pathname: `/author/${routePath(item.route.path)}`,
+                          }}
+                        >
+                          {item.name}
+                        </Link>
+                      ) : (
+                        <p><strong>{item.name}</strong></p>
+                      )}
 
                       {item.properties.jobTitle != null ? (
-                        <p className="wmcads-m-t-md">{item.properties.jobTitle}</p>
+                        <p className="wmcads-m-t-md">
+                          {item.properties.jobTitle}
+                        </p>
                       ) : null}
 
                       {item.properties.twitter != null ||

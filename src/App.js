@@ -1,15 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import {
-  createHashRouter,
-  RouterProvider,
-} from "react-router-dom";
-
-import BlogArticles from "./Blog/BlogArticles";
-import BlogArticle, { loader as blogLoader, } from "./Blog/BlogArticle";
-import BlogAuthor, { loader as authorLoader, } from "./Blog/BlogAuthor";
-import ErrorPage from "./error-page";
 import ReactGA from "react-ga4";
+import { createHashRouter, RouterProvider } from "react-router-dom";
+
+import BlogArticle, { loader as blogLoader } from "./Blog/BlogArticle";
+import BlogArticles from "./Blog/BlogArticles";
+import BlogAuthor, { loader as authorLoader } from "./Blog/BlogAuthor";
+import ErrorPage from "./error-page";
 
 ReactGA.initialize("G-PL6P8LRKHT");
 
@@ -28,17 +25,17 @@ const router = createHashRouter([
     element: <BlogArticle />,
     loader: blogLoader,
   },
-  {path: "author/:authorName",
+  {
+    path: "author/:authorName",
     element: <BlogAuthor />,
     loader: authorLoader,
   },
-]
-);
+]);
 
-console.log('v1.0.14');
+console.log("v1.0.14");
 
 root.render(
   <StrictMode>
-      <RouterProvider router={router} />
-  </StrictMode>
+    <RouterProvider router={router} />
+  </StrictMode>,
 );

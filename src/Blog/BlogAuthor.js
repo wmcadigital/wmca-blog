@@ -71,7 +71,6 @@ const BlogAuthor = () => {
   }, []);
 
 
-
   useEffect(() => {
     // Send pageview with a custom path
     ReactGA.send({

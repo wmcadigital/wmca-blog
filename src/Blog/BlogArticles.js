@@ -253,7 +253,7 @@ const BlogArticles = () => {
   };
 
   if (getSearchParam("author")) {
-    console.log("url has authors");
+    // console.log("url has authors");
     authorParam();
   }
 

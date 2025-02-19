@@ -8,8 +8,6 @@ const TextComponent = ({ htmlContent }) => {
       return match.replace(p1, newSrc);
     }
   );
-
-  console.log(updatedHtmlContent);
   return <p dangerouslySetInnerHTML={{ __html: updatedHtmlContent }} />;
 };
 

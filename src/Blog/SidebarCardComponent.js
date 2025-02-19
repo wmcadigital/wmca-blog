@@ -5,6 +5,7 @@ const SidebarCardComponent = (data) => {
     return (
       <>
         {data?.image !== null ? (
+          // eslint-disable-next-line jsx-a11y/img-redundant-alt
           <img
             src={`https://cms.wmca.org.uk/${data?.image[0].url}`}
             alt={data?.image[0].name}

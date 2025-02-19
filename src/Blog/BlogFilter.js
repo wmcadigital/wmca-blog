@@ -6,8 +6,6 @@ import { getSearchParam } from "../helpers/urlSearchParams";
 
 import filterBlogArticlesByDate from "../helpers/filterBlogArticlesByDate";
 
-import { useEffect } from "react";
-
 if (getSearchParam("author")) {
   // console.log('url has authors');
 }

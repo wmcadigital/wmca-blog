@@ -149,7 +149,7 @@ const BlogAuthor = () => {
 
                   <div className="wmcads-css-grid-3-col">
                     <>
-                      {authorArticles[0]?.map((article, index) => (
+                      {authorArticles[0]?.map((article) => (
                         <>
                           <div className="wmcads-content-card wmcads-content-card--news">
                             {article.properties.image && (

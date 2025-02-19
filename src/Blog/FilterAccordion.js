@@ -339,6 +339,8 @@ FilterAccordion.propTypes = {
   optionSelected: PropTypes.func,
   optionSelectedFn: PropTypes.func,
   setDateRanges: PropTypes.func,
+  clearFilters:
+    PropTypes.bool /* This is a boolean value to determine if the filters should be cleared */,
   filter: PropTypes.shape({
     // You can change the PropTypes type based on your specific needs, Add other PropTypes for other properties in the filter object if necessary
     dates: PropTypes.string,

@@ -32,13 +32,13 @@ const BlogBody = ({
   };
 
   const renderAuthors = authors.map((item, index) => (
-    <a key={index} onClick={handleAuthor}>
+    <a key={index} onClick={handleAuthor} role="button" tabIndex="0" onKeyPress={(e) => { if (e.key === 'Enter') handleAuthor(e); }}>
       {item.name},&nbsp;
     </a>
   ));
 
   const renderTags = tags.map((item, index) => (
-    <a key={index} onClick={handleTopics}>
+    <a key={index} onClick={handleTopics} role="button" tabIndex="0" onKeyPress={(e) => { if (e.key === 'Enter') handleTopics(e); }}>
       {item},&nbsp;
     </a>
   ));

@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, useLoaderData, Link } from "react-router-dom";
+import { useLoaderData, Link } from "react-router-dom";
 import getBlogArticle from "../api/getBlogArticle";
 import ScrollToTop from "../helpers/ScrollToTop";
 import { useState, useEffect } from "react";
@@ -22,7 +22,6 @@ export async function loader({ params }) {
 }
 
 const BlogArticle = () => {
-  const navigate = useNavigate();
   const [articleContentItems, setArticleContentItems] = useState([]);
   const [articleSidebarContentItems, setArticleSidebarContentItems] = useState(
     []
@@ -140,23 +139,7 @@ const BlogArticle = () => {
                   })}
                 {article.properties.date != ""
                   ? formatDate(article.properties.date)
-                  : null}{" "}
-                -{" "}
-                {topics.map(function (item, index) {
-                  return (
-                    <React.Fragment key={index}>
-                      {index > 0 && ", "}
-                      {/* only link topics selected in the blog post */}
-                      {item.match ? (
-                        <Link key={`${index}`} to={`/?topics=${item.name}`}>
-                          {item.name}
-                        </Link>
-                      ) : (
-                        <span>{item.name}</span>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
+                  : null}
               </p>
 
               {article.properties.hideOpinionMessage != true ? (
@@ -232,11 +215,18 @@ const BlogArticle = () => {
 
               <p>
                 Tags:{" "}
-                {article.properties.tags.map(function (item, index) {
+                {topics.map(function (item, index) {
                   return (
                     <React.Fragment key={index}>
                       {index > 0 && ", "}
-                      <Link to={`/?topics=${item}`}>{item}</Link>
+                      {/* only link topics selected in the blog post */}
+                      {item.match ? (
+                        <Link key={`${index}`} to={`/?topics=${item.name}`}>
+                          {item.name}
+                        </Link>
+                      ) : (
+                        <span>{item.name}</span>
+                      )}
                     </React.Fragment>
                   );
                 })}

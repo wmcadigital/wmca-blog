@@ -8,6 +8,7 @@ const VideoComponent = ({ url }) => {
       .replace(/(>|<)/gi, "")
       .split(/(vi\/|v=|\/v\/|youtu\.be\/|\/embed\/)/);
     if (url[2] !== undefined) {
+      // eslint-disable-next-line no-useless-escape
       ID = url[2].split(/[^0-9a-z_\-]/i);
       ID = ID[0];
     } else {

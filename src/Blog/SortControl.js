@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 const SortControl = ({
   filter,
   setFilter,
-  sortChangedCallback,
   defaultVal,
 }) => (
   <div className="wmcads-search-sort wmcads-fe-group">

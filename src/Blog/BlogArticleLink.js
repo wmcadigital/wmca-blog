@@ -11,7 +11,6 @@ const BlogArticleLink = ({
   filter,
   setFilter,
   name,
-  id,
   authors,
   tags,
   image,

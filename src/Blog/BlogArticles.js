@@ -116,7 +116,7 @@ const BlogArticles = () => {
 
   useEffect(() => {
     setSearchParams(filterQueryString);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   useEffect(() => {
@@ -155,7 +155,7 @@ const BlogArticles = () => {
         author: author.split("/"),
       }));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -246,7 +246,17 @@ const BlogArticles = () => {
     } else {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
-  }, [clearFilters, filter, filterQueryString, returnedBlogArticles, searchButtonClicked, searchParams, searchTerm, setSearchParams, sortDefault]);
+  }, [
+    clearFilters,
+    filter,
+    filterQueryString,
+    returnedBlogArticles,
+    searchButtonClicked,
+    searchParams,
+    searchTerm,
+    setSearchParams,
+    sortDefault,
+  ]);
 
   const authorParam = () => {
     // filter.author = "Bob qwerty";
@@ -268,7 +278,7 @@ const BlogArticles = () => {
   // set url params for article breadcrumb
   const urlParams = filterQueryString;
   useEffect(() => {
-    sessionStorage.setItem('urlParams', urlParams);
+    sessionStorage.setItem("urlParams", urlParams);
   }, [urlParams]); // reset params if filters updated
 
   useEffect(() => {
@@ -277,7 +287,7 @@ const BlogArticles = () => {
       page: window.location.pathname,
       title: window?.setTopics?.name,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

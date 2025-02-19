@@ -16,8 +16,8 @@ const DelayedComponent = ({ children, waitBeforeShow = 200 }) => {
 };
 
 DelayedComponent.propTypes = {
-    children: PropTypes.node,
-    waitBeforeShow: PropTypes.bool,
-  };
+  children: PropTypes.node,
+  waitBeforeShow: PropTypes.bool,
+};
 
 export default DelayedComponent;

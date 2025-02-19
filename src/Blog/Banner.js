@@ -1,7 +1,6 @@
 import PropTypes from "prop-types";
 
 const Banner = ({ image, title, summary, position, article }) => {
-
   return (
     <>
       {image ? (

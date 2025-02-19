@@ -4,10 +4,7 @@ import getAuthor from "../api/getAuthor";
 import getAuthorArticles from "../api/getAuthorArticles";
 import ScrollToTop from "../helpers/ScrollToTop";
 import { useState, useEffect } from "react";
-import {
-  useLoaderData,
-  Link
-} from "react-router-dom";
+import { useLoaderData, Link } from "react-router-dom";
 
 import Breadcrumb from "./Breadcrumb";
 import { Helmet } from "react-helmet";
@@ -34,10 +31,13 @@ const BlogAuthor = () => {
   function formatAuthorFilterUrl(path) {
     const regex = new RegExp(`/authors(/)?`);
     const result = path.replace(regex, "");
-    const capitalized = result.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('-');
-    const data = capitalized.replace(/-/g, '+');
+    const capitalized = result
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join("-");
+    const data = capitalized.replace(/-/g, "+");
     return data;
-  };
+  }
 
   const getAuthorsArticles = async () => {
     const response = await getAuthorArticles(author.id);
@@ -64,7 +64,6 @@ const BlogAuthor = () => {
     getAuthorsArticles();
   }, []);
 
-
   useEffect(() => {
     // Send pageview with a custom path
     ReactGA.send({
@@ -78,11 +77,10 @@ const BlogAuthor = () => {
   return (
     <>
       <Helmet>
-        <title>{author.name  || "WMCA blog"}</title>
+        <title>{author.name || "WMCA blog"}</title>
       </Helmet>
       <ScrollToTop />
       <Breadcrumb
-
         current={window?.setTopics?.url}
         name={window?.setTopics?.name}
         parent={window?.setTopics?.breadcrumbs?.breadcrumb[0]}
@@ -99,8 +97,8 @@ const BlogAuthor = () => {
         <main className="wmcads-container--main">
           {author == "Not found" ? (
             <>
-            <h1>Author Not Found</h1>
-            <a href="/">Return to blog</a>
+              <h1>Author Not Found</h1>
+              <a href="/">Return to blog</a>
             </>
           ) : (
             <div className="wmcads-grid">
@@ -118,7 +116,9 @@ const BlogAuthor = () => {
                   </div>
                   {/* {author.properties?.image !== null && <img alt={author.name} src={`https://cms-stg.wmca.org.uk${author.properties?.image[0].url}`}/>} */}
                   <div className="wmcads-float-left">
-                    {author.name && <h1 className="wmcads-m-b-sm">{author.name}</h1>}
+                    {author.name && (
+                      <h1 className="wmcads-m-b-sm">{author.name}</h1>
+                    )}
                     {author.properties?.jobTitle !== null ? (
                       <strong>{author.properties?.jobTitle}</strong>
                     ) : (
@@ -152,14 +152,20 @@ const BlogAuthor = () => {
                       {authorArticles[0]?.map((article, index) => (
                         <>
                           <div className="wmcads-content-card wmcads-content-card--news">
-                          {article.properties.image && (
-                            <img
-                              alt={article.properties.image[0].name}
-                              src={`https://cms.wmca.org.uk${article.properties.image[0].url}?anchor=center&mode=crop&width=600&height=250`}
-                            ></img>
-                          )}
+                            {article.properties.image && (
+                              <img
+                                alt={article.properties.image[0].name}
+                                src={`https://cms.wmca.org.uk${article.properties.image[0].url}?anchor=center&mode=crop&width=600&height=250`}
+                              ></img>
+                            )}
                             <p>{formatDate(article.properties.date)}</p>
-                            <Link to={{ pathname: `/article/${routePathArticle(article.route.path)}`}} >
+                            <Link
+                              to={{
+                                pathname: `/article/${routePathArticle(
+                                  article.route.path
+                                )}`,
+                              }}
+                            >
                               {article.name}
                             </Link>
                           </div>
@@ -169,7 +175,17 @@ const BlogAuthor = () => {
                   </div>
                   {author.name && (
                     <>
-                    <Link className="wmcads-link wmcads-m-t-lg" to={{ pathname: `/`, search: `?sort=descending&topics=&author=${formatAuthorFilterUrl(author.route.path)}&dates=null&dateRangeSet=undefined`}} >View more posts written by {author.name}</Link>
+                      <Link
+                        className="wmcads-link wmcads-m-t-lg"
+                        to={{
+                          pathname: `/`,
+                          search: `?sort=descending&topics=&author=${formatAuthorFilterUrl(
+                            author.route.path
+                          )}&dates=null&dateRangeSet=undefined`,
+                        }}
+                      >
+                        View more posts written by {author.name}
+                      </Link>
                     </>
                   )}
                 </div>

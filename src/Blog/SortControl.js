@@ -1,6 +1,11 @@
 import PropTypes from "prop-types";
 
-const SortControl = ({ filter, setFilter, sortChangedCallback, defaultVal }) => (
+const SortControl = ({
+  filter,
+  setFilter,
+  sortChangedCallback,
+  defaultVal,
+}) => (
   <div className="wmcads-search-sort wmcads-fe-group">
     <label className="wmcads-fe-label" htmlFor="dropdown">
       <h3>Sort by</h3>
@@ -12,9 +17,7 @@ const SortControl = ({ filter, setFilter, sortChangedCallback, defaultVal }) => 
         name="dropdown"
         defaultValue={defaultVal}
         // onChange={(e) => sortChangedCallback(e.target.value)}
-        onChange={(e) =>
-          setFilter({ ...filter, sort: e.target.value })
-        }
+        onChange={(e) => setFilter({ ...filter, sort: e.target.value })}
       >
         <option value="">Choose from list</option>
         <option value="descending">Most recent</option>

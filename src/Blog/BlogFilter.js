@@ -8,7 +8,7 @@ import filterBlogArticlesByDate from "../helpers/filterBlogArticlesByDate";
 
 import { useEffect } from "react";
 
-if (getSearchParam('author')) {
+if (getSearchParam("author")) {
   // console.log('url has authors');
 }
 
@@ -23,14 +23,38 @@ const BlogFilter = ({
   setShowFilterOverrideMobile,
   blogCategories,
   authors,
-  setDateRanges
+  setDateRanges,
 }) => {
-
   const dates = [
-    { value: "updatedLastWeek", label: "Posted in the last week", disabled: !!filterBlogArticlesByDate(returnedBlogArticles, 'updatedLastWeek').length },
-    { value: "updatedLastMonth", label: "Posted in the last month", disabled: !!filterBlogArticlesByDate(returnedBlogArticles, 'updatedLastMonth').length },
-    { value: "updatedLastYear", label: "Posted in the last year", disabled: !!filterBlogArticlesByDate(returnedBlogArticles, 'updatedLastYear').length },
-    { value: "updatedByRange", label: "Posted within date range", disabled: !false },
+    {
+      value: "updatedLastWeek",
+      label: "Posted in the last week",
+      disabled: !!filterBlogArticlesByDate(
+        returnedBlogArticles,
+        "updatedLastWeek"
+      ).length,
+    },
+    {
+      value: "updatedLastMonth",
+      label: "Posted in the last month",
+      disabled: !!filterBlogArticlesByDate(
+        returnedBlogArticles,
+        "updatedLastMonth"
+      ).length,
+    },
+    {
+      value: "updatedLastYear",
+      label: "Posted in the last year",
+      disabled: !!filterBlogArticlesByDate(
+        returnedBlogArticles,
+        "updatedLastYear"
+      ).length,
+    },
+    {
+      value: "updatedByRange",
+      label: "Posted within date range",
+      disabled: !false,
+    },
   ];
 
   return (
@@ -78,9 +102,7 @@ const BlogFilter = ({
           if (topics.includes(optionValue)) {
             setFilter({
               ...filter,
-              topics: topics.filter(
-                (category) => category !== optionValue
-              ),
+              topics: topics.filter((category) => category !== optionValue),
             });
           } else {
             setFilter({
@@ -104,9 +126,7 @@ const BlogFilter = ({
           if (authors.includes(optionValue)) {
             setFilter({
               ...filter,
-              author: authors.filter(
-                (author) => author !== optionValue
-              ),
+              author: authors.filter((author) => author !== optionValue),
             });
           } else {
             setFilter({
@@ -141,27 +161,30 @@ const BlogFilter = ({
           onClick={() => setShowFilterOverrideMobile(false)}
         >{`Show ${noOfResults} results`}</button>
       </div>
-      {filter.topics.length != 0 || filter.author.length != 0 || filter.dates != null ? (
-      <a href="#"
-        className="wmcads-search-filter__clear-all wmcads-hide-mobile"
-        onClick={() => setClearFilters(true)}
-      >
-        <svg
-          style={{
-            display: "inline-block",
-            fill: "#c05701",
-            stroke: "#c05701",
-            strokeWidth: "25px",
-          }}
+      {filter.topics.length != 0 ||
+      filter.author.length != 0 ||
+      filter.dates != null ? (
+        <a
+          href="#"
+          className="wmcads-search-filter__clear-all wmcads-hide-mobile"
+          onClick={() => setClearFilters(true)}
         >
-          <title>Close</title>
-          <use
-            xlinkHref="#wmcads-general-cross"
-            href="#wmcads-general-cross"
-          ></use>
-        </svg>
-        Clear all filters
-      </a>
+          <svg
+            style={{
+              display: "inline-block",
+              fill: "#c05701",
+              stroke: "#c05701",
+              strokeWidth: "25px",
+            }}
+          >
+            <title>Close</title>
+            <use
+              xlinkHref="#wmcads-general-cross"
+              href="#wmcads-general-cross"
+            ></use>
+          </svg>
+          Clear all filters
+        </a>
       ) : null}
     </div>
   );
@@ -180,7 +203,7 @@ BlogFilter.propTypes = {
   blogCategories: PropTypes.arrayOf(PropTypes.string),
   authors: PropTypes.arrayOf(PropTypes.string),
   setDateRanges: PropTypes.func,
-  setClearFilters: PropTypes.func
+  setClearFilters: PropTypes.func,
 };
 
 BlogFilter.defaultProps = {
@@ -191,6 +214,6 @@ BlogFilter.defaultProps = {
   setFilter: () => {},
   blogCategories: [],
   authors: [],
-  setDateRanges: () => { },
+  setDateRanges: () => {},
   setClearFilters: () => {},
 };

@@ -95,7 +95,7 @@ const BlogArticle = () => {
     const result = path.replace(regex, "");
     return result;
   };
-  
+
   return (
     <>
       <Helmet>
@@ -267,7 +267,9 @@ const BlogArticle = () => {
                           {item.name}
                         </Link>
                       ) : (
-                        <p><strong>{item.name}</strong></p>
+                        <p>
+                          <strong>{item.name}</strong>
+                        </p>
                       )}
 
                       {item.properties.jobTitle != null ? (

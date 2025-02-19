@@ -2,11 +2,14 @@ import { render, act } from "@testing-library/react";
 import { create } from "react-test-renderer";
 
 import BlogArticles from "./BlogArticles";
-import mockBlogDocument from "./mockBlogDocument.json"
+import mockBlogDocument from "./mockBlogDocument.json";
 
-jest.mock("../api/getData",() => ({
+jest.mock("../api/getData", () => ({
   __esModule: true,
-  default: () => new Promise((resolve) => setTimeout(resolve, 1000)).then(() => mockBlogDocument)
+  default: () =>
+    new Promise((resolve) => setTimeout(resolve, 1000)).then(
+      () => mockBlogDocument
+    ),
 }));
 
 describe("BlogArticles", () => {

@@ -14,11 +14,7 @@ const mockArticles = [
 describe("filterBlogArticlesByTopic", () => {
   it("filters blog articles by category", () => {
     expect(
-      filterBlogArticlesByTopic(mockArticles, [
-        "Commerce",
-        "Politics",
-        "None",
-      ])
+      filterBlogArticlesByTopic(mockArticles, ["Commerce", "Politics", "None"])
     ).toEqual([
       { ArticleCategory: "" },
       { ArticleCategory: "Commerce" },

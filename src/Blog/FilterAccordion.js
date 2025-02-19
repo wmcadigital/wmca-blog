@@ -32,7 +32,11 @@ CheckOption.propTypes = {
 };
 
 const RadioOption = ({ title, option, optionSelected, optionSelectedFn }) => (
-  <label className={`wmcads-fe-radios__container ${!option.disabled ? 'disabled' : ''}`} >
+  <label
+    className={`wmcads-fe-radios__container ${
+      !option.disabled ? "disabled" : ""
+    }`}
+  >
     {option.label}
     <input
       className="wmcads-fe-radios__input"
@@ -49,7 +53,11 @@ const RadioOption = ({ title, option, optionSelected, optionSelectedFn }) => (
 
 RadioOption.propTypes = {
   title: PropTypes.string,
-  option: PropTypes.shape({ label: PropTypes.string, value: PropTypes.string, disabled: PropTypes.bool }),
+  option: PropTypes.shape({
+    label: PropTypes.string,
+    value: PropTypes.string,
+    disabled: PropTypes.bool,
+  }),
   optionSelected: PropTypes.func,
   optionSelectedFn: PropTypes.func,
 };
@@ -62,11 +70,15 @@ const FilterAccordion = ({
   optionSelectedFn,
   setDateRanges,
   clearFilters,
-  filter
+  filter,
 }) => {
   const [accordionOpen, setAccordionOpen] = useState(true);
-  const [dateAfter, setDateAfter] = useState({ day: '', month: '', year: '' });
-  const [dateBefore, setDateBefore] = useState({ day: '', month: '', year: '' });
+  const [dateAfter, setDateAfter] = useState({ day: "", month: "", year: "" });
+  const [dateBefore, setDateBefore] = useState({
+    day: "",
+    month: "",
+    year: "",
+  });
   const [afterErrors, setAfterErrors] = useState(undefined);
   const [beforeErrors, setBeforeErrors] = useState(undefined);
   const [isDate1BeforeDate2, setIsDate1BeforeDate2] = useState(undefined);
@@ -79,150 +91,162 @@ const FilterAccordion = ({
     const updatedDateAfter = { ...dateAfter };
     const updatedDateBefore = { ...dateBefore };
 
-    if (name === 'AFTER') { 
+    if (name === "AFTER") {
       if (!/[^0-9]/.test(val)) {
         updatedDateAfter[field] = val;
         setDateAfter(updatedDateAfter);
-      } 
+      }
     } else {
       if (!/[^0-9]/.test(val)) {
         updatedDateBefore[field] = val;
         setDateBefore(updatedDateBefore);
-      } 
+      }
     }
-  }
+  };
 
   const otherThanUndefined = (obj) => {
-    return Object.values(obj).some(value => value !== undefined);
-  }
+    return Object.values(obj).some((value) => value !== undefined);
+  };
 
   const validationMonthDay = (updates, date, type) => {
-
     let otherError = false;
 
-    if (date.day === '') {
+    if (date.day === "") {
       updates.day = undefined;
     } else if (
       date.day < 1 ||
-      date.day > new Date(date.year, date.month, 0).getDate()) {
-      otherError = true
-      updates.day = 'Day is invalid';
+      date.day > new Date(date.year, date.month, 0).getDate()
+    ) {
+      otherError = true;
+      updates.day = "Day is invalid";
     } else {
       updates.day = undefined;
     }
 
-    if (date.month === '') {
+    if (date.month === "") {
       updates.month = undefined;
     } else if (date.month < 1 || date.month > 12) {
-      otherError = true
-      updates.month = 'Month is invalid';
+      otherError = true;
+      updates.month = "Month is invalid";
     } else {
       updates.month = undefined;
     }
 
-    if (type === 'before' && isDate1BeforeDate2) {
+    if (type === "before" && isDate1BeforeDate2) {
       updates.ToosGreaterThanFrom = undefined;
-    } else if (type === 'before' && isDate1BeforeDate2 === false) {
-      updates.ToosGreaterThanFrom = 'Date to must be greater than date from';
+    } else if (type === "before" && isDate1BeforeDate2 === false) {
+      updates.ToosGreaterThanFrom = "Date to must be greater than date from";
     }
 
     if (otherError) {
-      updates.ToosGreaterThanFrom = undefined
+      updates.ToosGreaterThanFrom = undefined;
     }
 
-    return updates
-  }
+    return updates;
+  };
 
   // Method get the date ranges from the URL and splits the string values back into the required object type before setting the local states
   const setDateValuesFromUrl = () => {
-    const to = filter?.dateRangeSet?.to.split('/');
+    const to = filter?.dateRangeSet?.to.split("/");
     if (to?.length === 3) {
       const [year, month, day] = to;
       setDateBefore({ day, month, year });
     }
 
-    const from = filter?.dateRangeSet?.from.split('/');
+    const from = filter?.dateRangeSet?.from.split("/");
     if (from?.length === 3) {
       const [year, month, day] = from;
       setDateAfter({ day, month, year });
     }
-  }
-
+  };
 
   useEffect(() => {
-
     const updatedDateAfter = { ...dateAfter };
     const updatedDateBefore = { ...dateBefore };
 
     const isAnyValueEmpty = () => {
-      return Object.values(updatedDateAfter).some(value => !value) || Object.values(updatedDateBefore).some(value => !value)
+      return (
+        Object.values(updatedDateAfter).some((value) => !value) ||
+        Object.values(updatedDateBefore).some((value) => !value)
+      );
     };
 
     const yearInputContains4characters = () => {
-      return updatedDateAfter.year.length === 4 && updatedDateBefore.year.length === 4
-    }
+      return (
+        updatedDateAfter.year.length === 4 &&
+        updatedDateBefore.year.length === 4
+      );
+    };
 
     const stringDateToNewDate = (dateString) => {
       // Replace / with - and ensure the month has two digits
-      const formattedDateString = dateString.replace(/(\d{1,2})\/(\d{1,2})\/(\d{4})/, (_, month, day, year) => {
-        return `${day.padStart(2, '0')}-${month.padStart(2, '0')}-${year}`;
-      });
+      const formattedDateString = dateString.replace(
+        /(\d{1,2})\/(\d{1,2})\/(\d{4})/,
+        (_, month, day, year) => {
+          return `${day.padStart(2, "0")}-${month.padStart(2, "0")}-${year}`;
+        }
+      );
 
       return new Date(formattedDateString);
-    }
+    };
 
-    // If false no fields are empty && yearly charachters are 4 
+    // If false no fields are empty && yearly charachters are 4
     if (!isAnyValueEmpty() && yearInputContains4characters()) {
-      const afterDateString = `${dateAfter.year}/${dateAfter.month}/${dateAfter.day}`
-      const beforeDateString = `${dateBefore.year}/${dateBefore.month}/${dateBefore.day}`
+      const afterDateString = `${dateAfter.year}/${dateAfter.month}/${dateAfter.day}`;
+      const beforeDateString = `${dateBefore.year}/${dateBefore.month}/${dateBefore.day}`;
 
-      const afterNewDate = stringDateToNewDate(afterDateString)
-      const beforeNewDate = stringDateToNewDate(beforeDateString)
+      const afterNewDate = stringDateToNewDate(afterDateString);
+      const beforeNewDate = stringDateToNewDate(beforeDateString);
 
       // before should be greater than after
       setIsDate1BeforeDate2(beforeNewDate >= afterNewDate);
       setDateRanges2({ from: afterDateString, to: beforeDateString });
 
+      const updatedBeforeErrorsSet = validationMonthDay(
+        { ...beforeErrors },
+        dateBefore,
+        "before"
+      );
+      const updatedAfterErrorsSet = validationMonthDay(
+        { ...afterErrors },
+        dateAfter,
+        "after"
+      );
 
-      const updatedBeforeErrorsSet = validationMonthDay({ ...beforeErrors }, dateBefore, 'before')
-      const updatedAfterErrorsSet = validationMonthDay({ ...afterErrors }, dateAfter, 'after')
-  
       setBeforeErrors(updatedBeforeErrorsSet);
-      setAfterErrors(updatedAfterErrorsSet);  
+      setAfterErrors(updatedAfterErrorsSet);
     }
   }, [dateAfter, dateBefore, isDate1BeforeDate2]);
 
-  useEffect(() => {
+  useEffect(() => {}, []);
 
-  }, [])
-  
-  
   useEffect(() => {
-    // Here we check the the dates are required and valid before we filter the articles 
-    if (!otherThanUndefined({ ...afterErrors }) && !otherThanUndefined({ ...beforeErrors }) && isDate1BeforeDate2) {
-        setDateRanges(dateRanges);
+    // Here we check the the dates are required and valid before we filter the articles
+    if (
+      !otherThanUndefined({ ...afterErrors }) &&
+      !otherThanUndefined({ ...beforeErrors }) &&
+      isDate1BeforeDate2
+    ) {
+      setDateRanges(dateRanges);
     }
-  }, [dateRanges])
+  }, [dateRanges]);
 
-  useEffect(() => { 
-
+  useEffect(() => {
     //Here is triggered when date ranges have been passed in via the URL
     if (filter?.dateRangeSet && !urlset) {
-      setDateValuesFromUrl()
-      setUrlSet(true)
+      setDateValuesFromUrl();
+      setUrlSet(true);
     }
 
-    // When clearing the filters we reset everything here related to the date range 
+    // When clearing the filters we reset everything here related to the date range
     if (clearFilters) {
-      setDateAfter({ day: '', month: '', year: '' })
-      setDateBefore({ day: '', month: '', year: '' })
-      setAfterErrors(undefined)
-      setBeforeErrors(undefined)
-      setDateRanges(undefined)
+      setDateAfter({ day: "", month: "", year: "" });
+      setDateBefore({ day: "", month: "", year: "" });
+      setAfterErrors(undefined);
+      setBeforeErrors(undefined);
+      setDateRanges(undefined);
     }
-
-  }, [clearFilters, filter?.dateRangeSet])
-
+  }, [clearFilters, filter?.dateRangeSet]);
 
   return (
     <div
@@ -279,24 +303,24 @@ const FilterAccordion = ({
             )}
           </div>
         </fieldset>
-        {filter?.dates === 'updatedByRange' && 
+        {filter?.dates === "updatedByRange" && (
           <>
             <FilterByDateRange
               name="AFTER"
-              title='Date From'
+              title="Date From"
               handleDateChange={receivedDateChange}
               value={dateAfter}
               errors={afterErrors}
             />
             <FilterByDateRange
               name="BEFORE"
-              title='Date To' 
+              title="Date To"
               handleDateChange={receivedDateChange}
               value={dateBefore}
               errors={beforeErrors}
             />
           </>
-        }
+        )}
       </div>
     </div>
   );
@@ -305,7 +329,11 @@ const FilterAccordion = ({
 FilterAccordion.propTypes = {
   title: PropTypes.string,
   options: PropTypes.arrayOf(
-    PropTypes.shape({ label: PropTypes.string, value: PropTypes.string, disabled: PropTypes.bool })
+    PropTypes.shape({
+      label: PropTypes.string,
+      value: PropTypes.string,
+      disabled: PropTypes.bool,
+    })
   ),
   selectOne: PropTypes.bool,
   optionSelected: PropTypes.func,
@@ -315,16 +343,14 @@ FilterAccordion.propTypes = {
     // You can change the PropTypes type based on your specific needs, Add other PropTypes for other properties in the filter object if necessary
     dates: PropTypes.string,
     dateRangeSet: PropTypes.object,
-  })
+  }),
 };
 
 FilterAccordion.defaultProps = {
   options: [],
   optionSelected: () => {},
   optionSelectedFn: () => {},
-  setDateRanges: () => { },
+  setDateRanges: () => {},
 };
 
 export default FilterAccordion;
-
-

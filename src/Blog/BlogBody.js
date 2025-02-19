@@ -46,7 +46,9 @@ const BlogBody = ({
   return (
     <div className="wmcads-search-result">
       <h2 className="wmcads-m-b-sm">
-        <Link className="h2" to={`article/${name}`}>{name}</Link>
+        <Link className="h2" to={`article/${name}`}>
+          {name}
+        </Link>
       </h2>
       <p className="wmcads-search-result__date">
         {renderAuthors}

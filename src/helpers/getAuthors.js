@@ -6,8 +6,8 @@ const getAuthors = (blogArticles) => {
 
     // if author is not null or empty array add to categorySet
     if (nullCheck && emptyArryCheck) {
-      const authors = article.properties.author.map(authors => authors.name); // get all author name
-      authors.forEach(item => categorySet.add(item)); // add each author to the categorySet
+      const authors = article.properties.author.map((authors) => authors.name); // get all author name
+      authors.forEach((item) => categorySet.add(item)); // add each author to the categorySet
     } else {
       categorySet.add("None");
     }

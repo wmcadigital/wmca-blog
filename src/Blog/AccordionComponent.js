@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const Accordion = ({ title, isOpenByDefault, content, index }) => {
   const [isOpen, setIsOpen] = useState(isOpenByDefault);
@@ -9,7 +9,7 @@ const Accordion = ({ title, isOpenByDefault, content, index }) => {
   };
 
   return (
-    <div className={`wmcads-accordion ${isOpen ? 'wmcads-is--open' : ''}`}>
+    <div className={`wmcads-accordion ${isOpen ? "wmcads-is--open" : ""}`}>
       <button
         onClick={toggleAccordion}
         aria-controls={`accordion-${index}`}
@@ -22,11 +22,17 @@ const Accordion = ({ title, isOpenByDefault, content, index }) => {
         </div>
         {/* plus icon */}
         <svg className="wmcads-accordion__icon">
-          <use xlinkHref="#wmcads-general-expand" href="#wmcads-general-expand"></use>
+          <use
+            xlinkHref="#wmcads-general-expand"
+            href="#wmcads-general-expand"
+          ></use>
         </svg>
         {/* minus icon */}
         <svg className="wmcads-accordion__icon wmcads-accordion__icon--minimise">
-          <use xlinkHref="#wmcads-general-minimise" href="#wmcads-general-minimise"></use>
+          <use
+            xlinkHref="#wmcads-general-minimise"
+            href="#wmcads-general-minimise"
+          ></use>
         </svg>
       </button>
 
@@ -42,12 +48,17 @@ const AccordionComponent = ({ data }) => {
   return (
     <div>
       {data.map((item, index) => (
-        <Accordion key={index} index={index} title={item.content.properties.accordionTitle} isOpenByDefault={false} content={item.content.properties.accordionContent.markup} />
+        <Accordion
+          key={index}
+          index={index}
+          title={item.content.properties.accordionTitle}
+          isOpenByDefault={false}
+          content={item.content.properties.accordionContent.markup}
+        />
       ))}
     </div>
   );
 };
-
 
 AccordionComponent.propTypes = {
   content: PropTypes.string,

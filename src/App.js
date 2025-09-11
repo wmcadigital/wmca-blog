@@ -28,7 +28,7 @@ const router = createHashRouter([
   { path: "author/:authorName", element: <BlogAuthor />, loader: authorLoader },
 ]);
 
-console.log("v1.0.16");
+console.log("v1.0.17");
 
 root.render(
   <StrictMode>

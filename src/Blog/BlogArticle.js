@@ -144,7 +144,7 @@ const BlogArticle = () => {
 
               {article.properties.hideOpinionMessage != true ? (
                 <div className="wmcads-warning-text wmcads-m-t-md wmcads-m-b-md">
-                  <svg className="wmcads-warning-text__icon">
+                  <svg className="wmcads-warning-text__icon" aria-hidden="true" focusable="false">
                     <use
                       xlinkHref="#wmcads-general-info"
                       href="#wmcads-general-info"

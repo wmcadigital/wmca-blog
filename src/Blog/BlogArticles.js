@@ -370,6 +370,16 @@ const BlogArticles = () => {
                           ? blogArticle.properties.image[0].url
                           : "No Image"
                       }
+                      imageAlt={
+                        blogArticle.properties.image != null
+                          ? blogArticle.properties.image[0].url
+                          : "No Image"
+                      }
+                      imageID={
+                        blogArticle.properties.image[0].id != null
+                          ? blogArticle.properties.image[0].id
+                          : "No id"
+                      }
                       publishDate={blogArticle.properties.date}
                       introductionText={blogArticle.properties.introduction}
                     />

@@ -159,7 +159,6 @@ const BlogArticle = () => {
               {article.properties.introduction != null ? (
                 <div
                   className="wmcads-inset-text wmcads-m-b-md"
-                  aria-label="Introduction"
                 >
                   <p>{article.properties.introduction}</p>
                 </div>
@@ -244,7 +243,6 @@ const BlogArticle = () => {
                   return (
                     <div
                       className="wmcads-inset-text wmcads-col-1 wmcads-m-b-md"
-                      aria-label="About the author"
                       key={`${index}`}
                     >
                       {item.properties.bio != null ? (

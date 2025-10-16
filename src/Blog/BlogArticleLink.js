@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
-
 import formatDate from "../helpers/formatDate";
 import getUmbracoMedia from "../api/getUmbracoMedia"; // <-- import the media API
 
@@ -114,8 +113,8 @@ const BlogArticleLink = ({
       {/* Use mediaData if available, otherwise fallback to image */}
       {mediaData && mediaData.url ? (
         <img
-          src={mediaData.url}
-          alt={mediaData.name || imageID}
+          src={`https://cms.wmca.org.uk${mediaData.url}?anchor=center&mode=crop&width=600&height=250`}
+          alt={`${mediaData.properties?.altText || ""}`}
           className="wmcads-m-t-md"
         />
       ) : image !== "No Image" ? (

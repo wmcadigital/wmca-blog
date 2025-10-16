@@ -3,7 +3,7 @@ import { useLoaderData, Link } from "react-router-dom";
 import getBlogArticle from "../api/getBlogArticle";
 import ScrollToTop from "../helpers/ScrollToTop";
 import { useState, useEffect } from "react";
-// import BlogBody from "./BlogBody";
+import getUmbracoMedia from "../api/getUmbracoMedia";
 
 import Banner from "./Banner";
 import formatDate from "../helpers/formatDate";
@@ -95,6 +95,42 @@ const BlogArticle = () => {
     return result;
   };
 
+  // Component to render an image and fetch alt text from media API when missing
+  const ImageWithAlt = ({ img, className = "wmcads-m-t-md", width = 620, height = 300 }) => {
+    const [alt, setAlt] = useState(img?.properties?.altText || "");
+    const [media, setMedia] = useState(null);
+
+    useEffect(() => {
+      let mounted = true;
+      if (alt) return () => (mounted = false);
+
+      const mediaId = img?.id || img?.properties?.id;
+      if (!mediaId) return () => (mounted = false);
+
+      getUmbracoMedia(mediaId)
+        .then((data) => {
+          if (!mounted || !data) return;
+          setMedia(data);
+          const remoteAlt =
+            data?.properties?.altText ||
+            data?.properties?.alt ||
+            data?.name ||
+            "";
+          if (remoteAlt) setAlt(remoteAlt);
+        })
+        .catch(() => {
+          /* ignore */
+        });
+
+      return () => {
+        mounted = false;
+      };
+    }, [img, alt]);
+
+    const src = `https://cms.wmca.org.uk${img?.url}?anchor=center&mode=crop&width=${width}&height=${height}`;
+    return <img src={src} alt={alt || media?.name || ""} className={className} />;
+  };
+
   return (
     <>
       <Helmet>
@@ -129,12 +165,10 @@ const BlogArticle = () => {
                 {article.properties.author &&
                   article.properties.author.map(function (item, index) {
                     return (
-                      <>
-                        <React.Fragment key={index}>
-                          <Link to={`/?author=${item.name}`}>{item.name}</Link>
-                        </React.Fragment>
-                        ,{" "}
-                      </>
+                      <React.Fragment key={item.id || item.name || index}>
+                        <Link to={`/?author=${item.name}`}>{item.name}</Link>
+                        {index < article.properties.author.length - 1 && ", "}
+                      </React.Fragment>
                     );
                   })}
                 {article.properties.date != ""
@@ -144,7 +178,11 @@ const BlogArticle = () => {
 
               {article.properties.hideOpinionMessage != true ? (
                 <div className="wmcads-warning-text wmcads-m-t-md wmcads-m-b-md">
-                  <svg className="wmcads-warning-text__icon" aria-hidden="true" focusable="false">
+                  <svg
+                    className="wmcads-warning-text__icon"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
                     <use
                       xlinkHref="#wmcads-general-info"
                       href="#wmcads-general-info"
@@ -157,47 +195,33 @@ const BlogArticle = () => {
               )}
 
               {article.properties.introduction != null ? (
-                <div
-                  className="wmcads-inset-text wmcads-m-b-md"
-                >
+                <div className="wmcads-inset-text wmcads-m-b-md">
                   <p>{article.properties.introduction}</p>
                 </div>
               ) : null}
 
+              {/*
+                Use ImageWithAlt which will call getUmbracoMedia to retrieve alt text when needed.
+              */}
               {article.properties.hideImageInBlog != true &&
               article.properties.image != null ? (
-                <img
-                  src={`https://cms.wmca.org.uk${article.properties.image[0].url}?anchor=center&mode=crop&width=620&height=300`}
-                  alt={article.properties.image[0].properties.altText}
-                  className="wmcads-m-t-md"
-                />
+                <ImageWithAlt img={article.properties.image[0]} key={article.properties.image[0]?.id || article.properties.image[0]?.url} />
               ) : null}
 
               {article.properties.copy != null
                 ? article.properties.copy.items.map(function (item, index) {
                     if (item.content.contentType == "textboxBlock") {
-                      const aricleCopy = {
-                        __html: item.content.properties.textbox.markup,
-                      };
                       return (
-                        <div
-                          key={`${index}`}
-                          dangerouslySetInnerHTML={aricleCopy}
-                        ></div>
+                        <TextComponent
+                          key={index}
+                          htmlContent={item.content.properties.textbox.markup}
+                        />
                       );
                     }
 
                     if (item.content.contentType == "imageBlock") {
-                      const imgSrc = item.content.properties.image[0].url;
-                      const imgAlt =
-                        item.content.properties.image[0].properties.altText;
-                      return (
-                        <img
-                          key={`${index}`}
-                          src={`https://cms.wmca.org.uk${imgSrc}?anchor=center&mode=crop&width=620&height=300`}
-                          alt={imgAlt}
-                        />
-                      );
+                      const img = item.content.properties.image[0];
+                      return <ImageWithAlt key={index} img={img} />;
                     }
                   })
                 : null}
@@ -216,13 +240,10 @@ const BlogArticle = () => {
                 Tags:{" "}
                 {topics.map(function (item, index) {
                   return (
-                    <React.Fragment key={index}>
+                    <React.Fragment key={item.name || index}>
                       {index > 0 && ", "}
-                      {/* only link topics selected in the blog post */}
                       {item.match ? (
-                        <Link key={`${index}`} to={`/?topics=${item.name}`}>
-                          {item.name}
-                        </Link>
+                        <Link to={`/?topics=${item.name}`}>{item.name}</Link>
                       ) : (
                         <span>{item.name}</span>
                       )}

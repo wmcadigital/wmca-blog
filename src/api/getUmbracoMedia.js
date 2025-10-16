@@ -2,6 +2,8 @@
 // let getMediaEndPoint = "https://localhost:44353/umbraco/delivery/api/v1/media/item/";
 let getMediaEndPoint = "https://cms.wmca.org.uk/umbraco/delivery/api/v2/media/item/";
 
+const apiKey = process.env.REACT_APP_UMBRACO_API_KEY;
+
 const getUmbracoMedia = async (id) => {
   const response = await fetch(
     getMediaEndPoint + id,
@@ -9,7 +11,7 @@ const getUmbracoMedia = async (id) => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "Api-Key": "54191bfa-d83f-4f8d-80ba-54587374b638",
+        "Api-Key": apiKey,
       },
     }
   );

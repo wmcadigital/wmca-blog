@@ -1,8 +1,9 @@
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
 import formatDate from "../helpers/formatDate";
-// import extractExcerpt from "../helpers/extractExcerpt";
+import getUmbracoMedia from "../api/getUmbracoMedia";
 
 const BlogBody = ({
   filter,
@@ -11,9 +12,28 @@ const BlogBody = ({
   authors,
   tags,
   image,
+  imageID, // added imageID prop
   publishDate,
   introductionText,
 }) => {
+  const [mediaData, setMediaData] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    if (imageID) {
+      getUmbracoMedia(imageID)
+        .then((data) => {
+          if (mounted) setMediaData(data);
+        })
+        .catch(() => {
+          if (mounted) setMediaData(null);
+        });
+    }
+    return () => {
+      mounted = false;
+    };
+  }, [imageID]);
+
   const handleAuthor = (event) => {
     event.preventDefault();
     let desiredValue = (fruits_quantity, desired_key) => {
@@ -57,10 +77,17 @@ const BlogBody = ({
 
       <p className="wmcads-search-result__date">Topics: {renderTags}</p>
 
-      {image != "No Image" ? (
+      {image != "No Image" || mediaData?.url ? (
         <img
-          src={`https://cms.wmca.org.uk${image}?anchor=center&mode=crop&width=600&height=250`}
-          alt=""
+          src={
+            mediaData?.url
+              ? mediaData.url
+              : `https://cms.wmca.org.uk${image}?anchor=center&mode=crop&width=600&height=250`
+          }
+          alt={
+            // prefer explicit altText from media properties, fall back to media name or empty string
+            mediaData?.properties?.altText || ""
+          }
           className="wmcads-m-t-md"
         />
       ) : null}
@@ -82,6 +109,7 @@ BlogBody.propTypes = {
   authors: PropTypes.array,
   tags: PropTypes.array,
   image: PropTypes.string,
+  imageID: PropTypes.string, // added propType
   publishDate: PropTypes.string.isRequired,
   introductionText: PropTypes.string.isRequired,
 };

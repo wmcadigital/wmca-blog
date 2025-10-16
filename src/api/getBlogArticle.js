@@ -1,7 +1,8 @@
 // let getBlogEndPoint = "https://cms-stg.wmca.org.uk/umbraco/delivery/api/v2/content/item/";
 // let getBlogEndPoint = "https://localhost:44353/umbraco/delivery/api/v1/content/item/";
-let getBlogEndPoint =
-  "https://cms.wmca.org.uk/umbraco/delivery/api/v2/content/item/";
+let getBlogEndPoint = "https://cms.wmca.org.uk/umbraco/delivery/api/v2/content/item/";
+
+const apiKey = process.env.REACT_APP_UMBRACO_API_KEY;
 
 const getBlogArticle = async (id) => {
   const response = await fetch(
@@ -13,7 +14,7 @@ const getBlogArticle = async (id) => {
       method: "GET", // or 'POST' or other HTTP methods
       headers: {
         "Content-Type": "application/json",
-        "Api-Key": "54191bfa-d83f-4f8d-80ba-54587374b638",
+        "Api-Key": apiKey,
       },
     }
   );

@@ -108,7 +108,7 @@ const BlogAuthor = () => {
                     {author.properties?.image !== null ? (
                       <img
                         alt={author.name}
-                        src={`https://cms-stg.wmca.org.uk${author.properties?.image[0].url}`}
+                        src={`https://cms.wmca.org.uk${author.properties?.image[0].url}`}
                       />
                     ) : (
                       <></>

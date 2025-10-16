@@ -366,19 +366,25 @@ const BlogArticles = () => {
                       authors={blogArticle.properties.author}
                       tags={blogArticle.properties.tags}
                       image={
-                        blogArticle.properties.image != null
+                        Array.isArray(blogArticle.properties.image) &&
+                        blogArticle.properties.image.length > 0 &&
+                        blogArticle.properties.image[0].url
                           ? blogArticle.properties.image[0].url
                           : "No Image"
                       }
                       imageAlt={
-                        blogArticle.properties.image != null
+                        Array.isArray(blogArticle.properties.image) &&
+                        blogArticle.properties.image.length > 0 &&
+                        blogArticle.properties.image[0].url
                           ? blogArticle.properties.image[0].url
                           : "No Image"
                       }
                       imageID={
-                        blogArticle.properties.image[0].id != null
+                        Array.isArray(blogArticle.properties.image) &&
+                        blogArticle.properties.image.length > 0 &&
+                        blogArticle.properties.image[0].id
                           ? blogArticle.properties.image[0].id
-                          : "No id"
+                          : null
                       }
                       publishDate={blogArticle.properties.date}
                       introductionText={blogArticle.properties.introduction}

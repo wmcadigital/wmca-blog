@@ -72,7 +72,7 @@ const FilterAccordion = ({
   clearFilters,
   filter,
 }) => {
-  const [accordionOpen, setAccordionOpen] = useState(true);
+  const [accordionOpen, setAccordionOpen] = useState(false);
   const [dateAfter, setDateAfter] = useState({ day: "", month: "", year: "" });
   const [dateBefore, setDateBefore] = useState({
     day: "",

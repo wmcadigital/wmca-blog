@@ -338,6 +338,26 @@ const BlogArticles = () => {
           </div>
           <div className="wmcads-grid">
             <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-xl wmcads-p-r-lg">
+              {/* Live region for screen readers to announce results updates */}
+              <div
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                style={{
+                  position: "absolute",
+                  left: "-9999px",
+                  width: "1px",
+                  height: "1px",
+                  overflow: "hidden",
+                }}
+              >
+                {loading
+                  ? "Searching blog articles."
+                  : noOfResults === 0
+                  ? "No matching results. Try removing filters or using fewer keywords."
+                  : `Found ${noOfResults} matching results.`}
+              </div>
+
               {loading ? (
                 <div className="wmcads-loader wmcads-loader--small wmcads-m-l-xs"></div>
               ) : (

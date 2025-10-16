@@ -246,6 +246,23 @@ const BlogArticles = () => {
     } else {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
+
+    // Recompute available authors based on the currently filtered set (respecting topics)
+    const availableAuthors = getAuthors(returnedBlogArticles, filter.topics);
+
+    // If any selected author is no longer available for the selected topics, remove them from filter
+    if (filter.author && filter.author.length) {
+      const filteredSelectedAuthors = filter.author.filter((a) =>
+        availableAuthors.includes(a)
+      );
+
+      if (filteredSelectedAuthors.length !== filter.author.length) {
+        setFilter((prev) => ({ ...prev, author: filteredSelectedAuthors }));
+      }
+    }
+
+    // Update authors shown in the UI
+    setAuthors(availableAuthors);
   }, [
     clearFilters,
     filter,

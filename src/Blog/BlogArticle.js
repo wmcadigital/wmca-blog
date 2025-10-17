@@ -252,11 +252,11 @@ const BlogArticle = () => {
                 })}
               </p>
 
-              {article.properties.author &&
-              article.properties.author.length == 1 ? (
+              {article?.properties?.author.length !== 0 &&
+              article?.properties?.author.length == 1 ? (
                 <h2>About the author</h2>
               ) : (
-                article.properties.author && <h2>About the authors</h2>
+                article?.properties?.author.length !== 0 && <h2>About the authors</h2>
               )}
 
               {article.properties.author &&

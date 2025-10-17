@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { useLoaderData, Link } from "react-router-dom";
 import getBlogArticle from "../api/getBlogArticle";
 import ScrollToTop from "../helpers/ScrollToTop";
@@ -15,10 +16,12 @@ import AccordionComponent from "./AccordionComponent";
 import Breadcrumb from "./Breadcrumb";
 import { Helmet } from "react-helmet";
 import ReactGA from "react-ga4";
+import { getPageKey } from "../helpers/page";
 
-export async function loader({ params }) {
-  const article = await getBlogArticle(params.articleTitle);
-  return { article };
+// Make loader synchronous to avoid blocking initial render.
+// The article will be fetched inside the component so LCP isn't delayed by the route loader.
+export function loader({ params }) {
+  return { article: null, articleTitle: params.articleTitle };
 }
 
 const BlogArticle = () => {
@@ -29,7 +32,55 @@ const BlogArticle = () => {
   const [articleAccordionBlockItems, setArticleAccordionBlockItems] = useState(
     []
   );
-  const { article } = useLoaderData();
+  const loaderData = useLoaderData();
+  // keep local article state; start with loader-provided article (may be null)
+  const [articleData, setArticleData] = useState(loaderData?.article ?? null);
+  const articleTitle = loaderData?.articleTitle;
+
+  // alias used throughout the component to minimise other edits
+  const article = articleData;
+
+  // If loader didn't provide the article, fetch it on the client after initial render
+  useEffect(() => {
+    if (articleData || !articleTitle) return;
+    let mounted = true;
+    // defer fetch until after first paint to avoid blocking LCP/network contention
+    const rafId = window.requestAnimationFrame
+      ? window.requestAnimationFrame(() => {
+          // small timeout to ensure paint
+          const t = setTimeout(() => {
+            getBlogArticle(articleTitle)
+              .then((a) => {
+                if (!mounted) return;
+                setArticleData(a);
+              })
+              .catch(() => {})
+              .finally(() => {});
+          }, 0);
+          // store timeout id to allow cleanup
+          rafCleanup.timeout = t;
+        })
+      : (rafCleanup.timeout = setTimeout(() => {
+          getBlogArticle(articleTitle)
+            .then((a) => {
+              if (!mounted) return;
+              setArticleData(a);
+            })
+            .catch(() => {})
+            .finally(() => {});
+        }, 0));
+
+    const rafCleanup = { timeout: null, raf: rafId };
+
+    return () => {
+      mounted = false;
+      if (rafCleanup.raf && window.cancelAnimationFrame) {
+        window.cancelAnimationFrame(rafCleanup.raf);
+      }
+      if (rafCleanup.timeout) clearTimeout(rafCleanup.timeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [articleTitle]);
   const [topics, setTopics] = useState([]);
 
   const SetContent = (data) => {
@@ -60,6 +111,7 @@ const BlogArticle = () => {
   }, []);
 
   useEffect(() => {
+    if (!article) return; // wait for article to be available
     document.title = article.name;
     let accordion = [];
 
@@ -78,6 +130,7 @@ const BlogArticle = () => {
 
   useEffect(() => {
     // match check to mark which topics should be linked
+    if (!article?.properties?.tags) return;
     let blogTopics = window?.setTopics.topics;
 
     const topics = article.properties.tags.map((el1) => ({
@@ -86,7 +139,7 @@ const BlogArticle = () => {
     }));
 
     setTopics(topics);
-  }, [article.properties?.tags]);
+  }, [article?.properties?.tags]);
 
   // remove authors from url
   const routePath = (path) => {
@@ -127,18 +180,64 @@ const BlogArticle = () => {
       };
     }, [img, alt]);
 
-    const src = `https://cms.wmca.org.uk${img?.url}?anchor=center&mode=crop&width=${width}&height=${height}`;
-    return <img src={src} alt={alt || media?.name || ""} className={className} />;
+    const base = `https://cms.wmca.org.uk${img?.url}`;
+    const widths = [320, 480, 768, width];
+    const srcSet = widths.map((w) => `${base}?anchor=center&mode=crop&width=${w}&height=${Math.round((w * height) / width)} ${w}w`).join(", ");
+    const fallback = `${base}?anchor=center&mode=crop&width=${width}&height=${height}`;
+
+    return (
+      <picture>
+        <source type="image/webp" srcSet={widths.map((w) => `${base}?anchor=center&mode=crop&width=${w}&height=${Math.round((w * height) / width)}&format=webp ${w}w`).join(", ")} sizes="(max-width: 620px) 100vw, 620px" />
+        <source srcSet={srcSet} sizes="(max-width: 620px) 100vw, 620px" />
+        <img
+          key={getPageKey()}
+          src={fallback}
+          srcSet={srcSet}
+          sizes="(max-width: 620px) 100vw, 620px"
+          alt={alt || media?.name || ""}
+          className={className}
+          width={width}
+          height={height}
+          loading="eager" /* LCP image should not be lazy-loaded */
+          decoding="async"
+          style={{ maxWidth: "100%", height: "auto" }}
+        />
+      </picture>
+    );
   };
+
+  ImageWithAlt.propTypes = {
+    img: PropTypes.object.isRequired,
+    className: PropTypes.string,
+    width: PropTypes.number,
+    height: PropTypes.number,
+  };
+
+  console.log(article);
 
   return (
     <>
       <Helmet>
         <title>{article?.name || "WMCA blog"}</title>
+        {article?.properties?.image && article.properties.image[0] && (
+          (() => {
+            const img = article.properties.image[0];
+            const { href, imagesrcset, imagesizes } = require("../helpers/image").buildPreloadAttrs(img.url, [320, 480, 620], { height: 300 });
+            return (
+              <link
+                rel="preload"
+                as="image"
+                href={href}
+                imagesrcset={imagesrcset}
+                imagesizes={imagesizes}
+              />
+            );
+          })()
+        )}
       </Helmet>
       <ScrollToTop />
       <Breadcrumb
-        article={article.name}
+        article={article?.name}
         current={window?.setTopics?.url}
         name={window?.setTopics?.name}
         parent={window?.setTopics?.breadcrumbs?.breadcrumb[0]}
@@ -157,13 +256,24 @@ const BlogArticle = () => {
         article={true}
       />
       <div className="wmcads-container">
-        <main className="wmcads-container--main">
+        <main
+          id="wmcads-main-content"
+          className="wmcads-container--main"
+          tabIndex={-1}
+          role="main"
+          // remove default focus outline/box-shadow when this element receives focus
+          style={{ outline: "none", boxShadow: "none" }}
+          onFocus={(e) => {
+            e.currentTarget.style.outline = "none";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
           <div className="wmcads-grid">
             <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-md wmcads-p-r-lg">
-              <h1>{article.name}</h1>
+              <h1>{article?.name}</h1>
               <p className="wmcads-search-result__date">
-                {article.properties.author &&
-                  article.properties.author.map(function (item, index) {
+                {article?.properties?.author &&
+                  article?.properties?.author.map(function (item, index) {
                     return (
                       <React.Fragment key={item.id || item.name || index}>
                         <Link to={`/?author=${item.name}`}>{item.name}</Link>
@@ -171,12 +281,12 @@ const BlogArticle = () => {
                       </React.Fragment>
                     );
                   })}
-                {article.properties.date != ""
-                  ? formatDate(article.properties.date)
+                {article?.properties?.date != ""
+                  ? formatDate(article?.properties?.date)
                   : null}
               </p>
 
-              {article.properties.hideOpinionMessage != true ? (
+              {article?.properties?.hideOpinionMessage != true ? (
                 <div className="wmcads-warning-text wmcads-m-t-md wmcads-m-b-md">
                   <svg
                     className="wmcads-warning-text__icon"
@@ -194,21 +304,21 @@ const BlogArticle = () => {
                 <div className="wmcads-m-t-md wmcads-m-b-md"></div>
               )}
 
-              {article.properties.introduction != null ? (
+              {article?.properties?.introduction != null ? (
                 <div className="wmcads-inset-text wmcads-m-b-md">
-                  <p>{article.properties.introduction}</p>
+                  <p>{article?.properties?.introduction}</p>
                 </div>
               ) : null}
 
               {/*
                 Use ImageWithAlt which will call getUmbracoMedia to retrieve alt text when needed.
               */}
-              {article.properties.hideImageInBlog != true &&
-              article.properties.image != null ? (
-                <ImageWithAlt img={article.properties.image[0]} key={article.properties.image[0]?.id || article.properties.image[0]?.url} />
+              {article?.properties?.hideImageInBlog != true &&
+              article?.properties?.image != null ? (
+                <ImageWithAlt img={article?.properties?.image[0]} key={article?.properties?.image[0]?.id || article?.properties?.image[0]?.url} />
               ) : null}
 
-              {article.properties.copy != null
+              {article?.properties?.copy != null
                 ? article.properties.copy.items.map(function (item, index) {
                     if (item.content.contentType == "textboxBlock") {
                       return (
@@ -259,8 +369,8 @@ const BlogArticle = () => {
                 article?.properties?.author.length !== 0 && <h2>About the authors</h2>
               )}
 
-              {article.properties.author &&
-                article.properties.author.map(function (item, index) {
+              {article?.properties?.author &&
+                article?.properties?.author.map(function (item, index) {
                   return (
                     <div
                       className="wmcads-inset-text wmcads-col-1 wmcads-m-b-md"

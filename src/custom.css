@@ -3,10 +3,43 @@
   box-shadow: 0 100vh 0 100vh #231f20;
 }
 
+/* Reset default browser button styles for consistency */
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
 .wmcads-fe-radios__container.disabled {
   color: rgb(184, 184, 184, 0.5);
   cursor: default;
 } 
+
+/* Prefer :focus-visible where supported to avoid showing focus for mouse users */
+/* Hide focus outline for elements that are focused but not keyboard-focused */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 3px solid #ffbf47;
+  outline-offset: 2px;
+}
+
+/* Ensure disabled controls that receive focus are clear */
+.wmcads-fe-radios__container.disabled:focus-visible {
+  outline: 2px dashed rgba(184,184,184,0.6);
+}
 
 .wmcads-fe-radios__container.disabled:focus {
   color: rgb(184, 184, 184, 0.5);

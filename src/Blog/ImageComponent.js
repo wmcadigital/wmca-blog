@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import getUmbracoMedia from "../api/getUmbracoMedia";
+import { buildSrc, buildSrcSet } from "../helpers/image";
 
 const ImageComponent = ({ imageUrls }) => {
   const [mediaMap, setMediaMap] = useState({});
@@ -35,19 +36,35 @@ const ImageComponent = ({ imageUrls }) => {
     <div className="wmcads-image__summary">
       {imageUrls.map((imageUrl, index) => {
         const media = imageUrl?.id ? mediaMap[imageUrl.id] : null;
-        const src =
-          media?.url ||
-          (imageUrl?.url ? `https://cms.wmca.org.uk/${imageUrl.url}` : "");
-        const alt =
-          media?.properties?.altText || "";
+        const path = media?.url || imageUrl?.url;
+        if (!path) return null;
+
+        // Use intrinsic dimensions from media when available to compute height and aspect ratio
+        const intrinsicWidth = media?.properties?.width || imageUrl?.properties?.width;
+        const intrinsicHeight = media?.properties?.height || imageUrl?.properties?.height;
+        const imgWidth = 600;
+        const imgHeight = intrinsicWidth && intrinsicHeight ? Math.round((imgWidth * intrinsicHeight) / intrinsicWidth) : Math.round((imgWidth * 9) / 16);
+
+        const widths = [320, 480, 768, 1024, 1280];
+        const srcSet = buildSrcSet(path, widths, { height: imgHeight });
+        const webpSrcSet = buildSrcSet(path, widths, { height: imgHeight, format: "webp" });
+        const fallbackSrc = buildSrc(path, { width: imgWidth, height: imgHeight });
+        const alt = media?.properties?.altText || "";
 
         return (
-          <img
-            key={imageUrl?.id || imageUrl?.url || index}
-            src={src}
-            alt={alt}
-            className="gallery-image"
-          />
+          <picture key={imageUrl?.id || imageUrl?.url || index}>
+            <source type="image/webp" srcSet={webpSrcSet} sizes="(max-width: 600px) 100vw, 600px" />
+            <source srcSet={srcSet} sizes="(max-width: 600px) 100vw, 600px" />
+            <img
+              src={fallbackSrc}
+              alt={alt}
+              loading="lazy"
+              decoding="async"
+              width={imgWidth}
+              height={imgHeight}
+              style={{ maxWidth: "100%", height: "auto" }}
+            />
+          </picture>
         );
       })}
     </div>

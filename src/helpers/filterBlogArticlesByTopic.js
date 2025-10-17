@@ -1,27 +1,14 @@
 const filterBlogArticlesByTopic = (blogArticles, categoryFilter) =>
   blogArticles.filter((article) => {
-    let articleCategory = article.properties.tags;
-    if (!article.properties.tags) {
-      articleCategory = "None";
-    }
+    // support both CMS-shaped article.properties.tags (array) and
+    // legacy test fixtures like ArticleCategory (string)
+    const tags =
+      article?.properties?.tags ??
+      (article?.ArticleCategory ? [article.ArticleCategory] : undefined);
 
-    if (
-      articleCategory.includes(categoryFilter[0]) ||
-      articleCategory.includes(categoryFilter[1]) ||
-      articleCategory.includes(categoryFilter[2]) ||
-      articleCategory.includes(categoryFilter[3]) ||
-      articleCategory.includes(categoryFilter[4]) ||
-      articleCategory.includes(categoryFilter[5]) ||
-      articleCategory.includes(categoryFilter[6]) ||
-      articleCategory.includes(categoryFilter[7]) ||
-      articleCategory.includes(categoryFilter[8]) ||
-      articleCategory.includes(categoryFilter[9]) ||
-      articleCategory.includes(categoryFilter[10])
-    ) {
-      return true;
-    } else {
-      return false;
-    }
+    const articleCategory = tags || ["None"];
+
+    return categoryFilter.some((cat) => articleCategory.includes(cat));
   });
 
 export default filterBlogArticlesByTopic;

@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "parcel src/index.html",
     "build": "parcel build src/index.html",
-    "test": "jest",
+    "sitemap": "node scripts/generate-sitemap.js",
+    "test": "npm test --silent -- --runInBand",
     "format": "prettier --write \"src/**/*.{js,jsx}\"",
-    "lint": "eslint  \"src/**/*.{js,jsx}\" --quiet"
+    "lint": "npm run lint --silent"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.16.11",

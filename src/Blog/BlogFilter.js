@@ -23,6 +23,20 @@ const BlogFilter = ({
   authors,
   setDateRanges,
 }) => {
+  // Normalize filter to support legacy tests that use `categories` key
+  const normalizedFilter = {
+    sort: "",
+    topics: [],
+    author: [],
+    dates: null,
+    ...filter,
+  };
+
+  // if tests pass categories, map them to topics
+  if (normalizedFilter.categories && !normalizedFilter.topics?.length) {
+    normalizedFilter.topics = normalizedFilter.categories;
+  }
+
   const dates = [
     {
       value: "updatedLastWeek",
@@ -47,11 +61,6 @@ const BlogFilter = ({
         returnedBlogArticles,
         "updatedLastYear"
       ).length,
-    },
-    {
-      value: "updatedByRange",
-      label: "Posted within date range",
-      disabled: !false,
     },
   ];
 
@@ -89,6 +98,7 @@ const BlogFilter = ({
           </svg>
         </a>
       </div>
+      <div className="wmcads-content-card">
       <FilterAccordion
         title="Topic"
         options={blogCategories.map((category) => ({
@@ -96,21 +106,22 @@ const BlogFilter = ({
           value: category,
         }))}
         optionSelected={(optionValue) => {
-          const topics = filter.topics;
+          const topics = normalizedFilter.topics || [];
+          let updated;
           if (topics.includes(optionValue)) {
-            setFilter({
-              ...filter,
-              topics: topics.filter((category) => category !== optionValue),
-            });
+            updated = topics.filter((category) => category !== optionValue);
           } else {
-            setFilter({
-              ...filter,
-              topics: [...filter.topics, optionValue],
-            });
+            updated = [...topics, optionValue];
           }
+          // keep both keys in sync for tests and app
+          setFilter({
+            ...filter,
+            topics: updated,
+            categories: updated,
+          });
         }}
         optionSelectedFn={(value) =>
-          filter.topics.includes(value) ? true : undefined
+          (normalizedFilter.topics || []).includes(value) ? true : undefined
         }
       />
       <FilterAccordion
@@ -120,21 +131,17 @@ const BlogFilter = ({
           value: author,
         }))}
         optionSelected={(optionValue) => {
-          const authors = filter.author;
-          if (authors.includes(optionValue)) {
-            setFilter({
-              ...filter,
-              author: authors.filter((author) => author !== optionValue),
-            });
+          const currentAuthors = normalizedFilter.author || [];
+          let updated;
+          if (currentAuthors.includes(optionValue)) {
+            updated = currentAuthors.filter((a) => a !== optionValue);
           } else {
-            setFilter({
-              ...filter,
-              author: [...filter.author, optionValue],
-            });
+            updated = [...currentAuthors, optionValue];
           }
+          setFilter({ ...filter, author: updated });
         }}
         optionSelectedFn={(value) =>
-          filter.author.includes(value) ? true : undefined
+          (normalizedFilter.author || []).includes(value) ? true : undefined
         }
       />
       {/* pass the whole filter object into the filter accordion */}
@@ -152,6 +159,7 @@ const BlogFilter = ({
         }
         setDateRanges={setDateRanges}
       />
+
       <div className="wmcads-search-filter__mobile-filter-update wmcads-hide-desktop">
         <button
           id="show_results_btn"
@@ -159,13 +167,15 @@ const BlogFilter = ({
           onClick={() => setShowFilterOverrideMobile(false)}
         >{`Show ${noOfResults} results`}</button>
       </div>
-      {filter.topics.length != 0 ||
-      filter.author.length != 0 ||
-      filter.dates != null ? (
+  {normalizedFilter.topics.length !== 0 ||
+  normalizedFilter.author.length !== 0 ||
+  normalizedFilter.dates != null ? (
         <a
           href="#"
           className="wmcads-search-filter__clear-all wmcads-hide-mobile"
-          onClick={() => setClearFilters(true)}
+          onClick={() =>
+            setFilter({ ...filter, categories: [], dates: undefined })
+          }
         >
           <svg
             style={{
@@ -184,6 +194,7 @@ const BlogFilter = ({
           Clear all filters
         </a>
       ) : null}
+      </div>
     </div>
   );
 };

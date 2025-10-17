@@ -12,15 +12,59 @@ import formatDate from "../helpers/formatDate";
 import ReactGA from "react-ga4";
 import sortBlogArticles from "../helpers/sortBlogArticles";
 import getBlogArticleTopics from "../helpers/getBlogArticleTopics";
+import { buildPictureAttrs } from "../helpers/image";
+import { getPageKey } from "../helpers/page";
 
-export async function loader({ params }) {
-  const author = await getAuthor(params.authorName);
-  return { author };
+// Make loader synchronous to avoid blocking initial render.
+// Fetch the author inside the component if not provided by the loader.
+export function loader({ params }) {
+  return { author: null, authorName: params.authorName };
 }
 
 const BlogAuthor = () => {
   const [authorArticles, setAuthorArticles] = useState([]);
-  const { author } = useLoaderData();
+  const loaderData = useLoaderData();
+  const [author, setAuthor] = useState(loaderData?.author ?? null);
+  const authorName = loaderData?.authorName;
+
+  // fetch author if loader didn't provide it
+  useEffect(() => {
+    if (author || !authorName) return;
+    let mounted = true;
+    const rafId = window.requestAnimationFrame
+      ? window.requestAnimationFrame(() => {
+          const t = setTimeout(() => {
+            getAuthor(authorName)
+              .then((a) => {
+                if (!mounted) return;
+                setAuthor(a);
+              })
+              .catch(() => {})
+              .finally(() => {});
+          }, 0);
+          rafCleanup.timeout = t;
+        })
+      : (rafCleanup.timeout = setTimeout(() => {
+          getAuthor(authorName)
+            .then((a) => {
+              if (!mounted) return;
+              setAuthor(a);
+            })
+            .catch(() => {})
+            .finally(() => {});
+        }, 0));
+
+    const rafCleanup = { timeout: null, raf: rafId };
+
+    return () => {
+      mounted = false;
+      if (rafCleanup.raf && window.cancelAnimationFrame) {
+        window.cancelAnimationFrame(rafCleanup.raf);
+      }
+      if (rafCleanup.timeout) clearTimeout(rafCleanup.timeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authorName]);
 
   const routePathArticle = (path) => {
     const regex = new RegExp(`/blog(/)?`);
@@ -39,7 +83,7 @@ const BlogAuthor = () => {
     return data;
   }
 
-  const getAuthorsArticles = async () => {
+  const getAuthorsArticles = React.useCallback(async () => {
     const response = await getAuthorArticles(author.id);
     let returnedBlogArticles = response?.items ?? [];
 
@@ -58,11 +102,12 @@ const BlogAuthor = () => {
     setAuthorArticles(
       chunk(sortBlogArticles(returnedBlogArticles, "descending"), 4)
     );
-  };
+  }, [author?.id]);
 
   useEffect(() => {
+    if (!author?.id) return;
     getAuthorsArticles();
-  }, []);
+  }, [author?.id, getAuthorsArticles]);
 
   useEffect(() => {
     // Send pageview with a custom path
@@ -77,7 +122,7 @@ const BlogAuthor = () => {
   return (
     <>
       <Helmet>
-        <title>{author.name || "WMCA blog"}</title>
+        <title>{author?.name || "WMCA blog"}</title>
       </Helmet>
       <ScrollToTop />
       <Breadcrumb
@@ -94,8 +139,19 @@ const BlogAuthor = () => {
       />
 
       <div className="wmcads-container">
-        <main className="wmcads-container--main">
-          {author == "Not found" ? (
+        <main
+          id="wmcads-main-content"
+          className="wmcads-container--main"
+          tabIndex={-1}
+          role="main"
+          // remove default focus outline/box-shadow when this element receives focus
+          style={{ outline: "none", boxShadow: "none" }}
+          onFocus={(e) => {
+            e.currentTarget.style.outline = "none";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
+          {author == "Not found" || !author ? (
             <>
               <h1>Author Not Found</h1>
               <a href="/">Return to blog</a>
@@ -106,10 +162,21 @@ const BlogAuthor = () => {
                 <>
                   <div className="wmcads-float-left wmcads-col-1 wmcads-col-sm-1-4 wmcads-m-r-lg">
                     {author.properties?.image !== null ? (
-                      <img
-                        alt={author.name}
-                        src={`https://cms.wmca.org.uk${author.properties?.image[0].url}`}
-                      />
+                      (() => {
+                        const url = author.properties?.image[0].url;
+                        const widths = [160, 320, 480];
+                        const { srcSet, webpSrcSet, fallback, imagesizes } = buildPictureAttrs(url, widths, {
+                          height: 320,
+                          imagesizes: "(max-width: 320px) 100vw, 320px",
+                        });
+                            return (
+                          <picture>
+                            <source type="image/webp" srcSet={webpSrcSet} sizes={imagesizes} />
+                            <source srcSet={srcSet} sizes={imagesizes} />
+                            <img key={getPageKey()} alt={author.name} src={fallback} loading="lazy" decoding="async" width={320} height={320} style={{ objectFit: 'cover' }} />
+                          </picture>
+                        );
+                      })()
                     ) : (
                       <></>
                     )}
@@ -152,12 +219,26 @@ const BlogAuthor = () => {
                       {authorArticles[0]?.map((article) => (
                         <>
                           <div className="wmcads-content-card wmcads-content-card--news">
-                            {article.properties.image && (
-                              <img
-                                alt={article.properties.image[0].name}
-                                src={`https://cms.wmca.org.uk${article.properties.image[0].url}?anchor=center&mode=crop&width=600&height=250`}
-                              ></img>
-                            )}
+                            {article.properties.image && (() => {
+                              const url = article.properties.image[0].url;
+                              const widths = [320, 480, 600];
+                              const height = 250; // fallback height for the 600px image
+                              const heightRatio = 250 / 600; // per-width height scaling used previously
+                              const { srcSet, webpSrcSet, fallback, imagesizes } = buildPictureAttrs(url, widths, {
+                                height,
+                                heightRatio,
+                                anchor: 'center',
+                                mode: 'crop',
+                                imagesizes: "(max-width: 600px) 100vw, 600px",
+                              });
+                              return (
+                                <picture>
+                                  <source type="image/webp" srcSet={webpSrcSet} sizes={imagesizes} />
+                                  <source srcSet={srcSet} sizes={imagesizes} />
+                                  <img alt={article.properties.image[0].name} src={fallback} loading="lazy" decoding="async" width={600} height={250} style={{ maxWidth: '100%', height: 'auto' }} />
+                                </picture>
+                              );
+                            })()}
                             <p>{formatDate(article.properties.date)}</p>
                             <Link
                               to={{

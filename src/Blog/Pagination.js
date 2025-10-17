@@ -29,6 +29,7 @@ const Pagination = ({ numberOfPages, activePage, callBack }) => {
                     e.preventDefault();
                     callBack(index);
                   }}
+                  aria-label={`Go to page ${index + 1}`}
                 >
                   {index + 1}
                 </a>
@@ -45,6 +46,7 @@ const Pagination = ({ numberOfPages, activePage, callBack }) => {
             callBack(activePage - 1);
           }}
           className="wmcads-pagination__prev wmcads-link wmcads-link--with-chevron"
+          aria-label="Go to previous page"
         >
           <svg className="wmcads-link__chevron wmcads-link__chevron--left">
             <use
@@ -63,6 +65,7 @@ const Pagination = ({ numberOfPages, activePage, callBack }) => {
             callBack(activePage + 1);
           }}
           className="wmcads-pagination__next wmcads-link wmcads-link--with-chevron"
+          aria-label="Go to next page"
         >
           Next page{" "}
           <svg className="wmcads-link__chevron wmcads-link__chevron--right">

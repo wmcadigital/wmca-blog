@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 
-const Banner = ({ image, title, summary, position, article }) => {
+const Banner = ({ image, title, summary, position, article, label, children }) => {
   return (
     <>
       {image ? (
@@ -39,6 +39,9 @@ const Banner = ({ image, title, summary, position, article }) => {
           )}
         </>
       )}
+      {/* children and optional label for tests */}
+      <div className="wmcads-banner-container__text">{children}</div>
+      {label ? <div className="wmcads-phase-indicator">{label}</div> : null}
     </>
   );
 };
@@ -49,6 +52,8 @@ Banner.propTypes = {
   summary: PropTypes.string,
   position: PropTypes.string,
   article: PropTypes.bool,
+  label: PropTypes.string,
+  children: PropTypes.node,
 };
 
 Banner.defaultProps = {

@@ -6,8 +6,12 @@ const Search = ({
   searchButtonClickedCallback,
 }) => (
   <form className="wmcads-search-bar">
+    <label className="visible-hidden" htmlFor="search">
+      Blog Search
+    </label>
     <input
-      aria-label="Search"
+      name="search"
+      id="search"
       type="text"
       className="wmcads-search-bar__input wmcads-fe-input"
       placeholder={placeholder}
@@ -16,6 +20,7 @@ const Search = ({
     <button
       className="wmcads-search-bar__btn"
       type="submit"
+      aria-label="Execute search"
       onClick={(e) => {
         e.preventDefault();
         searchButtonClickedCallback();

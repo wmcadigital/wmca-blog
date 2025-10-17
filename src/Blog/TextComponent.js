@@ -2,13 +2,16 @@ import PropTypes from "prop-types";
 
 const TextComponent = ({ htmlContent }) => {
   // Update img src
-  let updatedHtmlContent = htmlContent.replace(
-    /<img[^>]+src="([^">]+)"/g,
-    (match, p1) => {
-      const newSrc = `https://cms.wmca.org.uk/${p1}`;
-      return match.replace(p1, newSrc);
-    }
-  );
+  let updatedHtmlContent = htmlContent.replace(/<img[^>]+src="([^"]+)"/g, (match, p1) => {
+    // Convert relative CMS src paths to absolute, and add loading/decoding attributes.
+    // If the src already contains width/format params, leave them alone.
+    const path = p1.startsWith("http") ? p1 : `/${p1}`;
+    const hasParams = path.includes("?");
+    const newSrc = path.startsWith("https://cms.wmca.org.uk") ? path : `https://cms.wmca.org.uk${path}${hasParams ? "" : "?width=600"}`;
+    // inject loading and decoding attributes into the img tag
+    const updated = match.replace(p1, newSrc).replace(/<img/, '<img loading="lazy" decoding="async"');
+    return updated;
+  });
   // Remove all class attributes
   updatedHtmlContent = updatedHtmlContent.replace(/\sclass="[^"]*"/g, "");
   // Remove any <span> tags that wrap headings (e.g., <span><h1>...</h1></span>)

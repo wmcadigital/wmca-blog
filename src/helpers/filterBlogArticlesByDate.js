@@ -31,32 +31,35 @@ const filterBlogArticlesByDate = (
   const fromDate = formatDate(new Date(dateRangeSet?.from));
   const toDate = formatDate(new Date(dateRangeSet?.to));
 
+  const getArticleDate = (article) => article?.properties?.date ?? article?.Date ?? null;
+
   if (dateFilter === "updatedLastWeek") {
-    return blogArticles.filter(
-      (article) => article.properties.date >= dateWeekAgo
-    );
+    return blogArticles.filter((article) => getArticleDate(article) >= dateWeekAgo);
   } else if (dateFilter === "updatedLastMonth") {
-    return blogArticles.filter(
-      (article) => article.properties.date >= dateMonthAgo
-    );
+    return blogArticles.filter((article) => getArticleDate(article) >= dateMonthAgo);
   } else if (dateFilter === "updatedLastYear") {
-    return blogArticles.filter(
-      (article) => article.properties.date >= dateYearAgo
-    );
+    return blogArticles.filter((article) => getArticleDate(article) >= dateYearAgo);
   } else if (dateFilter === "updatedByRange" && dateRangeSet !== undefined) {
     if (fromDate === toDate) {
       return blogArticles.filter((article) => {
-        if (article.properties.date.split("T")[0] === fromDate) {
+        const d = getArticleDate(article);
+        if (!d) return false;
+        if (d.split("T")[0] === fromDate) {
           return article;
         }
+        return false;
       });
     }
-    return blogArticles.filter(
-      (article) =>
-        article.properties.date.split("T")[0] >= fromDate &&
-        article.properties.date.split("T")[0] <= toDate
-    );
+    return blogArticles.filter((article) => {
+      const d = getArticleDate(article);
+      if (!d) return false;
+      const datePart = d.split("T")[0];
+      return datePart >= fromDate && datePart <= toDate;
+    });
   }
+
+  // If none of the above conditions match, return empty array
+  return [];
 };
 
 export default filterBlogArticlesByDate;

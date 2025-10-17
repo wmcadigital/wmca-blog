@@ -1,13 +1,13 @@
-var options = {
-  // weekday: "long",
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-};
-
 const formatDate = (dateString) => {
+  const options = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+
   return new Date(dateString)
-    .toLocaleDateString("en-UK", options)
+    .toLocaleDateString("en-GB", options)
     .replace(",", "");
 };
 

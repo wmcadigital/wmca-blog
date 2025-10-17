@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import formatDate from "../helpers/formatDate";
 import getUmbracoMedia from "../api/getUmbracoMedia";
+import { getPageKey } from "../helpers/page";
 
 const BlogBody = ({
   filter,
@@ -52,15 +53,27 @@ const BlogBody = ({
   };
 
   const renderAuthors = authors.map((item, index) => (
-    <a key={index} onClick={handleAuthor} role="button" tabIndex="0" onKeyPress={(e) => { if (e.key === 'Enter') handleAuthor(e); }}>
-      {item.name},&nbsp;
-    </a>
+    <button
+      key={index}
+      type="button"
+      className="wmcads-link"
+      onClick={handleAuthor}
+      aria-label={`Filter by author ${item.name}`}
+    >
+      {item.name}{index < authors.length - 1 ? ',' : ''}&nbsp;
+    </button>
   ));
 
   const renderTags = tags.map((item, index) => (
-    <a key={index} onClick={handleTopics} role="button" tabIndex="0" onKeyPress={(e) => { if (e.key === 'Enter') handleTopics(e); }}>
-      {item},&nbsp;
-    </a>
+    <button
+      key={index}
+      type="button"
+      className="wmcads-link"
+      onClick={handleTopics}
+      aria-label={`Filter by topic ${item}`}
+    >
+      {item}{index < tags.length - 1 ? ',' : ''}&nbsp;
+    </button>
   ));
 
   return (
@@ -78,18 +91,31 @@ const BlogBody = ({
       <p className="wmcads-search-result__date">Topics: {renderTags}</p>
 
       {image != "No Image" || mediaData?.url ? (
-        <img
-          src={
-            mediaData?.url
-              ? mediaData.url
-              : `https://cms.wmca.org.uk${image}?anchor=center&mode=crop&width=600&height=250`
-          }
-          alt={
-            // prefer explicit altText from media properties, fall back to media name or empty string
-            mediaData?.properties?.altText || ""
-          }
-          className="wmcads-m-t-md"
-        />
+        (() => {
+          const url = mediaData?.url || image;
+          const base = `https://cms.wmca.org.uk${url}`;
+          const widths = [320, 480, 600];
+          const srcSet = widths.map((w) => `${base}?anchor=center&mode=crop&width=${w}&height=${Math.round((w * 250) / 600)} ${w}w`).join(", ");
+          const webpSrcSet = widths.map((w) => `${base}?anchor=center&mode=crop&width=${w}&height=${Math.round((w * 250) / 600)}&format=webp ${w}w`).join(", ");
+          const fallback = `${base}?anchor=center&mode=crop&width=600&height=250`;
+          return (
+            <picture>
+              <source type="image/webp" srcSet={webpSrcSet} sizes="(max-width: 600px) 100vw, 600px" />
+              <source srcSet={srcSet} sizes="(max-width: 600px) 100vw, 600px" />
+              <img
+                key={getPageKey()}
+                src={fallback}
+                alt={mediaData?.properties?.altText || ""}
+                className="wmcads-m-t-md"
+                loading="lazy"
+                decoding="async"
+                width={600}
+                height={250}
+                style={{ maxWidth: "100%", height: "auto" }}
+              />
+            </picture>
+          );
+        })()
       ) : null}
 
       <p

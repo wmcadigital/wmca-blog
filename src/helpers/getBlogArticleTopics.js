@@ -1,8 +1,10 @@
 const getBlogArticleTopics = (blogArticles) => {
   const categorySet = new Set();
   blogArticles.forEach((article) => {
-    if (article.properties.tags) {
-      article.properties.tags.forEach((tag) => {
+    const tags = article?.properties?.tags ??
+      (article?.ArticleCategory ? [article.ArticleCategory] : undefined);
+    if (tags) {
+      tags.forEach((tag) => {
         categorySet.add(tag);
       });
     } else {

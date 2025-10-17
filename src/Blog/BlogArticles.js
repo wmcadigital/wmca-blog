@@ -120,7 +120,21 @@ const BlogArticles = () => {
   }, [filter]);
 
   useEffect(() => {
-    getBlogData();
+    // Defer fetching blog data until after first paint to reduce LCP contention
+    let mounted = true;
+    const rafCleanup = { raf: null, timeout: null };
+
+    if (window.requestAnimationFrame) {
+      rafCleanup.raf = window.requestAnimationFrame(() => {
+        rafCleanup.timeout = setTimeout(() => {
+          if (mounted) getBlogData();
+        }, 0);
+      });
+    } else {
+      rafCleanup.timeout = setTimeout(() => {
+        if (mounted) getBlogData();
+      }, 0);
+    }
 
     if (dateRangeSet !== "undefined" && dateRangeSet !== null) {
       if (filter.dateRangeSet === undefined) {
@@ -156,6 +170,13 @@ const BlogArticles = () => {
       }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      mounted = false;
+      if (rafCleanup.raf && window.cancelAnimationFrame) {
+        window.cancelAnimationFrame(rafCleanup.raf);
+      }
+      if (rafCleanup.timeout) clearTimeout(rafCleanup.timeout);
+    };
   }, []);
 
   useEffect(() => {
@@ -275,6 +296,24 @@ const BlogArticles = () => {
     sortDefault,
   ]);
 
+  // Show a small loading spinner when filters change to communicate work in progress
+  useEffect(() => {
+    // If no filters are selected, don't show loading
+    const hasFilters =
+      (filter.topics && filter.topics.length > 0) ||
+      (filter.author && filter.author.length > 0) ||
+      (filter.dates && filter.dates !== null);
+
+    if (!hasFilters) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const t = setTimeout(() => setLoading(false), 400); // keep spinner visible for at least 400ms
+    return () => clearTimeout(t);
+  }, [filter]);
+
   const authorParam = () => {
     // filter.author = "Bob qwerty";
   };
@@ -328,7 +367,18 @@ const BlogArticles = () => {
         position={window?.setBanner?.position}
       />
       <div className="wmcads-container">
-        <main className="wmcads-container--main">
+      <main
+          id="wmcads-main-content"
+          className="wmcads-container--main"
+          tabIndex={-1}
+          role="main"
+          // remove default focus outline/box-shadow when this element receives focus
+          style={{ outline: "none", boxShadow: "none" }}
+          onFocus={(e) => {
+            e.currentTarget.style.outline = "none";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
           <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-p-r-xl wmcads-m-b-lg">
             <Search
               placeholder="Blog search..."
@@ -361,81 +411,84 @@ const BlogArticles = () => {
               {loading ? (
                 <div className="wmcads-loader wmcads-loader--small wmcads-m-l-xs"></div>
               ) : (
-                <p>
-                  Found <b>{noOfResults}</b> matching results
-                </p>
-              )}
-
-              {noOfResults === 0 && !loading && (
-                <div className="wmcads-msg-summary wmcads-msg-summary--warning ">
-                  <div className="wmcads-msg-summary__header">
-                    <svg className="wmcads-msg-summary__icon">
-                      <use
-                        xlinkHref="#wmcads-general-warning-circle"
-                        href="#wmcads-general-warning-circle"
-                      ></use>
-                    </svg>
-                    <h3 className="wmcads-msg-summary__title">
-                      There are no matching results
-                    </h3>
-                  </div>
-                  <div className="wmcads-msg-summary__info">
-                    <p>Improve your search results by:</p>
-                    <ul className="wmcads-unordered-list">
-                      <li>Removing filters</li>
-                      <li>Double-checking your spelling</li>
-                      <li>Using fewer keywords</li>
-                      <li>Searching for something less specific</li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-              {blogArticles.length ? (
                 <>
-                  {blogArticles[page]?.map((blogArticle, index) => (
-                    <BlogArticleLink
-                      route={blogArticle.route.path}
-                      key={index}
-                      filter={filter}
-                      setFilter={setFilter}
-                      name={blogArticle.name}
-                      id={blogArticle.id}
-                      authors={blogArticle.properties.author}
-                      tags={blogArticle.properties.tags}
-                      image={
-                        Array.isArray(blogArticle.properties.image) &&
-                        blogArticle.properties.image.length > 0 &&
-                        blogArticle.properties.image[0].url
-                          ? blogArticle.properties.image[0].url
-                          : "No Image"
-                      }
-                      imageAlt={
-                        Array.isArray(blogArticle.properties.image) &&
-                        blogArticle.properties.image.length > 0 &&
-                        blogArticle.properties.image[0].url
-                          ? blogArticle.properties.image[0].url
-                          : "No Image"
-                      }
-                      imageID={
-                        Array.isArray(blogArticle.properties.image) &&
-                        blogArticle.properties.image.length > 0 &&
-                        blogArticle.properties.image[0].id
-                          ? blogArticle.properties.image[0].id
-                          : null
-                      }
-                      publishDate={blogArticle.properties.date}
-                      introductionText={blogArticle.properties.introduction}
-                    />
-                  ))}
-                  <div className="wmcads-m-t-lg">
-                    <Pagination
-                      numberOfPages={blogArticles.length}
-                      activePage={page}
-                      callBack={setPage}
-                    />
-                  </div>
+                  <p>
+                    Found <b>{noOfResults}</b> matching results
+                  </p>
+
+                  {noOfResults === 0 && (
+                    <div className="wmcads-msg-summary wmcads-msg-summary--warning ">
+                      <div className="wmcads-msg-summary__header">
+                        <svg className="wmcads-msg-summary__icon">
+                          <use
+                            xlinkHref="#wmcads-general-warning-circle"
+                            href="#wmcads-general-warning-circle"
+                          ></use>
+                        </svg>
+                        <h3 className="wmcads-msg-summary__title">
+                          There are no matching results
+                        </h3>
+                      </div>
+                      <div className="wmcads-msg-summary__info">
+                        <p>Improve your search results by:</p>
+                        <ul className="wmcads-unordered-list">
+                          <li>Removing filters</li>
+                          <li>Double-checking your spelling</li>
+                          <li>Using fewer keywords</li>
+                          <li>Searching for something less specific</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {blogArticles.length ? (
+                    <>
+                      {blogArticles[page]?.map((blogArticle, index) => (
+                        <BlogArticleLink
+                          route={blogArticle.route.path}
+                          key={blogArticle.id || `${page}-${index}`}
+                          filter={filter}
+                          setFilter={setFilter}
+                          name={blogArticle.name}
+                          id={blogArticle.id}
+                          authors={blogArticle.properties.author}
+                          tags={blogArticle.properties.tags}
+                          image={
+                            Array.isArray(blogArticle.properties.image) &&
+                            blogArticle.properties.image.length > 0 &&
+                            blogArticle.properties.image[0].url
+                              ? blogArticle.properties.image[0].url
+                              : "No Image"
+                          }
+                          imageAlt={
+                            Array.isArray(blogArticle.properties.image) &&
+                            blogArticle.properties.image.length > 0 &&
+                            blogArticle.properties.image[0].url
+                              ? blogArticle.properties.image[0].url
+                              : "No Image"
+                          }
+                          imageID={
+                            Array.isArray(blogArticle.properties.image) &&
+                            blogArticle.properties.image.length > 0 &&
+                            blogArticle.properties.image[0].id
+                              ? blogArticle.properties.image[0].id
+                              : null
+                          }
+                          publishDate={blogArticle.properties.date}
+                          introductionText={blogArticle.properties.introduction}
+                        />
+                      ))}
+                      <div className="wmcads-m-t-lg">
+                        <Pagination
+                          numberOfPages={blogArticles.length}
+                          activePage={page}
+                          callBack={setPage}
+                        />
+                      </div>
+                    </>
+                  ) : null}
                 </>
-              ) : null}
+              )}
             </div>
             <aside className="wmcads-col-1 wmcads-col-md-1-3 wmcads-m-b-lg">
               <hr className="wmcads-hide-desktop" />

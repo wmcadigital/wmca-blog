@@ -1,0 +1,5 @@
+User-agent: *
+Disallow:
+
+# Sitemap (update this to your actual sitemap URL if different)
+Sitemap: https://www.wmca.org.uk/sitemap.xml

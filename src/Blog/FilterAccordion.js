@@ -4,10 +4,11 @@ import PropTypes from "prop-types";
 
 import FilterByDateRange from "./FilterByDateRange";
 
-const CheckOption = ({ option, optionSelected, optionSelectedFn }) => (
+const CheckOption = ({ inputName, option, optionSelected, optionSelectedFn }) => (
   <label className="wmcads-fe-checkboxes__container">
     {option.label}
     <input
+      name={inputName}
       className="wmcads-fe-checkboxes__input"
       value={option.value}
       type="checkbox"
@@ -26,6 +27,7 @@ const CheckOption = ({ option, optionSelected, optionSelectedFn }) => (
 );
 
 CheckOption.propTypes = {
+  inputName: PropTypes.string,
   option: PropTypes.shape({ label: PropTypes.string, value: PropTypes.string }),
   optionSelected: PropTypes.func,
   optionSelectedFn: PropTypes.func,
@@ -84,6 +86,7 @@ const FilterAccordion = ({
   const [isDate1BeforeDate2, setIsDate1BeforeDate2] = useState(undefined);
   const [dateRanges, setDateRanges2] = useState(undefined);
   const [urlset, setUrlSet] = useState(false);
+  const [inputName] = useState(`input-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
 
   const toggleAccordion = () => setAccordionOpen(!accordionOpen);
 
@@ -280,7 +283,7 @@ const FilterAccordion = ({
         <fieldset className="wmcads-fe-fieldset">
           <div
             className={`${
-              selectOne ? "wmcads-fe-checkboxes" : "wmcads-fe-radios"
+              selectOne ? "wmcads-fe-radios" : "wmcads-fe-checkboxes"
             }`}
           >
             {options.map((option) =>
@@ -294,6 +297,7 @@ const FilterAccordion = ({
                 />
               ) : (
                 <CheckOption
+                  inputName={inputName}
                   option={option}
                   key={option.value}
                   optionSelected={optionSelected}

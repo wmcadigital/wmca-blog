@@ -1,5 +1,6 @@
 import { render, act } from "@testing-library/react";
 import { create } from "react-test-renderer";
+import { MemoryRouter } from "react-router-dom";
 
 import BlogArticles from "./BlogArticles";
 import mockBlogDocument from "./mockBlogDocument.json";
@@ -14,7 +15,11 @@ jest.mock("../api/getData", () => ({
 
 describe("BlogArticles", () => {
   it("shows loading indicator on first render and NOT when document is loaded", async () => {
-    const { container } = render(<BlogArticles />);
+    const { container } = render(
+      <MemoryRouter>
+        <BlogArticles />
+      </MemoryRouter>
+    );
 
     expect(container.getElementsByClassName("wmcads-loader").length).toBe(1);
 
@@ -24,7 +29,11 @@ describe("BlogArticles", () => {
   });
 
   it("snapshot when blog document is loaded", async () => {
-    const renderer = create(<BlogArticles />);
+    const renderer = create(
+      <MemoryRouter>
+        <BlogArticles />
+      </MemoryRouter>
+    );
 
     await act(() => new Promise((resolve) => setTimeout(resolve, 1500)));
 

@@ -4,6 +4,7 @@ const SortControl = ({
   filter,
   setFilter,
   defaultVal,
+  sortChangedCallback,
 }) => (
   <div className="wmcads-search-sort wmcads-fe-group">
     <label className="wmcads-fe-label" htmlFor="dropdown">
@@ -16,9 +17,12 @@ const SortControl = ({
         name="dropdown"
         defaultValue={defaultVal}
         // onChange={(e) => sortChangedCallback(e.target.value)}
-        onChange={(e) => setFilter({ ...filter, sort: e.target.value })}
+        onChange={(e) => {
+          const val = e.target.value;
+          if (typeof sortChangedCallback === "function") sortChangedCallback(val);
+          setFilter({ ...filter, sort: val });
+        }}
       >
-        <option value="">Choose from list</option>
         <option value="descending">Most recent</option>
         <option value="ascending">Oldest</option>
         {/* <option value="name">Name</option> */}

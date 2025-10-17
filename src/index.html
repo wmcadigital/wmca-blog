@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Preconnect to CMS and font hosts to reduce DNS/TCP/TLS setup time for images and fonts -->
+    <link rel="preconnect" href="https://cms.wmca.org.uk" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="//cms.wmca.org.uk" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
     <link
       rel="stylesheet"
       href="https://www.wmca.org.uk/css/wmcads.min.css"
@@ -382,6 +387,26 @@
         </div>
       </div>
     </footer>
+    <script>
+      // Make skip link reliably focus the main content in SPA / hash router setups
+      (function () {
+        var skipLink = document.querySelector('.wmcads-header__skip-link');
+        if (!skipLink) return;
+
+        skipLink.addEventListener('click', function (e) {
+          // prevent default hash navigation which can conflict with routers
+          e.preventDefault();
+          var target = document.getElementById('wmcads-main-content');
+          if (!target) return;
+          // Ensure it's focusable
+          var prevTab = target.getAttribute('tabindex');
+          if (prevTab === null) target.setAttribute('tabindex', '-1');
+          target.focus();
+          // Clean up tabindex if it wasn't present before
+          if (prevTab === null) target.removeAttribute('tabindex');
+        });
+      })();
+    </script>
     <script src="App.js" type="module"></script>
     <script>
         window.setTopics = {

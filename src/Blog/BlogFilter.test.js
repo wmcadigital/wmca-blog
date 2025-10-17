@@ -47,7 +47,6 @@ describe("BlogFilter", () => {
     const { container } = render(
       <BlogFilter
         filter={{
-          areas: ["Walsall"],
           categories: ["Category1"],
           dates: "updatedLastMonth",
         }}
@@ -93,7 +92,6 @@ describe("BlogFilter", () => {
     fireEvent.click(optionsAreas[2]);
 
     expect(mockSetFilter).toBeCalledWith({
-      areas: ["Dudley"],
       categories: [],
       dates: undefined,
     });
@@ -108,7 +106,6 @@ describe("BlogFilter", () => {
         <BlogFilter
           setFilter={mockSetFilter}
           filter={{
-            areas: ["Sandwell"],
             categories: ["Category3"],
             dates: "updatedLastYear",
           }}
@@ -120,7 +117,6 @@ describe("BlogFilter", () => {
       fireEvent.click(clearLink);
 
       expect(mockSetFilter).toBeCalledWith({
-        areas: [],
         categories: [],
         dates: undefined,
       });

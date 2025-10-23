@@ -27,31 +27,30 @@ const BlogFilter = ({
     {
       value: "updatedLastWeek",
       label: "Posted in the last week",
-      disabled: !!filterBlogArticlesByDate(
-        returnedBlogArticles,
-        "updatedLastWeek"
-      ).length,
+      // disable when there are no matching articles for this date range
+      disabled:
+        filterBlogArticlesByDate(returnedBlogArticles, "updatedLastWeek")
+          .length === 0,
     },
     {
       value: "updatedLastMonth",
       label: "Posted in the last month",
-      disabled: !!filterBlogArticlesByDate(
-        returnedBlogArticles,
-        "updatedLastMonth"
-      ).length,
+      disabled:
+        filterBlogArticlesByDate(returnedBlogArticles, "updatedLastMonth")
+          .length === 0,
     },
     {
       value: "updatedLastYear",
       label: "Posted in the last year",
-      disabled: !!filterBlogArticlesByDate(
-        returnedBlogArticles,
-        "updatedLastYear"
-      ).length,
+      disabled:
+        filterBlogArticlesByDate(returnedBlogArticles, "updatedLastYear")
+          .length === 0,
     },
     {
       value: "updatedByRange",
       label: "Posted within date range",
-      disabled: !false,
+      // allow user to pick any custom range (enabled by default)
+      disabled: false,
     },
   ];
 

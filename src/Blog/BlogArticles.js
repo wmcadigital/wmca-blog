@@ -5,7 +5,7 @@
 //
 // Clearing filters (via `clearFilters`) will also remove the corresponding
 // URL params for known filter keys so the URL reflects the cleared state.
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { chunk, flatten } from "lodash";
 import { useSearchParams, useLocation } from "react-router-dom";
 
@@ -34,6 +34,10 @@ import { getSearchParam } from "../helpers/urlSearchParams"; // (used to sync st
 
 const BlogArticles = () => {
   const [returnedBlogArticles, setReturnedBlogArticles] = useState([]);
+  // allBlogArticles holds the full set of articles fetched from the API
+  // (after initial site-topic filtering). returnedBlogArticles will be the
+  // currently filtered set exposed to the rest of the component.
+  const [allBlogArticles, setAllBlogArticles] = useState([]);
   const [blogArticles, setBlogArticles] = useState([]);
   const [blogCategories, setBlogCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
@@ -105,6 +109,10 @@ const BlogArticles = () => {
       prop.properties.tags.some((tags) => blogTopics.includes(tags))
     );
 
+    // store the base dataset (filtered to topic set) and initialise the
+    // currently-returned articles to the same set. Later filtering will use
+    // `allBlogArticles` as the source of truth and update `returnedBlogArticles`.
+    setAllBlogArticles(returnedBlogArticles);
     setReturnedBlogArticles(returnedBlogArticles);
     setAuthors(getAuthors(returnedBlogArticles));
     setBlogArticles(chunk(returnedBlogArticles, 5));
@@ -145,6 +153,11 @@ const BlogArticles = () => {
     setFilter({ ...filter, dateRangeSet: newRanges });
   };
 
+  // Guard so we only prune selected authors once after the articles are
+  // initially loaded. This avoids a repeated loop where pruning updates
+  // filter which triggers effects and pruning again.
+  const authorsPrunedRef = useRef(false);
+
   useEffect(() => {
     if (clearFilters) {
       setFilter((prevState) => ({
@@ -156,9 +169,37 @@ const BlogArticles = () => {
         dateRangeSet: undefined,
       }));
 
+      // Also remove any page= from the outer query string so clearing
+      // filters results in a clean URL (e.g. /?page=3#/ => /#/)
+      try {
+        const outer = new URLSearchParams(window.location.search);
+        if (outer.has("page")) {
+          outer.delete("page");
+          const outerStr = outer.toString();
+          const newUrl =
+            window.location.pathname +
+            (outerStr ? `?${outerStr}` : "") +
+            window.location.hash;
+          window.history.replaceState(null, "", newUrl);
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      // Also remove page from react-router searchParams if present
+      try {
+        const sp = new URLSearchParams(searchParams.toString());
+        if (sp.has("page")) {
+          sp.delete("page");
+          setSearchParams(sp);
+        }
+      } catch (e) {
+        // ignore
+      }
+
       setClearFilters(false);
     }
-  }, [clearFilters]);
+  }, [clearFilters, searchParams, setSearchParams]);
 
   useEffect(() => {
     try {
@@ -342,7 +383,9 @@ const BlogArticles = () => {
   }, [page]);
 
   useEffect(() => {
-    let filteredBlogArticles = returnedBlogArticles;
+  // Use the full dataset (allBlogArticles) as the source for filtering.
+  // returnedBlogArticles will become the filtered subset shown in the UI.
+  let filteredBlogArticles = allBlogArticles.length ? allBlogArticles : returnedBlogArticles;
 
     if (searchTerm) {
       setPage(0);
@@ -409,9 +452,32 @@ const BlogArticles = () => {
       return page > 0 ? `${filterQueryString}&page=${page + 1}` : filterQueryString;
     })();
 
+    // Helper: update search params only if the incoming params differ from
+    // the current ones. This prevents setSearchParams -> searchParams change
+    // -> effect re-run loops.
+    const updateSearchParamsIfNeeded = (incomingLike) => {
+      try {
+        const current = new URLSearchParams(searchParams.toString());
+        const incoming =
+          typeof incomingLike === "string"
+            ? new URLSearchParams(incomingLike)
+            : new URLSearchParams(incomingLike.toString());
+        if (current.toString() !== incoming.toString()) {
+          setSearchParams(incoming);
+        }
+      } catch (err) {
+        // fallback: only set if strings differ
+        try {
+          if (searchParams.toString() !== String(incomingLike)) setSearchParams(incomingLike);
+        } catch (e) {
+          // swallow
+        }
+      }
+    };
+
     if (filter.sort === "ascending") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
-      try {
+        try {
         const current = new URLSearchParams(searchParams.toString());
         const incoming = new URLSearchParams(fqsp);
 
@@ -419,34 +485,34 @@ const BlogArticles = () => {
         const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
         for (const [k, v] of incoming) current.set(k, v);
         for (const k of knownKeys) if (!incoming.has(k)) current.delete(k);
-        setSearchParams(current);
+        updateSearchParamsIfNeeded(current);
       } catch (err) {
-        setSearchParams(fqsp);
+        updateSearchParamsIfNeeded(fqsp);
       }
       // setFilter({ sort: "ascending" });
     } else if (filter.sort === "descending") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles), 5));
-      try {
+        try {
         const current = new URLSearchParams(searchParams.toString());
         const incoming = new URLSearchParams(fqsp);
         const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
         for (const [k, v] of incoming) current.set(k, v);
         for (const k of knownKeys) if (!incoming.has(k)) current.delete(k);
-        setSearchParams(current);
+        updateSearchParamsIfNeeded(current);
       } catch (err) {
-        setSearchParams(fqsp);
+        updateSearchParamsIfNeeded(fqsp);
       }
     } else if (filter.sort === "name") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, "name"), 5));
-      try {
+        try {
         const current = new URLSearchParams(searchParams.toString());
         const incoming = new URLSearchParams(fqsp);
         const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
         for (const [k, v] of incoming) current.set(k, v);
         for (const k of knownKeys) if (!incoming.has(k)) current.delete(k);
-        setSearchParams(current);
+        updateSearchParamsIfNeeded(current);
       } catch (err) {
-        setSearchParams(fqsp);
+        updateSearchParamsIfNeeded(fqsp);
       }
     } else {
       setBlogArticles(chunk(filteredBlogArticles, 5));
@@ -466,22 +532,55 @@ const BlogArticles = () => {
         const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
         for (const [k, v] of incoming) current.set(k, v);
         for (const k of knownKeys) if (!incoming.has(k)) current.delete(k);
-        setSearchParams(current);
+        updateSearchParamsIfNeeded(current);
       } catch (err) {
-        setSearchParams(fqsp);
+        updateSearchParamsIfNeeded(fqsp);
       }
     } else {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
 
-    // Recompute available authors based on the currently filtered set (respecting topics)
-    const availableAuthors = getAuthors(returnedBlogArticles, filter.topics);
+  // small helpers to avoid setting state with identical values (prevents loops)
+  const articleListsEqual = (a = [], b = []) => {
+    if (a === b) return true;
+    if (!Array.isArray(a) || !Array.isArray(b)) return false;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if ((a[i] && a[i].id) !== (b[i] && b[i].id)) return false;
+    }
+    return true;
+  };
+
+  const stringListsEqual = (a = [], b = []) => {
+    if (a === b) return true;
+    if (!Array.isArray(a) || !Array.isArray(b)) return false;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  };
+
+  // Recompute available authors based on the full dataset (respecting topics but
+  // not the currently-selected author filter). If we compute available authors
+  // from the already-author-filtered set, selecting an author will remove other
+  // authors from the UI. Instead, derive available authors from `allBlogArticles`
+  // (which contains the full set, already prefiltered by topic set) so other
+  // authors remain visible when one is selected.
+  const baseAvailableAuthors = getAuthors(
+    allBlogArticles.length ? allBlogArticles : returnedBlogArticles,
+    filter.topics
+  );
+  const availableAuthors = Array.from(
+    new Set([...(baseAvailableAuthors || []), ...(filter.author || [])])
+  );
 
     // If any selected author is no longer available for the selected topics,
     // remove them from filter — but only after we have loaded articles. This
     // prevents clearing the selected authors which were set from the URL on
     // initial mount before returnedBlogArticles has populated.
     if (
+      !authorsPrunedRef.current &&
       returnedBlogArticles &&
       returnedBlogArticles.length > 0 &&
       filter.author &&
@@ -494,21 +593,32 @@ const BlogArticles = () => {
       if (filteredSelectedAuthors.length !== filter.author.length) {
         setFilter((prev) => ({ ...prev, author: filteredSelectedAuthors }));
       }
+      // mark as pruned so we don't run this again
+      authorsPrunedRef.current = true;
     }
 
-    // Update authors shown in the UI
+  // Update authors shown in the UI only if changed
+  if (!stringListsEqual(authors, availableAuthors)) {
     setAuthors(availableAuthors);
+  }
+
+  // Update the returned articles dataset only if changed (compare by id)
+  if (!articleListsEqual(returnedBlogArticles, filteredBlogArticles)) {
+    setReturnedBlogArticles(filteredBlogArticles);
+  }
   }, [
     clearFilters,
     filter,
     filterQueryString,
     returnedBlogArticles,
+    allBlogArticles,
     searchButtonClicked,
     searchParams,
     searchTerm,
     setSearchParams,
     sortDefault,
     page,
+    authors,
   ]);
 
   // Show a small loading spinner when filters change to communicate work in progress

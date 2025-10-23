@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 import FilterByDateRange from "./FilterByDateRange";
 
 const CheckOption = ({ inputName, option, optionSelected, optionSelectedFn }) => (
-  <label className="wmcads-fe-checkboxes__container">
+  <label className={`wmcads-fe-checkboxes__container ${option.disabled ? 'wmcads-is--disabled' : ''}`}>
     {option.label}
     <input
       name={inputName}
@@ -14,6 +14,7 @@ const CheckOption = ({ inputName, option, optionSelected, optionSelectedFn }) =>
       type="checkbox"
       onChange={(e) => optionSelected(e.target.value)}
       checked={optionSelectedFn(option.value) || false}
+      disabled={option.disabled || false}
     />
     <span className="wmcads-fe-checkboxes__checkmark">
       <svg className="wmcads-fe-checkboxes__icon">
@@ -28,21 +29,23 @@ const CheckOption = ({ inputName, option, optionSelected, optionSelectedFn }) =>
 
 CheckOption.propTypes = {
   inputName: PropTypes.string,
-  option: PropTypes.shape({ label: PropTypes.string, value: PropTypes.string }),
+  option: PropTypes.shape({
+    label: PropTypes.string,
+    value: PropTypes.string,
+    disabled: PropTypes.bool,
+  }),
   optionSelected: PropTypes.func,
   optionSelectedFn: PropTypes.func,
 };
 
 const RadioOption = ({ title, option, optionSelected, optionSelectedFn }) => (
   <label
-    className={`wmcads-fe-radios__container ${
-      !option.disabled ? "disabled" : ""
-    }`}
+    className={`wmcads-fe-radios__container ${option.disabled ? 'wmcads-is--disabled' : ''}`}
   >
     {option.label}
     <input
       className="wmcads-fe-radios__input"
-      disabled={!option.disabled}
+      disabled={option.disabled || false}
       value={option.value}
       name={title}
       type="radio"

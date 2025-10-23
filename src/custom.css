@@ -25,6 +25,24 @@ input[type="reset"] {
   cursor: default;
 } 
 
+/* New shared disabled state utility used by FilterAccordion */
+.wmcads-is--disabled {
+  color: rgba(109, 109, 109, 1) !important;
+  cursor: not-allowed !important;
+}
+
+.wmcads-is--disabled input,
+.wmcads-is--disabled button {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.wmcads-is--disabled .wmcads-fe-checkboxes__checkmark,
+.wmcads-is--disabled .wmcads-fe-radios__checkmark {
+  border-color: rgba(109, 109, 109, 1) !important;
+  background: none !important;
+}
+
 /* Prefer :focus-visible where supported to avoid showing focus for mouse users */
 /* Hide focus outline for elements that are focused but not keyboard-focused */
 *:focus:not(:focus-visible) {

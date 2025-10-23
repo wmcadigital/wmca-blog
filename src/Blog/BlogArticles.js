@@ -1,3 +1,10 @@
+// This component prefers hash-based URL search params (HashRouter) as the
+// source of truth. When a `page` param exists only in the outer query
+// string (location.search) we move it into the hash search params and
+// remove it from the outer query so there's a single `page=` location.
+//
+// Clearing filters (via `clearFilters`) will also remove the corresponding
+// URL params for known filter keys so the URL reflects the cleared state.
 import { useState, useEffect } from "react";
 import { chunk, flatten } from "lodash";
 import { useSearchParams, useLocation } from "react-router-dom";
@@ -50,17 +57,34 @@ const BlogArticles = () => {
 
   let [searchParams, setSearchParams] = useSearchParams();
 
+  // Build a query string from the filter but only include keys that have
+  // meaningful values. This prevents empty arrays or undefined fields from
+  // overwriting existing URL params (for example removing `author` on refresh).
   let filterQueryString = Object.keys(filter)
     .map((key) => {
-      if (Array.isArray(filter[key])) {
-        return key + "=" + filter[key].join("/");
-      } else if (typeof filter[key] === "object") {
-        return key + "=" + JSON.stringify(filter[key]);
-      } else {
-        return key + "=" + filter[key];
+      const val = filter[key];
+      if (Array.isArray(val)) {
+        if (val.length === 0) return null;
+        return key + "=" + val.join("/");
       }
+      if (val === undefined || val === null) return null;
+      if (typeof val === "object") {
+        // skip empty objects
+        try {
+          const s = JSON.stringify(val);
+          if (s === "{}") return null;
+          return key + "=" + s;
+        } catch (e) {
+          return null;
+        }
+      }
+      if (typeof val === "string" && val === "") return null;
+      return key + "=" + val;
     })
+    .filter(Boolean)
     .join("&");
+
+  
 
   const getBlogData = async () => {
     setLoading(true);
@@ -88,12 +112,34 @@ const BlogArticles = () => {
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
+  // Robust param getter: check react-router `searchParams` first, then
+  // parse the location.hash (if present), then fall back to the outer
+  // query string. This covers different URL shapes on refresh and direct
+  // links (e.g. ?page=3#/?author=Foo or /#/?author=Foo).
+  const getParam = (key) => {
+    const sp = searchParams.get(key);
+    if (sp) return sp;
+    // parse hash query string after '?'
+    try {
+      const rawHash = location.hash || "";
+      const idx = rawHash.indexOf("?");
+      const hashQuery = idx >= 0 ? rawHash.slice(idx + 1) : "";
+      if (hashQuery) {
+        const hashParams = new URLSearchParams(hashQuery);
+        const hv = hashParams.get(key);
+        if (hv) return hv;
+      }
+    } catch (e) {
+      // ignore parse errors
+    }
+    return queryParams.get(key);
+  };
 
-  const dates = queryParams.get("dates");
-  const sort = queryParams.get("sort");
-  const author = queryParams.get("author");
-  const topics = queryParams.get("topics");
-  const dateRangeSet = queryParams.get("dateRangeSet");
+  const dates = getParam("dates");
+  const sort = getParam("sort");
+  const author = getParam("author");
+  const topics = getParam("topics");
+  const dateRangeSet = getParam("dateRangeSet");
 
   const setDateRanges = (newRanges) => {
     setFilter({ ...filter, dateRangeSet: newRanges });
@@ -115,7 +161,34 @@ const BlogArticles = () => {
   }, [clearFilters]);
 
   useEffect(() => {
-    setSearchParams(filterQueryString);
+    try {
+      const current = new URLSearchParams(searchParams.toString());
+      const incoming = new URLSearchParams(filterQueryString);
+
+      // Helper: apply incoming params, and remove known filter keys that
+      // are no longer present in incoming. This makes clearing filters
+      // result in their corresponding URL params being removed.
+      const applyIncomingParams = (curParams, incParams) => {
+        // known filter keys we manage in the URL
+        const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
+
+        // set incoming entries
+        for (const [k, v] of incParams) curParams.set(k, v);
+
+        // remove known keys that are absent in incoming
+        for (const k of knownKeys) {
+          if (!incParams.has(k)) curParams.delete(k);
+        }
+
+        return curParams;
+      };
+
+      applyIncomingParams(current, incoming);
+      setSearchParams(current);
+    } catch (err) {
+      // fallback to simple set
+      setSearchParams(filterQueryString);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
@@ -159,17 +232,66 @@ const BlogArticles = () => {
     if (topics) {
       setFilter((prevState) => ({
         ...prevState,
-        topics: topics.split("/"),
+        topics: topics
+          .split("/")
+          .map((s) => decodeURIComponent(s.replace(/\+/g, " ")).trim()),
       }));
     }
 
     if (author) {
+      // Decode plus signs and percent-encoding so the author values match
+      // the labels produced by getAuthors (e.g. "Charles+Rapson" => "Charles Rapson").
       setFilter((prevState) => ({
         ...prevState,
-        author: author.split("/"),
+        author: author
+          .split("/")
+          .map((a) => decodeURIComponent(a.replace(/\+/g, " ")).trim()),
       }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    // Read page from either the hash params (preferred) or the query string.
+    // Example URLs the app may see:
+    //  - /?page=3#/?sort=...&page=3  (page duplicated)
+    // We prefer the hash params (react-router hash routing) and if page is
+    // only present in the query string, move it into the hash and remove it
+    // from the query string so there's only one source of truth.
+  const pageFromHash = getParam("page");
+
+    // Also inspect the outer query string directly so we can detect when
+    // a page exists only there and move it into the hash/searchParams.
+    const pageFromQuery = queryParams.get("page");
+
+    if (pageFromHash) {
+      const parsed = parseInt(pageFromHash, 10);
+      if (!Number.isNaN(parsed) && parsed > 0) {
+        setPage(Math.max(0, parsed - 1));
+      }
+    } else if (pageFromQuery) {
+      // If only the query string has page, move it into the hash-based
+      // search params used by react-router and remove it from location.search
+      const parsed = parseInt(pageFromQuery, 10);
+      if (!Number.isNaN(parsed) && parsed > 0) {
+        setPage(Math.max(0, parsed - 1));
+        try {
+          // put page into the hash search params via setSearchParams
+          const current = new URLSearchParams(searchParams.toString());
+          current.set("page", String(parsed));
+          setSearchParams(current);
+
+          // remove page from the leading query string while preserving other keys
+          const newOuter = new URLSearchParams(location.search);
+          newOuter.delete("page");
+          const newOuterStr = newOuter.toString();
+          const newUrl =
+            window.location.pathname +
+            (newOuterStr ? `?${newOuterStr}` : "") +
+            window.location.hash;
+          window.history.replaceState(null, "", newUrl);
+        } catch (err) {
+          // fallback: do nothing if we can't move it
+        }
+      }
+    }
     return () => {
       mounted = false;
       if (rafCleanup.raf && window.cancelAnimationFrame) {
@@ -177,7 +299,47 @@ const BlogArticles = () => {
       }
       if (rafCleanup.timeout) clearTimeout(rafCleanup.timeout);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep the `page` query param in sync when page state changes
+  useEffect(() => {
+    try {
+      const p = new URLSearchParams(searchParams.toString());
+      if (page > 0) p.set("page", String(page + 1));
+      else p.delete("page");
+      setSearchParams(p);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn("BlogArticles: failed to sync page query param", err);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
+  // When the page changes, scroll the main results area to the top and focus it for accessibility
+  useEffect(() => {
+    try {
+      const el = document.getElementById("wmcads-main-content");
+      if (el) {
+        // scroll to top of the main content where results live
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        // move focus to main for screen readers; prevent additional scrolling if supported
+        if (typeof el.focus === "function") {
+          try {
+            el.focus({ preventScroll: true });
+          } catch (e) {
+            el.focus();
+          }
+        }
+      } else {
+        // fallback to window scroll
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn("BlogArticles: failed to scroll to top on page change", err);
+    }
+  }, [page]);
 
   useEffect(() => {
     let filteredBlogArticles = returnedBlogArticles;
@@ -241,16 +403,51 @@ const BlogArticles = () => {
       setsortDefault("descending");
     }
 
+    // compute filter+page string locally to avoid stale closure / lint issues
+    const fqsp = (() => {
+      if (!filterQueryString) return page > 0 ? `page=${page + 1}` : "";
+      return page > 0 ? `${filterQueryString}&page=${page + 1}` : filterQueryString;
+    })();
+
     if (filter.sort === "ascending") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
-      setSearchParams(filterQueryString);
+      try {
+        const current = new URLSearchParams(searchParams.toString());
+        const incoming = new URLSearchParams(fqsp);
+
+        // reuse same merging behaviour as above: set incoming and remove missing known keys
+        const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
+        for (const [k, v] of incoming) current.set(k, v);
+        for (const k of knownKeys) if (!incoming.has(k)) current.delete(k);
+        setSearchParams(current);
+      } catch (err) {
+        setSearchParams(fqsp);
+      }
       // setFilter({ sort: "ascending" });
     } else if (filter.sort === "descending") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles), 5));
-      setSearchParams(filterQueryString);
+      try {
+        const current = new URLSearchParams(searchParams.toString());
+        const incoming = new URLSearchParams(fqsp);
+        const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
+        for (const [k, v] of incoming) current.set(k, v);
+        for (const k of knownKeys) if (!incoming.has(k)) current.delete(k);
+        setSearchParams(current);
+      } catch (err) {
+        setSearchParams(fqsp);
+      }
     } else if (filter.sort === "name") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, "name"), 5));
-      setSearchParams(filterQueryString);
+      try {
+        const current = new URLSearchParams(searchParams.toString());
+        const incoming = new URLSearchParams(fqsp);
+        const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
+        for (const [k, v] of incoming) current.set(k, v);
+        for (const k of knownKeys) if (!incoming.has(k)) current.delete(k);
+        setSearchParams(current);
+      } catch (err) {
+        setSearchParams(fqsp);
+      }
     } else {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
@@ -263,7 +460,16 @@ const BlogArticles = () => {
       clearFilters
     ) {
       // setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
-      setSearchParams(filterQueryString);
+      try {
+        const current = new URLSearchParams(searchParams.toString());
+        const incoming = new URLSearchParams(fqsp);
+        const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
+        for (const [k, v] of incoming) current.set(k, v);
+        for (const k of knownKeys) if (!incoming.has(k)) current.delete(k);
+        setSearchParams(current);
+      } catch (err) {
+        setSearchParams(fqsp);
+      }
     } else {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
@@ -271,8 +477,16 @@ const BlogArticles = () => {
     // Recompute available authors based on the currently filtered set (respecting topics)
     const availableAuthors = getAuthors(returnedBlogArticles, filter.topics);
 
-    // If any selected author is no longer available for the selected topics, remove them from filter
-    if (filter.author && filter.author.length) {
+    // If any selected author is no longer available for the selected topics,
+    // remove them from filter — but only after we have loaded articles. This
+    // prevents clearing the selected authors which were set from the URL on
+    // initial mount before returnedBlogArticles has populated.
+    if (
+      returnedBlogArticles &&
+      returnedBlogArticles.length > 0 &&
+      filter.author &&
+      filter.author.length
+    ) {
       const filteredSelectedAuthors = filter.author.filter((a) =>
         availableAuthors.includes(a)
       );
@@ -294,6 +508,7 @@ const BlogArticles = () => {
     searchTerm,
     setSearchParams,
     sortDefault,
+    page,
   ]);
 
   // Show a small loading spinner when filters change to communicate work in progress
@@ -345,6 +560,10 @@ const BlogArticles = () => {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    console.log("filter updated", filter);
+  }, [filter]);
 
   return (
     <div className="template-search">

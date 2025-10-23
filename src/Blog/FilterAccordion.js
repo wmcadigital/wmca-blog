@@ -73,8 +73,9 @@ const FilterAccordion = ({
   setDateRanges,
   clearFilters,
   filter,
+  forceOpen,
 }) => {
-  const [accordionOpen, setAccordionOpen] = useState(false);
+  const [accordionOpen, setAccordionOpen] = useState(!!forceOpen);
   const [dateAfter, setDateAfter] = useState({ day: "", month: "", year: "" });
   const [dateBefore, setDateBefore] = useState({
     day: "",
@@ -88,7 +89,17 @@ const FilterAccordion = ({
   const [urlset, setUrlSet] = useState(false);
   const [inputName] = useState(`input-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
 
-  const toggleAccordion = () => setAccordionOpen(!accordionOpen);
+  const toggleAccordion = () => {
+    // prevent closing if forceOpen is true
+    if (forceOpen) return;
+    setAccordionOpen(!accordionOpen);
+  };
+
+  useEffect(() => {
+    // If forceOpen becomes true, ensure accordion is open. If clearFilters, close it.
+    if (forceOpen) setAccordionOpen(true);
+    if (clearFilters) setAccordionOpen(false);
+  }, [forceOpen, clearFilters]);
 
   const receivedDateChange = (val, field, name) => {
     const updatedDateAfter = { ...dateAfter };
@@ -258,7 +269,7 @@ const FilterAccordion = ({
       <button
         aria-controls="accordion-Topic"
         className="wmcads-accordion__summary-wrapper"
-        aria-expanded="true"
+        aria-expanded={accordionOpen}
         onClick={toggleAccordion}
       >
         <div className="wmcads-accordion__summary">
@@ -350,6 +361,7 @@ FilterAccordion.propTypes = {
     dates: PropTypes.string,
     dateRangeSet: PropTypes.object,
   }),
+  forceOpen: PropTypes.bool,
 };
 
 FilterAccordion.defaultProps = {
@@ -357,6 +369,7 @@ FilterAccordion.defaultProps = {
   optionSelected: () => {},
   optionSelectedFn: () => {},
   setDateRanges: () => {},
+  forceOpen: false,
 };
 
 export default FilterAccordion;

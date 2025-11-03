@@ -1,31 +1,44 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import PropTypes from "prop-types";
 
 import FilterByDateRange from "./FilterByDateRange";
 
-const CheckOption = ({ inputName, option, optionSelected, optionSelectedFn }) => (
-  <label className={`wmcads-fe-checkboxes__container ${option.disabled ? 'wmcads-is--disabled' : ''}`}>
-    {option.label}
-    <input
-      name={inputName}
-      className="wmcads-fe-checkboxes__input"
-      value={option.value}
-      type="checkbox"
-      onChange={(e) => optionSelected(e.target.value)}
-      checked={optionSelectedFn(option.value) || false}
-      disabled={option.disabled || false}
-    />
-    <span className="wmcads-fe-checkboxes__checkmark">
-      <svg className="wmcads-fe-checkboxes__icon">
-        <use
-          xlinkHref="#wmcads-general-checkmark"
-          href="#wmcads-general-checkmark"
-        ></use>
-      </svg>
-    </span>
-  </label>
-);
+const CheckOption = ({ inputName, option, optionSelected, optionSelectedFn }) => {
+  const checked = optionSelectedFn(option.value) || false;
+
+  
+
+    return (
+    <label className={`wmcads-fe-checkboxes__container ${option.disabled ? 'wmcads-is--disabled' : ''}`}>
+      {option.label}
+      <input
+        name={inputName}
+        className="wmcads-fe-checkboxes__input"
+        value={option.value}
+        type="checkbox"
+        onChange={(e) => optionSelected(e.target.value)}
+        onKeyDown={(e) => {
+          if (option.disabled) return;
+          if (e.key === "Enter") {
+            e.preventDefault();
+            optionSelected(option.value);
+          }
+        }}
+        checked={checked}
+        disabled={option.disabled || false}
+      />
+      <span className="wmcads-fe-checkboxes__checkmark">
+        <svg className="wmcads-fe-checkboxes__icon" aria-hidden="true" focusable="false">
+          <use
+            xlinkHref="#wmcads-general-checkmark"
+            href="#wmcads-general-checkmark"
+          ></use>
+        </svg>
+      </span>
+    </label>
+  );
+};
 
 CheckOption.propTypes = {
   inputName: PropTypes.string,
@@ -38,23 +51,34 @@ CheckOption.propTypes = {
   optionSelectedFn: PropTypes.func,
 };
 
-const RadioOption = ({ title, option, optionSelected, optionSelectedFn }) => (
-  <label
-    className={`wmcads-fe-radios__container ${option.disabled ? 'wmcads-is--disabled' : ''}`}
-  >
-    {option.label}
-    <input
-      className="wmcads-fe-radios__input"
-      disabled={option.disabled || false}
-      value={option.value}
-      name={title}
-      type="radio"
-      onChange={(e) => optionSelected(e.target.value)}
-      checked={optionSelectedFn(option.value) || false}
-    />
-    <span className="wmcads-fe-radios__checkmark"></span>
-  </label>
-);
+const RadioOption = ({ title, option, optionSelected, optionSelectedFn }) => {
+  const checked = optionSelectedFn(option.value) || false;
+
+  
+
+  return (
+    <label className={`wmcads-fe-radios__container ${option.disabled ? 'wmcads-is--disabled' : ''}`}>
+      {option.label}
+      <input
+        className="wmcads-fe-radios__input"
+        disabled={option.disabled || false}
+        value={option.value}
+        name={title}
+        type="radio"
+        onChange={(e) => optionSelected(e.target.value)}
+        onKeyDown={(e) => {
+          if (option.disabled) return;
+          if (e.key === "Enter") {
+            e.preventDefault();
+            optionSelected(option.value);
+          }
+        }}
+        checked={checked}
+      />
+      <span className="wmcads-fe-radios__checkmark" aria-hidden="true"></span>
+    </label>
+  );
+};
 
 RadioOption.propTypes = {
   title: PropTypes.string,
@@ -91,6 +115,8 @@ const FilterAccordion = ({
   const [dateRanges, setDateRanges2] = useState(undefined);
   const [urlset, setUrlSet] = useState(false);
   const [inputName] = useState(`input-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
+  // unique id for accordion content to avoid duplicate IDs when multiple accordions are rendered
+  const [contentId] = useState(() => `accordion-${inputName}`);
 
   const toggleAccordion = () => {
     // prevent closing if forceOpen is true
@@ -125,7 +151,7 @@ const FilterAccordion = ({
     return Object.values(obj).some((value) => value !== undefined);
   };
 
-  const validationMonthDay = (updates, date, type) => {
+  const validationMonthDay = useCallback((updates, date, type) => {
     let otherError = false;
 
     if (date.day === "") {
@@ -160,10 +186,10 @@ const FilterAccordion = ({
     }
 
     return updates;
-  };
+  }, [isDate1BeforeDate2]);
 
   // Method get the date ranges from the URL and splits the string values back into the required object type before setting the local states
-  const setDateValuesFromUrl = () => {
+  const setDateValuesFromUrl = useCallback(() => {
     const to = filter?.dateRangeSet?.to.split("/");
     if (to?.length === 3) {
       const [year, month, day] = to;
@@ -175,7 +201,7 @@ const FilterAccordion = ({
       const [year, month, day] = from;
       setDateAfter({ day, month, year });
     }
-  };
+  }, [filter, setDateBefore, setDateAfter]);
 
   useEffect(() => {
     const updatedDateAfter = { ...dateAfter };
@@ -233,9 +259,9 @@ const FilterAccordion = ({
       setBeforeErrors(updatedBeforeErrorsSet);
       setAfterErrors(updatedAfterErrorsSet);
     }
-  }, [dateAfter, dateBefore, isDate1BeforeDate2]);
+  }, [dateAfter, dateBefore, isDate1BeforeDate2, afterErrors, beforeErrors, validationMonthDay]);
 
-  useEffect(() => {}, []);
+  
 
   useEffect(() => {
     // Here we check the the dates are required and valid before we filter the articles
@@ -246,7 +272,7 @@ const FilterAccordion = ({
     ) {
       setDateRanges(dateRanges);
     }
-  }, [dateRanges]);
+  }, [dateRanges, afterErrors, beforeErrors, isDate1BeforeDate2, setDateRanges]);
 
   useEffect(() => {
     //Here is triggered when date ranges have been passed in via the URL
@@ -263,14 +289,14 @@ const FilterAccordion = ({
       setBeforeErrors(undefined);
       setDateRanges(undefined);
     }
-  }, [clearFilters, filter?.dateRangeSet]);
+  }, [clearFilters, filter?.dateRangeSet, setDateRanges, setDateValuesFromUrl, urlset]);
 
   return (
     <div
       className={`wmcads-accordion ${accordionOpen ? "wmcads-is--open" : null}`}
     >
       <button
-        aria-controls="accordion-Topic"
+        aria-controls={contentId}
         className="wmcads-accordion__summary-wrapper"
         aria-expanded={accordionOpen}
         onClick={toggleAccordion}
@@ -280,21 +306,23 @@ const FilterAccordion = ({
             {title}
           </h4>
         </div>
-        <svg className="wmcads-accordion__icon">
+        <svg className="wmcads-accordion__icon" aria-hidden="true" focusable="false">
           <use
             xlinkHref="#wmcads-general-expand"
             href="#wmcads-general-expand"
           ></use>
         </svg>{" "}
-        <svg className="wmcads-accordion__icon wmcads-accordion__icon--minimise">
+        <svg className="wmcads-accordion__icon wmcads-accordion__icon--minimise" aria-hidden="true" focusable="false">
           <use
             xlinkHref="#wmcads-general-minimise"
             href="#wmcads-general-minimise"
           ></use>
         </svg>
       </button>
-      <div className="wmcads-accordion__content" id="accordion-Topic">
+      <div className="wmcads-accordion__content" id={contentId}>
         <fieldset className="wmcads-fe-fieldset">
+          {/* Accessible label for the fieldset */}
+          <legend className="visible-hidden">{title}</legend>
           <div
             className={`${
               selectOne ? "wmcads-fe-radios" : "wmcads-fe-checkboxes"

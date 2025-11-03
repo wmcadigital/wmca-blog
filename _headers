@@ -1,0 +1,32 @@
+/*
+# Netlify headers: efficient cache lifetimes
+# - Immutable, fingerprinted build assets (dist/, static/, assets/) get a very long max-age and `immutable`.
+# - HTML pages and root index should be revalidated frequently (max-age=0) so users get updates quickly.
+# - API responses are set short and allow CDN (s-maxage) + stale-while-revalidate to improve perceived latency.
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/dist/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/images/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/api/*
+  Cache-Control: public, max-age=60, s-maxage=60, stale-while-revalidate=86400

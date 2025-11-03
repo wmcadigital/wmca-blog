@@ -21,14 +21,14 @@ const Accordion = ({ title, isOpenByDefault, content, index }) => {
           <h4 className="wmcads-m-b-none">{title}</h4>
         </div>
         {/* plus icon */}
-        <svg className="wmcads-accordion__icon">
+        <svg className="wmcads-accordion__icon" aria-hidden="true" focusable="false">
           <use
             xlinkHref="#wmcads-general-expand"
             href="#wmcads-general-expand"
           ></use>
         </svg>
         {/* minus icon */}
-        <svg className="wmcads-accordion__icon wmcads-accordion__icon--minimise">
+        <svg className="wmcads-accordion__icon wmcads-accordion__icon--minimise" aria-hidden="true" focusable="false">
           <use
             xlinkHref="#wmcads-general-minimise"
             href="#wmcads-general-minimise"

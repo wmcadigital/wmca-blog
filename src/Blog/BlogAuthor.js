@@ -1,5 +1,5 @@
 import React from "react";
-import { chunk } from "lodash";
+import chunk from "lodash/chunk";
 import getAuthor from "../api/getAuthor";
 import getAuthorArticles from "../api/getAuthorArticles";
 import ScrollToTop from "../helpers/ScrollToTop";
@@ -9,7 +9,7 @@ import { useLoaderData, Link } from "react-router-dom";
 import Breadcrumb from "./Breadcrumb";
 import { Helmet } from "react-helmet";
 import formatDate from "../helpers/formatDate";
-import ReactGA from "react-ga4";
+import { send as analyticsSend } from "../analytics";
 import sortBlogArticles from "../helpers/sortBlogArticles";
 import getBlogArticleTopics from "../helpers/getBlogArticleTopics";
 import { buildPictureAttrs } from "../helpers/image";
@@ -111,7 +111,7 @@ const BlogAuthor = () => {
 
   useEffect(() => {
     // Send pageview with a custom path
-    ReactGA.send({
+    analyticsSend({
       hitType: "pageview",
       page: window.location.pathname + window.location.hash,
       //title: author?.name,

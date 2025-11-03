@@ -1,16 +1,11 @@
-// This component prefers hash-based URL search params (HashRouter) as the
-// source of truth. When a `page` param exists only in the outer query
-// string (location.search) we move it into the hash search params and
-// remove it from the outer query so there's a single `page=` location.
-//
-// Clearing filters (via `clearFilters`) will also remove the corresponding
-// URL params for known filter keys so the URL reflects the cleared state.
-import { useState, useEffect, useRef } from "react";
-import { chunk, flatten } from "lodash";
+import { useState, useEffect } from "react";
+import chunk from "lodash/chunk";
+import flatten from "lodash/flatten";
 import { useSearchParams, useLocation } from "react-router-dom";
 
 import getBlogArticles from "../api/getBlogArticles";
-import ReactGA from "react-ga4";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { send as analyticsSend } from "../analytics";
 
 import Banner from "./Banner";
 // import Link from "./Link";
@@ -34,10 +29,6 @@ import { getSearchParam } from "../helpers/urlSearchParams"; // (used to sync st
 
 const BlogArticles = () => {
   const [returnedBlogArticles, setReturnedBlogArticles] = useState([]);
-  // allBlogArticles holds the full set of articles fetched from the API
-  // (after initial site-topic filtering). returnedBlogArticles will be the
-  // currently filtered set exposed to the rest of the component.
-  const [allBlogArticles, setAllBlogArticles] = useState([]);
   const [blogArticles, setBlogArticles] = useState([]);
   const [blogCategories, setBlogCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
@@ -61,34 +52,17 @@ const BlogArticles = () => {
 
   let [searchParams, setSearchParams] = useSearchParams();
 
-  // Build a query string from the filter but only include keys that have
-  // meaningful values. This prevents empty arrays or undefined fields from
-  // overwriting existing URL params (for example removing `author` on refresh).
   let filterQueryString = Object.keys(filter)
     .map((key) => {
-      const val = filter[key];
-      if (Array.isArray(val)) {
-        if (val.length === 0) return null;
-        return key + "=" + val.join("/");
+      if (Array.isArray(filter[key])) {
+        return key + "=" + filter[key].join("/");
+      } else if (typeof filter[key] === "object") {
+        return key + "=" + JSON.stringify(filter[key]);
+      } else {
+        return key + "=" + filter[key];
       }
-      if (val === undefined || val === null) return null;
-      if (typeof val === "object") {
-        // skip empty objects
-        try {
-          const s = JSON.stringify(val);
-          if (s === "{}") return null;
-          return key + "=" + s;
-        } catch (e) {
-          return null;
-        }
-      }
-      if (typeof val === "string" && val === "") return null;
-      return key + "=" + val;
     })
-    .filter(Boolean)
     .join("&");
-
-  
 
   const getBlogData = async () => {
     setLoading(true);
@@ -109,10 +83,6 @@ const BlogArticles = () => {
       prop.properties.tags.some((tags) => blogTopics.includes(tags))
     );
 
-    // store the base dataset (filtered to topic set) and initialise the
-    // currently-returned articles to the same set. Later filtering will use
-    // `allBlogArticles` as the source of truth and update `returnedBlogArticles`.
-    setAllBlogArticles(returnedBlogArticles);
     setReturnedBlogArticles(returnedBlogArticles);
     setAuthors(getAuthors(returnedBlogArticles));
     setBlogArticles(chunk(returnedBlogArticles, 5));
@@ -120,43 +90,16 @@ const BlogArticles = () => {
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  // Robust param getter: check react-router `searchParams` first, then
-  // parse the location.hash (if present), then fall back to the outer
-  // query string. This covers different URL shapes on refresh and direct
-  // links (e.g. ?page=3#/?author=Foo or /#/?author=Foo).
-  const getParam = (key) => {
-    const sp = searchParams.get(key);
-    if (sp) return sp;
-    // parse hash query string after '?'
-    try {
-      const rawHash = location.hash || "";
-      const idx = rawHash.indexOf("?");
-      const hashQuery = idx >= 0 ? rawHash.slice(idx + 1) : "";
-      if (hashQuery) {
-        const hashParams = new URLSearchParams(hashQuery);
-        const hv = hashParams.get(key);
-        if (hv) return hv;
-      }
-    } catch (e) {
-      // ignore parse errors
-    }
-    return queryParams.get(key);
-  };
 
-  const dates = getParam("dates");
-  const sort = getParam("sort");
-  const author = getParam("author");
-  const topics = getParam("topics");
-  const dateRangeSet = getParam("dateRangeSet");
+  const dates = queryParams.get("dates");
+  const sort = queryParams.get("sort");
+  const author = queryParams.get("author");
+  const topics = queryParams.get("topics");
+  const dateRangeSet = queryParams.get("dateRangeSet");
 
   const setDateRanges = (newRanges) => {
     setFilter({ ...filter, dateRangeSet: newRanges });
   };
-
-  // Guard so we only prune selected authors once after the articles are
-  // initially loaded. This avoids a repeated loop where pruning updates
-  // filter which triggers effects and pruning again.
-  const authorsPrunedRef = useRef(false);
 
   useEffect(() => {
     if (clearFilters) {
@@ -169,70 +112,16 @@ const BlogArticles = () => {
         dateRangeSet: undefined,
       }));
 
-      // Also remove any page= from the outer query string so clearing
-      // filters results in a clean URL (e.g. /?page=3#/ => /#/)
-      try {
-        const outer = new URLSearchParams(window.location.search);
-        if (outer.has("page")) {
-          outer.delete("page");
-          const outerStr = outer.toString();
-          const newUrl =
-            window.location.pathname +
-            (outerStr ? `?${outerStr}` : "") +
-            window.location.hash;
-          window.history.replaceState(null, "", newUrl);
-        }
-      } catch (e) {
-        // ignore
-      }
-
-      // Also remove page from react-router searchParams if present
-      try {
-        const sp = new URLSearchParams(searchParams.toString());
-        if (sp.has("page")) {
-          sp.delete("page");
-          setSearchParams(sp);
-        }
-      } catch (e) {
-        // ignore
-      }
-
       setClearFilters(false);
     }
-  }, [clearFilters, searchParams, setSearchParams]);
+  }, [clearFilters]);
 
   useEffect(() => {
-    try {
-      const current = new URLSearchParams(searchParams.toString());
-      const incoming = new URLSearchParams(filterQueryString);
-
-      // Helper: apply incoming params, and remove known filter keys that
-      // are no longer present in incoming. This makes clearing filters
-      // result in their corresponding URL params being removed.
-      const applyIncomingParams = (curParams, incParams) => {
-        // known filter keys we manage in the URL
-        const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
-
-        // set incoming entries
-        for (const [k, v] of incParams) curParams.set(k, v);
-
-        // remove known keys that are absent in incoming
-        for (const k of knownKeys) {
-          if (!incParams.has(k)) curParams.delete(k);
-        }
-
-        return curParams;
-      };
-
-      applyIncomingParams(current, incoming);
-      setSearchParams(current);
-    } catch (err) {
-      // fallback to simple set
-      setSearchParams(filterQueryString);
-    }
+    setSearchParams(filterQueryString);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // Defer fetching blog data until after first paint to reduce LCP contention
     let mounted = true;
@@ -273,66 +162,17 @@ const BlogArticles = () => {
     if (topics) {
       setFilter((prevState) => ({
         ...prevState,
-        topics: topics
-          .split("/")
-          .map((s) => decodeURIComponent(s.replace(/\+/g, " ")).trim()),
+        topics: topics.split("/"),
       }));
     }
 
     if (author) {
-      // Decode plus signs and percent-encoding so the author values match
-      // the labels produced by getAuthors (e.g. "Charles+Rapson" => "Charles Rapson").
       setFilter((prevState) => ({
         ...prevState,
-        author: author
-          .split("/")
-          .map((a) => decodeURIComponent(a.replace(/\+/g, " ")).trim()),
+        author: author.split("/"),
       }));
     }
-
-    // Read page from either the hash params (preferred) or the query string.
-    // Example URLs the app may see:
-    //  - /?page=3#/?sort=...&page=3  (page duplicated)
-    // We prefer the hash params (react-router hash routing) and if page is
-    // only present in the query string, move it into the hash and remove it
-    // from the query string so there's only one source of truth.
-  const pageFromHash = getParam("page");
-
-    // Also inspect the outer query string directly so we can detect when
-    // a page exists only there and move it into the hash/searchParams.
-    const pageFromQuery = queryParams.get("page");
-
-    if (pageFromHash) {
-      const parsed = parseInt(pageFromHash, 10);
-      if (!Number.isNaN(parsed) && parsed > 0) {
-        setPage(Math.max(0, parsed - 1));
-      }
-    } else if (pageFromQuery) {
-      // If only the query string has page, move it into the hash-based
-      // search params used by react-router and remove it from location.search
-      const parsed = parseInt(pageFromQuery, 10);
-      if (!Number.isNaN(parsed) && parsed > 0) {
-        setPage(Math.max(0, parsed - 1));
-        try {
-          // put page into the hash search params via setSearchParams
-          const current = new URLSearchParams(searchParams.toString());
-          current.set("page", String(parsed));
-          setSearchParams(current);
-
-          // remove page from the leading query string while preserving other keys
-          const newOuter = new URLSearchParams(location.search);
-          newOuter.delete("page");
-          const newOuterStr = newOuter.toString();
-          const newUrl =
-            window.location.pathname +
-            (newOuterStr ? `?${newOuterStr}` : "") +
-            window.location.hash;
-          window.history.replaceState(null, "", newUrl);
-        } catch (err) {
-          // fallback: do nothing if we can't move it
-        }
-      }
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => {
       mounted = false;
       if (rafCleanup.raf && window.cancelAnimationFrame) {
@@ -340,52 +180,82 @@ const BlogArticles = () => {
       }
       if (rafCleanup.timeout) clearTimeout(rafCleanup.timeout);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep the `page` query param in sync when page state changes
+  // When the visible page of results changes, scroll the main results area into view
+  // and focus it so keyboard and screen-reader users are taken to the updated results.
   useEffect(() => {
-    try {
-      const p = new URLSearchParams(searchParams.toString());
-      if (page > 0) p.set("page", String(page + 1));
-      else p.delete("page");
-      setSearchParams(p);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.warn("BlogArticles: failed to sync page query param", err);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+    const scrollAndFocusResults = () => {
+      // Prefer scrolling to the visible results count line so users see the
+      // "Found X matching results" message when paging.
+      const resultsCountEl = document.getElementById("wmcads-results-count");
+      const fallbackEl = document.getElementById("wmcads-main-content");
 
-  // When the page changes, scroll the main results area to the top and focus it for accessibility
-  useEffect(() => {
-    try {
-      const el = document.getElementById("wmcads-main-content");
-      if (el) {
-        // scroll to top of the main content where results live
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-        // move focus to main for screen readers; prevent additional scrolling if supported
-        if (typeof el.focus === "function") {
-          try {
-            el.focus({ preventScroll: true });
-          } catch (e) {
-            el.focus();
-          }
+      const targetEl = resultsCountEl || fallbackEl;
+
+      if (resultsCountEl) {
+        // Directly scroll the results count element into view at the top of the
+        // viewport so users see the "Found X matching results" line (block: 'start').
+        // After that, nudge the page up by the header height if present so the
+        // count isn't hidden behind a fixed header.
+        try {
+          resultsCountEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (e) {
+          // fallback to window scroll
+          const rect = resultsCountEl.getBoundingClientRect();
+          const absoluteTop = window.scrollY + rect.top;
+          window.scrollTo({ top: absoluteTop, behavior: "smooth" });
         }
+
+        // adjust for fixed header overlap if necessary
+        const headerEl = document.querySelector(".wmcads-header");
+        const cookieBannerEl = document.querySelector(".wmcads-cookies-banner");
+        const headerHeight = (headerEl?.offsetHeight || 0) + (cookieBannerEl?.offsetHeight || 0);
+        if (headerHeight > 0) {
+          // run another frame then nudge up by headerHeight + small gap
+          window.requestAnimationFrame(() => {
+            window.scrollBy({ top: -(headerHeight + 8), left: 0, behavior: "smooth" });
+          });
+        }
+
+        // Focus the main container so screen readers announce the updated content.
+        const focusEl = fallbackEl || resultsCountEl;
+        const hadTabIndex = focusEl.hasAttribute("tabindex");
+        if (!hadTabIndex) focusEl.setAttribute("tabindex", "-1");
+        focusEl.focus();
+        if (!hadTabIndex) focusEl.removeAttribute("tabindex");
+      } else if (fallbackEl) {
+        try {
+          fallbackEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (e) {
+          window.scrollTo({ top: fallbackEl.offsetTop || 0, behavior: "smooth" });
+        }
+
+        const hadTabIndex = fallbackEl.hasAttribute("tabindex");
+        if (!hadTabIndex) fallbackEl.setAttribute("tabindex", "-1");
+        fallbackEl.focus();
+        if (!hadTabIndex) fallbackEl.removeAttribute("tabindex");
       } else {
-        // fallback to window scroll
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.warn("BlogArticles: failed to scroll to top on page change", err);
+    };
+
+    // Wait for the next paint/layout to ensure the newly rendered results are in the DOM
+    // Use double requestAnimationFrame as a robust way to run after layout is settled.
+    if (typeof window !== "undefined" && window.requestAnimationFrame) {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          scrollAndFocusResults();
+        });
+      });
+    } else {
+      // fallback short delay
+      setTimeout(scrollAndFocusResults, 50);
     }
-  }, [page]);
+  }, [page, blogArticles]);
 
   useEffect(() => {
-  // Use the full dataset (allBlogArticles) as the source for filtering.
-  // returnedBlogArticles will become the filtered subset shown in the UI.
-  let filteredBlogArticles = allBlogArticles.length ? allBlogArticles : returnedBlogArticles;
+    let filteredBlogArticles = returnedBlogArticles;
 
     if (searchTerm) {
       setPage(0);
@@ -446,74 +316,16 @@ const BlogArticles = () => {
       setsortDefault("descending");
     }
 
-    // compute filter+page string locally to avoid stale closure / lint issues
-    const fqsp = (() => {
-      if (!filterQueryString) return page > 0 ? `page=${page + 1}` : "";
-      return page > 0 ? `${filterQueryString}&page=${page + 1}` : filterQueryString;
-    })();
-
-    // Helper: update search params only if the incoming params differ from
-    // the current ones. This prevents setSearchParams -> searchParams change
-    // -> effect re-run loops.
-    const updateSearchParamsIfNeeded = (incomingLike) => {
-      try {
-        const current = new URLSearchParams(searchParams.toString());
-        const incoming =
-          typeof incomingLike === "string"
-            ? new URLSearchParams(incomingLike)
-            : new URLSearchParams(incomingLike.toString());
-        if (current.toString() !== incoming.toString()) {
-          setSearchParams(incoming);
-        }
-      } catch (err) {
-        // fallback: only set if strings differ
-        try {
-          if (searchParams.toString() !== String(incomingLike)) setSearchParams(incomingLike);
-        } catch (e) {
-          // swallow
-        }
-      }
-    };
-
     if (filter.sort === "ascending") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
-        try {
-        const current = new URLSearchParams(searchParams.toString());
-        const incoming = new URLSearchParams(fqsp);
-
-        // reuse same merging behaviour as above: set incoming and remove missing known keys
-        const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
-        for (const [k, v] of incoming) current.set(k, v);
-        for (const k of knownKeys) if (!incoming.has(k)) current.delete(k);
-        updateSearchParamsIfNeeded(current);
-      } catch (err) {
-        updateSearchParamsIfNeeded(fqsp);
-      }
+      setSearchParams(filterQueryString);
       // setFilter({ sort: "ascending" });
     } else if (filter.sort === "descending") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles), 5));
-        try {
-        const current = new URLSearchParams(searchParams.toString());
-        const incoming = new URLSearchParams(fqsp);
-        const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
-        for (const [k, v] of incoming) current.set(k, v);
-        for (const k of knownKeys) if (!incoming.has(k)) current.delete(k);
-        updateSearchParamsIfNeeded(current);
-      } catch (err) {
-        updateSearchParamsIfNeeded(fqsp);
-      }
+      setSearchParams(filterQueryString);
     } else if (filter.sort === "name") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, "name"), 5));
-        try {
-        const current = new URLSearchParams(searchParams.toString());
-        const incoming = new URLSearchParams(fqsp);
-        const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
-        for (const [k, v] of incoming) current.set(k, v);
-        for (const k of knownKeys) if (!incoming.has(k)) current.delete(k);
-        updateSearchParamsIfNeeded(current);
-      } catch (err) {
-        updateSearchParamsIfNeeded(fqsp);
-      }
+      setSearchParams(filterQueryString);
     } else {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
@@ -526,66 +338,18 @@ const BlogArticles = () => {
       clearFilters
     ) {
       // setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
-      try {
-        const current = new URLSearchParams(searchParams.toString());
-        const incoming = new URLSearchParams(fqsp);
-        const knownKeys = ["sort", "topics", "author", "dates", "dateRangeSet", "page"];
-        for (const [k, v] of incoming) current.set(k, v);
-        for (const k of knownKeys) if (!incoming.has(k)) current.delete(k);
-        updateSearchParamsIfNeeded(current);
-      } catch (err) {
-        updateSearchParamsIfNeeded(fqsp);
-      }
+      setSearchParams(filterQueryString);
     } else {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
 
-  // small helpers to avoid setting state with identical values (prevents loops)
-  const articleListsEqual = (a = [], b = []) => {
-    if (a === b) return true;
-    if (!Array.isArray(a) || !Array.isArray(b)) return false;
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      if ((a[i] && a[i].id) !== (b[i] && b[i].id)) return false;
-    }
-    return true;
-  };
+    // Recompute available authors based on the currently filtered set (respecting topics)
+    const availableAuthors = getAuthors(returnedBlogArticles, filter.topics);
 
-  const stringListsEqual = (a = [], b = []) => {
-    if (a === b) return true;
-    if (!Array.isArray(a) || !Array.isArray(b)) return false;
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      if (a[i] !== b[i]) return false;
-    }
-    return true;
-  };
-
-  // Recompute available authors based on the full dataset (respecting topics but
-  // not the currently-selected author filter). If we compute available authors
-  // from the already-author-filtered set, selecting an author will remove other
-  // authors from the UI. Instead, derive available authors from `allBlogArticles`
-  // (which contains the full set, already prefiltered by topic set) so other
-  // authors remain visible when one is selected.
-  const baseAvailableAuthors = getAuthors(
-    allBlogArticles.length ? allBlogArticles : returnedBlogArticles,
-    filter.topics
-  );
-  const availableAuthors = Array.from(
-    new Set([...(baseAvailableAuthors || []), ...(filter.author || [])])
-  );
-
-    // If any selected author is no longer available for the selected topics,
-    // remove them from filter — but only after we have loaded articles. This
-    // prevents clearing the selected authors which were set from the URL on
-    // initial mount before returnedBlogArticles has populated.
-    if (
-      !authorsPrunedRef.current &&
-      returnedBlogArticles &&
-      returnedBlogArticles.length > 0 &&
-      filter.author &&
-      filter.author.length
-    ) {
+    // Only prune selected authors after blog data has loaded. During initial
+    // mount the returnedBlogArticles may be empty and would incorrectly cause
+    // selected authors (restored from the URL) to be removed.
+    if (returnedBlogArticles && returnedBlogArticles.length && filter.author && filter.author.length) {
       const filteredSelectedAuthors = filter.author.filter((a) =>
         availableAuthors.includes(a)
       );
@@ -593,32 +357,20 @@ const BlogArticles = () => {
       if (filteredSelectedAuthors.length !== filter.author.length) {
         setFilter((prev) => ({ ...prev, author: filteredSelectedAuthors }));
       }
-      // mark as pruned so we don't run this again
-      authorsPrunedRef.current = true;
     }
 
-  // Update authors shown in the UI only if changed
-  if (!stringListsEqual(authors, availableAuthors)) {
+    // Update authors shown in the UI
     setAuthors(availableAuthors);
-  }
-
-  // Update the returned articles dataset only if changed (compare by id)
-  if (!articleListsEqual(returnedBlogArticles, filteredBlogArticles)) {
-    setReturnedBlogArticles(filteredBlogArticles);
-  }
   }, [
     clearFilters,
     filter,
     filterQueryString,
     returnedBlogArticles,
-    allBlogArticles,
     searchButtonClicked,
     searchParams,
     searchTerm,
     setSearchParams,
     sortDefault,
-    page,
-    authors,
   ]);
 
   // Show a small loading spinner when filters change to communicate work in progress
@@ -663,17 +415,13 @@ const BlogArticles = () => {
   }, [urlParams]); // reset params if filters updated
 
   useEffect(() => {
-    ReactGA.send({
+    analyticsSend({
       hitType: "pageview",
       page: window.location.pathname,
       title: window?.setTopics?.name,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    console.log("filter updated", filter);
-  }, [filter]);
 
   return (
     <div className="template-search">
@@ -696,18 +444,7 @@ const BlogArticles = () => {
         position={window?.setBanner?.position}
       />
       <div className="wmcads-container">
-      <main
-          id="wmcads-main-content"
-          className="wmcads-container--main"
-          tabIndex={-1}
-          role="main"
-          // remove default focus outline/box-shadow when this element receives focus
-          style={{ outline: "none", boxShadow: "none" }}
-          onFocus={(e) => {
-            e.currentTarget.style.outline = "none";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        >
+      <main id="wmcads-main-content" className="wmcads-container--main" tabIndex={-1} role="main">
           <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-p-r-xl wmcads-m-b-lg">
             <Search
               placeholder="Blog search..."
@@ -741,14 +478,14 @@ const BlogArticles = () => {
                 <div className="wmcads-loader wmcads-loader--small wmcads-m-l-xs"></div>
               ) : (
                 <>
-                  <p>
+                  <p id="wmcads-results-count">
                     Found <b>{noOfResults}</b> matching results
                   </p>
 
                   {noOfResults === 0 && (
                     <div className="wmcads-msg-summary wmcads-msg-summary--warning ">
                       <div className="wmcads-msg-summary__header">
-                        <svg className="wmcads-msg-summary__icon">
+                        <svg className="wmcads-msg-summary__icon" aria-hidden="true" focusable="false">
                           <use
                             xlinkHref="#wmcads-general-warning-circle"
                             href="#wmcads-general-warning-circle"

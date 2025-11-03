@@ -26,7 +26,7 @@ const Search = ({
         searchButtonClickedCallback();
       }}
     >
-      <svg>
+      <svg aria-hidden="true" focusable="false">
         <title>Search</title>
         <use
           xlinkHref="#wmcads-general-search"

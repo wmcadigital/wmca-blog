@@ -66,27 +66,28 @@ const BlogFilter = ({
       <div className="wmcads-search-filter__header">
         <h3 className="wmcads-search-filter__header-title">Filter</h3>
 
-        <a
-          href="#"
+        <button
+          type="button"
           className="wmcads-search-filter__clear-all wmcads-hide-desktop"
           onClick={() => setClearFilters(true)}
         >
           Clear all
-        </a>
-        <a
-          href="#"
+        </button>
+        <button
+          type="button"
           id="hide_filter_btn"
           className="wmcads-search-filter__close"
           onClick={() => setClearFilters(true)}
+          aria-label="Close filter"
         >
-          <svg>
+          <svg aria-hidden="true" focusable="false">
             <title>Close</title>
             <use
               xlinkHref="#wmcads-general-cross"
               href="#wmcads-general-cross"
             ></use>
           </svg>
-        </a>
+        </button>
       </div>
       <FilterAccordion
         title="Topic"
@@ -94,6 +95,7 @@ const BlogFilter = ({
           label: category,
           value: category,
         }))}
+        forceOpen={filter.topics && filter.topics.length > 0}
         optionSelected={(optionValue) => {
           const topics = filter.topics;
           if (topics.includes(optionValue)) {
@@ -118,6 +120,7 @@ const BlogFilter = ({
           label: author,
           value: author,
         }))}
+        forceOpen={filter.author && filter.author.length > 0}
         optionSelected={(optionValue) => {
           const authors = filter.author;
           if (authors.includes(optionValue)) {
@@ -143,6 +146,7 @@ const BlogFilter = ({
         selectOne
         filter={filter}
         clearFilters={clearFilters}
+        forceOpen={filter.dates != null}
         optionSelected={(optionValue) => {
           setFilter({ ...filter, dates: optionValue });
         }}
@@ -161,12 +165,14 @@ const BlogFilter = ({
       {filter.topics.length != 0 ||
       filter.author.length != 0 ||
       filter.dates != null ? (
-        <a
-          href="#"
+        <button
+          type="button"
           className="wmcads-search-filter__clear-all wmcads-hide-mobile"
           onClick={() => setClearFilters(true)}
         >
           <svg
+            aria-hidden="true"
+            focusable="false"
             style={{
               display: "inline-block",
               fill: "#c05701",
@@ -181,7 +187,7 @@ const BlogFilter = ({
             ></use>
           </svg>
           Clear all filters
-        </a>
+        </button>
       ) : null}
     </div>
   );

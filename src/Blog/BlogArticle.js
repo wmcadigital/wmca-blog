@@ -15,7 +15,7 @@ import SidebarCardComponent from "./SidebarCardComponent";
 import AccordionComponent from "./AccordionComponent";
 import Breadcrumb from "./Breadcrumb";
 import { Helmet } from "react-helmet";
-import ReactGA from "react-ga4";
+import { send as analyticsSend } from "../analytics";
 import { getPageKey } from "../helpers/page";
 
 // Make loader synchronous to avoid blocking initial render.
@@ -102,7 +102,7 @@ const BlogArticle = () => {
 
   useEffect(() => {
     // Send pageview with a custom path
-    ReactGA.send({
+    analyticsSend({
       hitType: "pageview",
       page: window.location.pathname + window.location.hash,
       title: article?.name,
@@ -256,18 +256,7 @@ const BlogArticle = () => {
         article={true}
       />
       <div className="wmcads-container">
-        <main
-          id="wmcads-main-content"
-          className="wmcads-container--main"
-          tabIndex={-1}
-          role="main"
-          // remove default focus outline/box-shadow when this element receives focus
-          style={{ outline: "none", boxShadow: "none" }}
-          onFocus={(e) => {
-            e.currentTarget.style.outline = "none";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        >
+        <main id="wmcads-main-content" className="wmcads-container--main" tabIndex={-1} role="main">
           <div className="wmcads-grid">
             <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-md wmcads-p-r-lg">
               <h1>{article?.name}</h1>

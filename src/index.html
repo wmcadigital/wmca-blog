@@ -7,17 +7,24 @@
     <!-- Preconnect to CMS and font hosts to reduce DNS/TCP/TLS setup time for images and fonts -->
     <link rel="preconnect" href="https://cms.wmca.org.uk" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://www.wmca.org.uk" crossorigin />
+  <link rel="preconnect" href="https://cloudcdn.wmca.org.uk" crossorigin />
     <link rel="dns-prefetch" href="//cms.wmca.org.uk" />
     <link rel="dns-prefetch" href="//fonts.gstatic.com" />
-    <link
-      rel="stylesheet"
-      href="https://www.wmca.org.uk/css/wmcads.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cloudcdn.wmca.org.uk/wmcaassets/ds/1.5.0/css/templates.min.css"
-    />
+    <!-- Defer third-party styles to avoid render-blocking. We preload then switch rel to stylesheet on load. -->
+    <link rel="preload" href="https://www.wmca.org.uk/css/wmcads.min.css" as="style" onload="this.rel='stylesheet'">
+    <link rel="preload" href="https://cloudcdn.wmca.org.uk/wmcaassets/ds/1.5.0/css/templates.min.css" as="style" onload="this.rel='stylesheet'">
+    <!-- Load Google Fonts without blocking render; use media trick or onload. -->
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=DM+Sans:700&display=swap" as="style" onload="this.rel='stylesheet'">
+    <!-- App specific small CSS (local) kept as stylesheet since it's tiny and likely critical for layout -> keep early -->
     <link rel="stylesheet" href="./custom.css" />
+    <!-- Fallback for no-JS clients: ensure styles still load -->
+    <noscript>
+      <link rel="stylesheet" href="https://www.wmca.org.uk/css/wmcads.min.css">
+      <link rel="stylesheet" href="https://cloudcdn.wmca.org.uk/wmcaassets/ds/1.5.0/css/templates.min.css">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=DM+Sans:700&display=swap">
+    </noscript>
     <title>WMCA Blog</title>
     <meta name="keywords" content="west midlands, combined authority, local authorities, culture, economy, innovation, environment, energy, housing, land, communities, skills, wellbeing, transport">
     <meta name="description" content="West Midlands Combined Authority (WMCA) is making the West Midlands the best place to live, work and visit.">
@@ -94,7 +101,7 @@
               aria-controls="-primary-menu"
             >
               Menu
-              <svg class="wmcads-mega-menu__close-icon">
+              <svg aria-hidden="true" focusable="false" class="wmcads-mega-menu__close-icon">
                 <use
                   xlink:href="#wmcads-general-cross"
                   href="#wmcads-general-cross"
@@ -202,7 +209,7 @@
                 class="wmcads-footer__collapse-button wmcads-hide-desktop"
                 title="Expand first menu"
               >
-                <svg class="wmcads-collapse-heading__indicator">
+                <svg aria-hidden="true" focusable="false" class="wmcads-collapse-heading__indicator">
                   <use href="#wmcads-general-chevron-right"></use>
                 </svg>
               </button>
@@ -262,7 +269,7 @@
                 class="wmcads-footer__collapse-button wmcads-hide-desktop"
                 title="Expand second menu"
               >
-                <svg class="wmcads-collapse-heading__indicator">
+                <svg aria-hidden="true" focusable="false" class="wmcads-collapse-heading__indicator">
                   <use href="#wmcads-general-chevron-right"></use>
                 </svg>
               </button>
@@ -295,7 +302,7 @@
                   title="https://www.facebook.com/westmidlandsca"
                   target="_blank"
                 >
-                  <svg>
+                  <svg aria-hidden="true" focusable="false">
                     <use href="#wmcads-social-facebook"></use>
                   </svg>
                 </a>
@@ -306,7 +313,7 @@
                   title="https://twitter.com/WestMids_CA"
                   target="_blank"
                 >
-                  <svg>
+                  <svg aria-hidden="true" focusable="false">
                     <use href="#wmcads-social-twitter"></use>
                   </svg>
                 </a>
@@ -317,7 +324,7 @@
                   title="Instagram page for West Midlands Combined Authority"
                   target="_blank"
                 >
-                  <svg>
+                  <svg aria-hidden="true" focusable="false">
                     <use href="#wmcads-social-instagram"></use>
                   </svg>
                 </a>
@@ -328,7 +335,7 @@
                   title="YouTube channel for West Midlands Combined Authority"
                   target="_blank"
                 >
-                  <svg>
+                  <svg aria-hidden="true" focusable="false">
                     <use href="#wmcads-social-youtube"></use>
                   </svg>
                 </a>
@@ -339,7 +346,7 @@
                   title="LinkedIn page for West Midlands Combined Authority"
                   target="_blank"
                 >
-                  <svg>
+                  <svg aria-hidden="true" focusable="false">
                     <use href="#wmcads-social-linkedin"></use>
                   </svg>
                 </a>

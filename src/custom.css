@@ -3,6 +3,45 @@
   box-shadow: 0 100vh 0 100vh #231f20;
 }
 
+/*
+  Local @font-face overrides to ensure fonts use font-display: swap
+  and to provide optional font metric overrides (ascent/descent/line-gap)
+  where supported to reduce layout shifts when the webfont loads.
+
+  We declare both the normal family name and the project-specific
+  name "Noto Sans Display Bold" used in existing rules so the font
+  is available immediately from our origin and can be controlled.
+
+  NOTE: metric override properties are relatively new and may be
+  ignored by older browsers — they are safe progressive enhancements.
+*/
+@font-face {
+  font-family: 'Noto Sans Display';
+  src: url('https://www.wmca.org.uk/fonts/notosansdisplay-regular-webfont.woff2') format('woff2'),
+       url('https://cloudcdn.wmca.org.uk/fonts/notosansdisplay-regular-webfont.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  /* Metric overrides (percentages) to reduce CLS where supported */
+  ascent-override: 90%;
+  descent-override: 10%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  /* Keep the project-specific name used elsewhere for backwards compatibility */
+  font-family: 'Noto Sans Display Bold';
+  src: url('https://cloudcdn.wmca.org.uk/fonts/notosansdisplay-bold-webfont.woff2') format('woff2'),
+       url('https://www.wmca.org.uk/fonts/notosansdisplay-bold-webfont.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  ascent-override: 88%;
+  descent-override: 12%;
+  line-gap-override: 0%;
+}
+
+
 /* Reset default browser button styles for consistency */
 button,
 input[type="button"],
@@ -54,6 +93,14 @@ input[type="reset"] {
   outline-offset: 2px;
 }
 
+/* When the main results container is programmatically focused (tabindex="-1"),
+   don't show the browser focus ring — keep focus semantics for assistive tech
+   but avoid a visual border appearing for programmatic focus. */
+#wmcads-main-content[tabindex="-1"]:focus {
+  outline: none;
+  box-shadow: none;
+}
+
 /* Ensure disabled controls that receive focus are clear */
 .wmcads-fe-radios__container.disabled:focus-visible {
   outline: 2px dashed rgba(184,184,184,0.6);
@@ -86,4 +133,4 @@ input[type="reset"] {
   margin: 20px 0; 
 }
 
-.ds-btn{-webkit-box-sizing:border-box;box-sizing:border-box;display:inline-block;position:relative;padding:.75rem;-webkit-transition:background-color .2s ease-in-out,border .2s ease-in-out;transition:background-color .2s ease-in-out,border .2s ease-in-out;border:1px solid transparent;border-radius:5px;color: #fff !important;;background-color:#c05701;font-family:"Noto Sans Display Bold",sans-serif;font-size:1rem;font-weight:700;text-align:center;text-decoration:none!important;cursor:pointer}.ds-btn:hover{background-color:#863d01}.ds-btn.ds-is--active,.ds-btn:active,.ds-btn:focus,.ds-btn:target{outline:0;background-color:#602c01;-webkit-appearance:none}.ds-btn__icon{width:22px;height:22px;fill:#fff;vertical-align:top}.ds-btn__icon--right{margin-left:.75rem;float:right}.ds-btn--dark-bg{color:#c05701;background-color:#fff}.ds-btn--dark-bg:hover{background-color:#f9eee6}.ds-btn--dark-bg:active,.ds-btn--dark-bg:focus,.ds-btn--dark-bg:target{background-color:#fd0}.ds-btn--dark-bg.ds-is--active{background-color:#f2ddcc}.ds-btn--primary{background-color:#c05701}.ds-btn--primary:hover{background-color:#863d01}.ds-btn--primary.ds-is--active,.ds-btn--primary:active,.ds-btn--primary:focus,.ds-btn--primary:target{background-color:#602c01}.ds-btn--secondary{border:1px solid #c05701;color:#c05701;background-color:transparent}.ds-btn--secondary .ds-btn__icon{fill:#c05701}.ds-btn--secondary:hover{background-color:#f9eee6}.ds-btn--secondary:active,.ds-btn--secondary:focus,.ds-btn--secondary:target{background-color:initial}.ds-btn--secondary.ds-is--active{background-color:#efd5c0}.ds-btn--secondary.ds-btn--disabled:disabled{border-color:#676869;color:#676869;background:0 0}.ds-btn--secondary.ds-btn--disabled:disabled .ds-btn__icon{fill:#676869}.ds-btn--cta{background-color:#007da8}.ds-btn--cta:hover{background-color:#005876}.ds-btn--cta.ds-is--active,.ds-btn--cta:active,.ds-btn--cta:focus,.ds-btn--cta:target{background-color:#003f54}.ds-btn--destructive{background-color:#d4351c}.ds-btn--destructive:hover{background-color:#942514}.ds-btn--destructive.ds-is--active,.ds-btn--destructive:active,.ds-btn--destructive:focus,.ds-btn--destructive:target{background-color:#6a1b0e}.ds-btn--start{background-color:#00703c}.ds-btn--start span{border:1px solid transparent}.ds-btn--start:hover{background-color:#004e2a}.ds-btn--start.ds-is--active,.ds-btn--start:active,.ds-btn--start:focus,.ds-btn--start:target{background-color:#00381e}.ds-btn--disabled:disabled{background-color:#676869;cursor:not-allowed}.ds-btn--disabled:disabled .ds-btn__icon{fill:#fff}.ds-btn--disabled:disabled.ds-is--active,.ds-btn--disabled:disabled:active,.ds-btn--disabled:disabled:focus,.ds-btn--disabled:disabled:target{background-color:#676869}.ds-btn--block{display:block;width:100%}.ds-btn--link{display:inline;padding:0;border-radius:0;color:#007197;background:0 0;font-weight:700;text-decoration:underline;cursor:pointer}.ds-btn--link.ds-is--active,.ds-btn--link:active,.ds-btn--link:focus,.ds-btn--link:hover,.ds-btn--link:target{background:0 0}
+.ds-btn{-webkit-box-sizing:border-box;box-sizing:border-box;display:inline-block;position:relative;padding:.75rem;-webkit-transition:background-color .2s ease-in-out,border .2s ease-in-out;transition:background-color .2s ease-in-out,border .2s ease-in-out;border:1px solid transparent;border-radius:5px;color: #fff !important;;background-color:#c05701;font-family:"Noto Sans Display Bold",sans-serif;font-size:1rem;font-weight:700;text-align:center;text-decoration:none!important;cursor:pointer}.ds-btn:hover{background-color:#863d01}.ds-btn.ds-is--active,.ds-btn:active,.ds-btn:focus,.ds-btn:target{outline:0;background-color:#602c01;-webkit-appearance:none;appearance:none}.ds-btn__icon{width:22px;height:22px;fill:#fff;vertical-align:top}.ds-btn__icon--right{margin-left:.75rem;float:right}.ds-btn--dark-bg{color:#c05701;background-color:#fff}.ds-btn--dark-bg:hover{background-color:#f9eee6}.ds-btn--dark-bg:active,.ds-btn--dark-bg:focus,.ds-btn--dark-bg:target{background-color:#fd0}.ds-btn--dark-bg.ds-is--active{background-color:#f2ddcc}.ds-btn--primary{background-color:#c05701}.ds-btn--primary:hover{background-color:#863d01}.ds-btn--primary.ds-is--active,.ds-btn--primary:active,.ds-btn--primary:focus,.ds-btn--primary:target{background-color:#602c01}.ds-btn--secondary{border:1px solid #c05701;color:#c05701;background-color:transparent}.ds-btn--secondary .ds-btn__icon{fill:#c05701}.ds-btn--secondary:hover{background-color:#f9eee6}.ds-btn--secondary:active,.ds-btn--secondary:focus,.ds-btn--secondary:target{background-color:initial}.ds-btn--secondary.ds-is--active{background-color:#efd5c0}.ds-btn--secondary.ds-btn--disabled:disabled{border-color:#676869;color:#676869;background:0 0}.ds-btn--secondary.ds-btn--disabled:disabled .ds-btn__icon{fill:#676869}.ds-btn--cta{background-color:#007da8}.ds-btn--cta:hover{background-color:#005876}.ds-btn--cta.ds-is--active,.ds-btn--cta:active,.ds-btn--cta:focus,.ds-btn--cta:target{background-color:#003f54}.ds-btn--destructive{background-color:#d4351c}.ds-btn--destructive:hover{background-color:#942514}.ds-btn--destructive.ds-is--active,.ds-btn--destructive:active,.ds-btn--destructive:focus,.ds-btn--destructive:target{background-color:#6a1b0e}.ds-btn--start{background-color:#00703c}.ds-btn--start span{border:1px solid transparent}.ds-btn--start:hover{background-color:#004e2a}.ds-btn--start.ds-is--active,.ds-btn--start:active,.ds-btn--start:focus,.ds-btn--start:target{background-color:#00381e}.ds-btn--disabled:disabled{background-color:#676869;cursor:not-allowed}.ds-btn--disabled:disabled .ds-btn__icon{fill:#fff}.ds-btn--disabled:disabled.ds-is--active,.ds-btn--disabled:disabled:active,.ds-btn--disabled:disabled:focus,.ds-btn--disabled:disabled:target{background-color:#676869}.ds-btn--block{display:block;width:100%}.ds-btn--link{display:inline;padding:0;border-radius:0;color:#007197;background:0 0;font-weight:700;text-decoration:underline;cursor:pointer}.ds-btn--link.ds-is--active,.ds-btn--link:active,.ds-btn--link:focus,.ds-btn--link:hover,.ds-btn--link:target{background:0 0}

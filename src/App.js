@@ -72,9 +72,9 @@ const router = createHashRouter([
       return mod.loader ? mod.loader(args) : null;
     },
   },
-]);
+], { future: { v7_startTransition: true } });
 
-console.log("v1.0.20");
+console.log("v1.0.21");
 
 root.render(
   <StrictMode>

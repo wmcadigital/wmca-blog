@@ -11,17 +11,17 @@ if (getSearchParam("author")) {
 }
 
 const BlogFilter = ({
-  returnedBlogArticles,
-  filter,
-  clearFilters,
-  setFilter,
-  setClearFilters,
-  noOfResults,
-  showFilterOverrideMobile,
-  setShowFilterOverrideMobile,
-  blogCategories,
-  authors,
-  setDateRanges,
+  returnedBlogArticles = [],
+  filter = { sort: "", topics: [], author: [], dates: null },
+  clearFilters = false,
+  setFilter = () => {},
+  setClearFilters = () => {},
+  noOfResults = 0,
+  showFilterOverrideMobile = false,
+  setShowFilterOverrideMobile = () => {},
+  blogCategories = [],
+  authors = [],
+  setDateRanges = () => {},
 }) => {
   const dates = [
     {
@@ -209,14 +209,4 @@ BlogFilter.propTypes = {
   setClearFilters: PropTypes.func,
 };
 
-BlogFilter.defaultProps = {
-  returnedBlogArticles: [],
-  filter: { sort: "", topics: [], author: [], dates: null },
-  noOfResults: 0,
-  setShowFilterOverrideMobile: () => {},
-  setFilter: () => {},
-  blogCategories: [],
-  authors: [],
-  setDateRanges: () => {},
-  setClearFilters: () => {},
-};
+// Defaults provided in the function signature to avoid using defaultProps on a function component

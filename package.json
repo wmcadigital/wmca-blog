@@ -8,7 +8,9 @@
     "sitemap": "node scripts/generate-sitemap.js",
     "test": "npm test --silent -- --runInBand",
     "format": "prettier --write \"src/**/*.{js,jsx}\"",
-    "lint": "npm run lint --silent"
+    "lint": "npm run lint --silent",
+    "upgrade-deps": "npx npm-check-updates -u && npm install",
+    "ncu": "npx npm-check-updates"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.16.11",
@@ -28,7 +30,8 @@
     "prettier": "^2.6.2",
     "process": "^0.11.10",
     "react-test-renderer": "^18.0.0",
-    "source-map-explorer": "^2.5.3"
+    "source-map-explorer": "^2.5.3",
+    "npm-check-updates": "^16.0.0"
   },
   "dependencies": {
     "@swc/helpers": "^0.3.8",
@@ -54,7 +57,7 @@
   "targets": {
     "default": {
       "context": "browser",
-      "includeNodeModules": false,
+      "includeNodeModules": true,
       "engines": {
         "browsers": [
           "last 2 Chrome versions",

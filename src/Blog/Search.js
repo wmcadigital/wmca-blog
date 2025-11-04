@@ -2,8 +2,8 @@ import PropTypes from "prop-types";
 
 const Search = ({
   placeholder,
-  changeCallback,
-  searchButtonClickedCallback,
+  changeCallback = () => {},
+  searchButtonClickedCallback = () => {},
 }) => (
   <form className="wmcads-search-bar">
     <label className="visible-hidden" htmlFor="search">
@@ -43,9 +43,6 @@ Search.propTypes = {
   searchButtonClickedCallback: PropTypes.func,
 };
 
-Search.defaultProps = {
-  changeCallback: () => {},
-  searchButtonClickedCallback: () => {},
-};
+// default parameter values above replace the previous use of defaultProps
 
 export default Search;

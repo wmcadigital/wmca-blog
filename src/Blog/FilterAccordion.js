@@ -92,15 +92,15 @@ RadioOption.propTypes = {
 };
 
 const FilterAccordion = ({
-  title,
-  options,
-  selectOne,
-  optionSelected,
-  optionSelectedFn,
-  setDateRanges,
-  clearFilters,
-  filter,
-  forceOpen,
+  title = "",
+  options = [],
+  selectOne = false,
+  optionSelected = () => {},
+  optionSelectedFn = () => {},
+  setDateRanges = () => {},
+  clearFilters = false,
+  filter = {},
+  forceOpen = false,
 }) => {
   const [accordionOpen, setAccordionOpen] = useState(!!forceOpen);
   const [dateAfter, setDateAfter] = useState({ day: "", month: "", year: "" });
@@ -395,12 +395,6 @@ FilterAccordion.propTypes = {
   forceOpen: PropTypes.bool,
 };
 
-FilterAccordion.defaultProps = {
-  options: [],
-  optionSelected: () => {},
-  optionSelectedFn: () => {},
-  setDateRanges: () => {},
-  forceOpen: false,
-};
+// Defaults provided in the function signature to avoid using defaultProps on a function component
 
 export default FilterAccordion;

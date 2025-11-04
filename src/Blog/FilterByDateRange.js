@@ -90,11 +90,11 @@ AddedAfter.propTypes = {
 };
 
 const FilterByDateRange = ({
-  name,
-  title,
-  handleDateChange,
-  value,
-  errors,
+  name = "",
+  title = "",
+  handleDateChange = () => {},
+  value = { day: "", month: "", year: "" },
+  errors = undefined,
 }) => {
   return (
     <div>
@@ -118,9 +118,6 @@ FilterByDateRange.propTypes = {
   errors: PropTypes.object,
 };
 
-FilterByDateRange.defaultProps = {
-  title: "",
-  name: "",
-};
+// Defaults provided in the function signature to avoid using defaultProps on a function component
 
 export default FilterByDateRange;

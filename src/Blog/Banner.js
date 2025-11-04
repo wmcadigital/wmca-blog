@@ -1,6 +1,14 @@
 import PropTypes from "prop-types";
 
-const Banner = ({ image, title, summary, position, article, label, children }) => {
+const Banner = ({
+  image,
+  title = (typeof window !== "undefined" && window.setTopics ? window.setTopics.name : undefined),
+  summary,
+  position = "center",
+  article = false,
+  label,
+  children,
+}) => {
   return (
     <>
       {image ? (
@@ -58,10 +66,7 @@ Banner.propTypes = {
   children: PropTypes.node,
 };
 
-Banner.defaultProps = {
-  title: window?.setTopics?.name,
-  position: "center",
-  article: false,
-};
+// Note: defaultProps are deprecated for function components. Defaults are
+// provided via destructured parameters above to preserve previous behaviour.
 
 export default Banner;

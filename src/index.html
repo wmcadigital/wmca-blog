@@ -17,13 +17,47 @@
     <link rel="preload" href="https://cloudcdn.wmca.org.uk/wmcaassets/ds/1.5.0/css/templates.min.css" as="style" onload="this.rel='stylesheet'">
     <!-- Load Google Fonts without blocking render; use media trick or onload. -->
     <link rel="preload" href="https://fonts.googleapis.com/css?family=DM+Sans:700&display=swap" as="style" onload="this.rel='stylesheet'">
-    <!-- App specific small CSS (local) kept as stylesheet since it's tiny and likely critical for layout -> keep early -->
-    <link rel="stylesheet" href="./custom.css" />
+  <!-- Preload local webfonts referenced in custom.css to avoid FOIT/CLS -->
+  <link rel="preload" href="https://www.wmca.org.uk/fonts/notosansdisplay-regular-webfont.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="https://www.wmca.org.uk/fonts/notosansdisplay-bold-webfont.woff2" as="font" type="font/woff2" crossorigin>
+    <!-- Inline critical CSS for above-the-fold to avoid render-blocking and reduce CLS -->
+    <style>
+      /* Critical font-face declarations (also preloaded as woff2) */
+      @font-face {
+        font-family: 'Noto Sans Display';
+        src: url('https://www.wmca.org.uk/fonts/notosansdisplay-regular-webfont.woff2') format('woff2'),
+             url('https://cloudcdn.wmca.org.uk/fonts/notosansdisplay-regular-webfont.woff2') format('woff2');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+        ascent-override: 90%;
+        descent-override: 10%;
+        line-gap-override: 0%;
+      }
+
+      @font-face {
+        font-family: 'Noto Sans Display Bold';
+        src: url('https://www.wmca.org.uk/fonts/notosansdisplay-bold-webfont.woff2') format('woff2'),
+             url('https://cloudcdn.wmca.org.uk/fonts/notosansdisplay-bold-webfont.woff2') format('woff2');
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+        ascent-override: 88%;
+        descent-override: 12%;
+        line-gap-override: 0%;
+      }
+
+      /* Minimal focus styles used by above-the-fold interactive controls */
+      *:focus:not(:focus-visible) { outline: none; }
+      *:focus-visible { outline: 3px solid #ffbf47; outline-offset: 2px; }
+      #wmcads-main-content[tabindex="-1"]:focus { outline: none; box-shadow: none; }
+    </style>
+
+    <!-- Load the remainder of local styles non-blocking: preload then switch rel to stylesheet on load -->
+    <link rel="preload" href="./custom.css" as="style" onload="this.rel='stylesheet'">
     <!-- Fallback for no-JS clients: ensure styles still load -->
     <noscript>
-      <link rel="stylesheet" href="https://www.wmca.org.uk/css/wmcads.min.css">
-      <link rel="stylesheet" href="https://cloudcdn.wmca.org.uk/wmcaassets/ds/1.5.0/css/templates.min.css">
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=DM+Sans:700&display=swap">
+      <link rel="stylesheet" href="./custom.css">
     </noscript>
     <title>WMCA Blog</title>
     <meta name="keywords" content="west midlands, combined authority, local authorities, culture, economy, innovation, environment, energy, housing, land, communities, skills, wellbeing, transport">
@@ -85,10 +119,13 @@
               href="/"
               title="West Midlands Combined Authority Design System"
             >
+              <!-- Provide intrinsic dimensions to avoid layout shift (assumption: logo approx 150x40). -->
               <img
                 class="wmcads-header__logo"
                 alt="West Midlands Combined Authority logo"
                 src="https://cloudcdn.wmca.org.uk/wmcaassets/ds/1.5.0/img/logo.svg"
+                width="150"
+                height="40"
               />
             </a>
           </div>

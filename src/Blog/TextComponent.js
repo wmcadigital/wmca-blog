@@ -25,6 +25,18 @@ const TextComponent = ({ htmlContent }) => {
     "<$1>$2</$1>"
   );
 
+  // Remove empty paragraphs or paragraphs that only contain non-breaking spaces
+  // e.g. <p>&nbsp;</p> or <p> </p>
+  updatedHtmlContent = updatedHtmlContent.replace(/<p[^>]*>(?:\s|&nbsp;|&#160;)*<\/p>/gi, "");
+
+  // Replace any non-breaking space entities with a normal space so they
+  // don't persist in the rendered text (e.g. &nbsp; or &#160;)
+  updatedHtmlContent = updatedHtmlContent.replace(/&nbsp;|&#160;/gi, " ");
+
+  // Remove any remaining <span> tags but keep their inner content.
+  // This strips styling spans the CMS sometimes injects while preserving text.
+  updatedHtmlContent = updatedHtmlContent.replace(/<span[^>]*>(.*?)<\/span>/gi, "$1");
+
   return <div dangerouslySetInnerHTML={{ __html: updatedHtmlContent }} />;
 };
 

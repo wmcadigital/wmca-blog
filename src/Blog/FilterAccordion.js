@@ -119,8 +119,10 @@ const FilterAccordion = ({
   const [contentId] = useState(() => `accordion-${inputName}`);
 
   const toggleAccordion = () => {
-    // prevent closing if forceOpen is true
-    if (forceOpen) return;
+    // Allow the user to toggle the accordion even if `forceOpen` is true.
+    // Previously we prevented closing when forced open; that made the UI
+    // feel stuck. Keep `forceOpen` behavior (it will open the accordion when
+    // set) but allow clicking to close it.
     setAccordionOpen(!accordionOpen);
   };
 

@@ -167,7 +167,6 @@ const BlogArticle = () => {
           const remoteAlt =
             data?.properties?.altText ||
             data?.properties?.alt ||
-            data?.name ||
             "";
           if (remoteAlt) setAlt(remoteAlt);
         })
@@ -187,21 +186,29 @@ const BlogArticle = () => {
 
     return (
       <picture>
-        <source type="image/webp" srcSet={widths.map((w) => `${base}?anchor=center&mode=crop&width=${w}&height=${Math.round((w * height) / width)}&format=webp ${w}w`).join(", ")} sizes="(max-width: 620px) 100vw, 620px" />
-        <source srcSet={srcSet} sizes="(max-width: 620px) 100vw, 620px" />
-        <img
-          key={getPageKey()}
-          src={fallback}
-          srcSet={srcSet}
-          sizes="(max-width: 620px) 100vw, 620px"
-          alt={alt || media?.name || ""}
-          className={className}
-          width={width}
-          height={height}
-          loading="eager" /* LCP image should not be lazy-loaded */
-          decoding="async"
-          style={{ maxWidth: "100%", height: "auto" }}
-        />
+      <source type="image/webp" srcSet={widths.map((w) => `${base}?anchor=center&mode=crop&width=${w}&height=${Math.round((w * height) / width)}&format=webp ${w}w`).join(", ")} sizes="(max-width: 620px) 100vw, 620px" />
+      <source srcSet={srcSet} sizes="(max-width: 620px) 100vw, 620px" />
+      <img
+        key={getPageKey()}
+        src={fallback}
+        srcSet={srcSet}
+        sizes="(max-width: 620px) 100vw, 620px"
+        alt={
+        // prefer explicit alt from the image prop, otherwise fall back to values from the Umbraco media record
+        alt ||
+        media?.properties?.altText ||
+        media?.properties?.alt ||
+        ""
+        }
+        className={className}
+        width={width}
+        height={height}
+        loading="eager" /* LCP image should not be lazy-loaded */
+        // eslint-disable-next-line react/no-unknown-property
+        fetchpriority="high"
+        decoding="async"
+        style={{ maxWidth: "100%", height: "auto" }}
+      />
       </picture>
     );
   };
@@ -213,7 +220,7 @@ const BlogArticle = () => {
     height: PropTypes.number,
   };
 
-  console.log(article);
+  // console.log(article);
 
   return (
     <>
@@ -222,14 +229,14 @@ const BlogArticle = () => {
         {article?.properties?.image && article.properties.image[0] && (
           (() => {
             const img = article.properties.image[0];
-            const { href, imagesrcset, imagesizes } = require("../helpers/image").buildPreloadAttrs(img.url, [320, 480, 620], { height: 300 });
+            const { href } = require("../helpers/image").buildPreloadAttrs(img.url, [320, 480, 620], { height: 300 });
             return (
               <link
                 rel="preload"
                 as="image"
                 href={href}
-                imagesrcset={imagesrcset}
-                imagesizes={imagesizes}
+                // imagesrcset/imagesizes removed to avoid React unknown-prop linting
+                crossOrigin="anonymous"
               />
             );
           })()
@@ -265,8 +272,14 @@ const BlogArticle = () => {
                   article?.properties?.author.map(function (item, index) {
                     return (
                       <React.Fragment key={item.id || item.name || index}>
-                        <Link to={`/?author=${item.name}`}>{item.name}</Link>
-                        {index < article.properties.author.length - 1 && ", "}
+                      <Link
+                        to={`/?author=${item.name}`}
+                        aria-label={`Use this link to view all articles by ${item.name}`}
+                      >
+                        {item.name}
+                      </Link>
+                      {", "}
+                      {index < article.properties.author.length - 1 && ", "}
                       </React.Fragment>
                     );
                   })}
@@ -360,74 +373,75 @@ const BlogArticle = () => {
 
               {article?.properties?.author &&
                 article?.properties?.author.map(function (item, index) {
-                  return (
+                    return (
                     <div
                       className="wmcads-inset-text wmcads-col-1 wmcads-m-b-md"
                       key={`${index}`}
                     >
                       {item.properties.bio != null ? (
-                        <Link
-                          className="wmcads-btn wmcads-btn--link"
-                          to={{
-                            pathname: `/author/${routePath(item.route.path)}`,
-                          }}
-                        >
-                          {item.name}
-                        </Link>
+                      <Link
+                        className="wmcads-btn wmcads-btn--link"
+                        to={{
+                        pathname: `/author/${routePath(item.route.path)}`,
+                        }}
+                        aria-label={`View the profile of ${item.name}`}
+                      >
+                        {item.name}
+                      </Link>
                       ) : (
-                        <p>
-                          <strong>{item.name}</strong>
-                        </p>
+                      <p>
+                        <strong>{item.name}</strong>
+                      </p>
                       )}
 
                       {item.properties.jobTitle != null ? (
-                        <p className="wmcads-m-t-md">
-                          {item.properties.jobTitle}
-                        </p>
+                      <p className="wmcads-m-t-md">
+                        {item.properties.jobTitle}
+                      </p>
                       ) : null}
 
                       {item.properties.twitter != null ||
                       item.properties.linkedin != null ? (
-                        <ul className="wmcads-bare-list wmcads-m-t-md">
-                          {item.properties.twitter != null ? (
-                            <li className="wmcads-m-b-none">
-                              <a
-                                href={item.properties.twitter[0].url}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                Twitter
-                              </a>
-                            </li>
-                          ) : null}
+                      <ul className="wmcads-bare-list wmcads-m-t-md">
+                        {item.properties.twitter != null ? (
+                        <li className="wmcads-m-b-none">
+                          <a
+                          href={item.properties.twitter[0].url}
+                          target="_blank"
+                          rel="noreferrer"
+                          >
+                          Twitter
+                          </a>
+                        </li>
+                        ) : null}
 
-                          {item.properties.linkedin != null ? (
-                            <li className="wmcads-m-b-none">
-                              <a
-                                href={item.properties.linkedin[0].url}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                Linkedin
-                              </a>
-                            </li>
-                          ) : null}
+                        {item.properties.linkedin != null ? (
+                        <li className="wmcads-m-b-none">
+                          <a
+                          href={item.properties.linkedin[0].url}
+                          target="_blank"
+                          rel="noreferrer"
+                          >
+                          Linkedin
+                          </a>
+                        </li>
+                        ) : null}
 
-                          {item.properties.facebook != null ? (
-                            <li className="wmcads-m-b-none">
-                              <a
-                                href={item.properties.facebook[0].url}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                Facebook
-                              </a>
-                            </li>
-                          ) : null}
-                        </ul>
+                        {item.properties.facebook != null ? (
+                        <li className="wmcads-m-b-none">
+                          <a
+                          href={item.properties.facebook[0].url}
+                          target="_blank"
+                          rel="noreferrer"
+                          >
+                          Facebook
+                          </a>
+                        </li>
+                        ) : null}
+                      </ul>
                       ) : null}
                     </div>
-                  );
+                    );
                 })}
             </div>
             <aside className="wmcads-col-1 wmcads-col-md-1-3">

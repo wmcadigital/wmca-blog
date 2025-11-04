@@ -1,4 +1,4 @@
-import React, { StrictMode, Suspense } from "react";
+import React, { Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { createHashRouter, RouterProvider } from "react-router-dom";
 
@@ -77,9 +77,7 @@ const router = createHashRouter([
 console.log("v1.0.21");
 
 root.render(
-  <StrictMode>
-    <Suspense fallback={null}>
-      <RouterProvider router={router} />
-    </Suspense>
-  </StrictMode>
+  <Suspense fallback={null}>
+    <RouterProvider router={router} />
+  </Suspense>
 );

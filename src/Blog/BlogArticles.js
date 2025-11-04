@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import chunk from "lodash/chunk";
 import flatten from "lodash/flatten";
 import { useSearchParams, useLocation } from "react-router-dom";
@@ -33,7 +33,22 @@ const BlogArticles = () => {
   const [blogCategories, setBlogCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(() => {
+    try {
+      // URL page param is 1-based (user-facing). Internal state is 0-based.
+      const qp = new URLSearchParams(window.location.search).get("page");
+      const asNumber = qp !== null ? parseInt(qp, 10) : 1;
+      if (Number.isNaN(asNumber)) return 0;
+      return Math.max(0, asNumber - 1);
+    } catch (e) {
+      return 0;
+    }
+  });
+  // previous filter query string; initialize empty and set later to avoid
+  // referencing `filterQueryString` before it's defined.
+  const prevFilterQueryRef = useRef(null);
+  const isFirstCombinedEffectRun = useRef(true);
+  const urlRestorePending = useRef(false);
   const [searchTerm, setSearchTerm] = useState(null);
   const [searchButtonClicked, setSearchButtonClicked] = useState("tick");
   const [showFilterOverrideMobile, setShowFilterOverrideMobile] =
@@ -63,6 +78,18 @@ const BlogArticles = () => {
       }
     })
     .join("&");
+
+  // Helper to build the search param string including current page (if > 0)
+  const buildSearchString = (pageVal = page) => {
+    const base = filterQueryString || "";
+    // convert internal 0-based page to 1-based page for the URL
+    const pageNumber = typeof pageVal === "number" ? pageVal + 1 : page + 1;
+    const pagePart = pageNumber > 1 ? `page=${pageNumber}` : "";
+    if (base && pagePart) return `${base}&${pagePart}`;
+    if (base) return base;
+    if (pagePart) return pagePart;
+    return "";
+  };
 
   const getBlogData = async () => {
     setLoading(true);
@@ -117,8 +144,7 @@ const BlogArticles = () => {
   }, [clearFilters]);
 
   useEffect(() => {
-    setSearchParams(filterQueryString);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // (was previously updating search params here) — combined into a single effect below
   }, [filter]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -139,7 +165,7 @@ const BlogArticles = () => {
       }, 0);
     }
 
-    if (dateRangeSet !== "undefined" && dateRangeSet !== null) {
+  if (dateRangeSet !== "undefined" && dateRangeSet !== null) {
       if (filter.dateRangeSet === undefined) {
         setFilter({ ...filter, dateRangeSet: JSON.parse(dateRangeSet) });
       }
@@ -172,6 +198,32 @@ const BlogArticles = () => {
         author: author.split("/"),
       }));
     }
+    // initialize page from query param if present (URL is 1-based)
+    const qpPage = queryParams.get("page");
+    if (qpPage !== null) {
+      const parsed = parseInt(qpPage, 10);
+      if (!Number.isNaN(parsed)) setPage(Math.max(0, parsed - 1));
+    }
+      // If any filters or page were present in the URL, mark that we're restoring
+      // state from the URL so we don't treat this programmatic restore as
+      // a user-initiated filter change.
+      if (topics || author || dates || sort || dateRangeSet || qpPage !== null) {
+        urlRestorePending.current = true;
+      }
+
+      // Debug trace: log restoration values (remove this in production)
+      /* eslint-disable no-console */
+      console.debug("BlogArticles mount restore", {
+        topics,
+        author,
+        dates,
+        sort,
+        dateRangeSet,
+        qpPage,
+        initialPage: page,
+        urlRestorePending: urlRestorePending.current,
+      });
+      /* eslint-enable no-console */
     // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => {
       mounted = false;
@@ -191,7 +243,7 @@ const BlogArticles = () => {
       const resultsCountEl = document.getElementById("wmcads-results-count");
       const fallbackEl = document.getElementById("wmcads-main-content");
 
-      const targetEl = resultsCountEl || fallbackEl;
+      
 
       if (resultsCountEl) {
         // Directly scroll the results count element into view at the top of the
@@ -258,7 +310,6 @@ const BlogArticles = () => {
     let filteredBlogArticles = returnedBlogArticles;
 
     if (searchTerm) {
-      setPage(0);
       filteredBlogArticles = searchBlogArticles(
         returnedBlogArticles,
         searchTerm
@@ -266,7 +317,6 @@ const BlogArticles = () => {
     }
 
     if (filter.topics.length) {
-      setPage(0);
       filteredBlogArticles = filterBlogArticlesByTopic(
         filteredBlogArticles,
         filter.topics
@@ -274,7 +324,6 @@ const BlogArticles = () => {
     }
 
     if (filter.author.length) {
-      setPage(0);
       filteredBlogArticles = filterBlogArticlesByAuthor(
         filteredBlogArticles,
         filter.author
@@ -282,7 +331,6 @@ const BlogArticles = () => {
     }
 
     if (filter.dates) {
-      setPage(0);
       filter.dates !== "updatedByRange"
         ? (filteredBlogArticles = filterBlogArticlesByDate(
             filteredBlogArticles,
@@ -292,7 +340,6 @@ const BlogArticles = () => {
     }
 
     if (filter.dateRangeSet && filter.dates === "updatedByRange") {
-      setPage(0);
       filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
         filter.dates,
@@ -318,14 +365,12 @@ const BlogArticles = () => {
 
     if (filter.sort === "ascending") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
-      setSearchParams(filterQueryString);
+      // search params are updated by the combined effect below
       // setFilter({ sort: "ascending" });
     } else if (filter.sort === "descending") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles), 5));
-      setSearchParams(filterQueryString);
     } else if (filter.sort === "name") {
       setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, "name"), 5));
-      setSearchParams(filterQueryString);
     } else {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
@@ -338,7 +383,7 @@ const BlogArticles = () => {
       clearFilters
     ) {
       // setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
-      setSearchParams(filterQueryString);
+      // search params are updated by the combined effect below
     } else {
       setBlogArticles(chunk(filteredBlogArticles, 5));
     }
@@ -372,6 +417,48 @@ const BlogArticles = () => {
     setSearchParams,
     sortDefault,
   ]);
+
+  // Keep a ref of previous filter query string so we can detect filter changes.
+
+  // Update search params whenever filter or page change (centralised to avoid races)
+  // If the filter changed, reset the visible page to 0 and write page=1 (omitted) to the URL.
+  useEffect(() => {
+    const prev = prevFilterQueryRef.current;
+    const filterChanged = prev !== filterQueryString;
+
+    // Ignore the very first run of this combined effect — this allows
+    // initial restoration of `filter` and `page` from the URL without
+    // treating it as a user-initiated filter change that resets the page.
+    if (isFirstCombinedEffectRun.current) {
+      // First run after mount — don't write the search params so any
+      // existing URL (including page) is preserved. Just record the
+      // current filterQueryString and continue.
+      prevFilterQueryRef.current = filterQueryString;
+      isFirstCombinedEffectRun.current = false;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      return;
+    }
+
+    if (filterChanged) {
+      // If the filter change was just restoring state from the URL on mount,
+      // don't treat it as a user change — just preserve the current page and
+      // clear the pending flag.
+      if (urlRestorePending.current) {
+        setSearchParams(buildSearchString(page));
+        urlRestorePending.current = false;
+      } else {
+        // If a filter changed due to user interaction, ensure page is reset to 0.
+        if (page !== 0) setPage(0);
+        // Write URL using page 0 (buildSearchString will convert to 1-based)
+        setSearchParams(buildSearchString(0));
+      }
+    } else {
+      setSearchParams(buildSearchString(page));
+    }
+
+    prevFilterQueryRef.current = filterQueryString;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterQueryString, page]);
 
   // Show a small loading spinner when filters change to communicate work in progress
   useEffect(() => {
@@ -548,7 +635,10 @@ const BlogArticles = () => {
                         <Pagination
                           numberOfPages={blogArticles.length}
                           activePage={page}
-                          callBack={setPage}
+                          // setPage only; URL is updated by the combined effect
+                          callBack={(p) => {
+                            setPage(p);
+                          }}
                         />
                       </div>
                     </>

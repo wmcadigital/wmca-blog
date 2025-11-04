@@ -270,6 +270,7 @@ const BlogArticle = () => {
               <p className="wmcads-search-result__date">
                 {article?.properties?.author &&
                   article?.properties?.author.map(function (item, index) {
+                    const authorCount = article?.properties?.author?.length ?? 0;
                     return (
                       <React.Fragment key={item.id || item.name || index}>
                       <Link
@@ -278,8 +279,8 @@ const BlogArticle = () => {
                       >
                         {item.name}
                       </Link>
-                      {", "}
-                      {index < article.properties.author.length - 1 && ", "}
+                      {/* Only render a comma between multiple authors */}
+                      {index < authorCount - 1 && ", "}
                       </React.Fragment>
                     );
                   })}
@@ -364,12 +365,15 @@ const BlogArticle = () => {
                 })}
               </p>
 
-              {article?.properties?.author.length !== 0 &&
-              article?.properties?.author.length == 1 ? (
-                <h2>About the author</h2>
-              ) : (
-                article?.properties?.author.length !== 0 && <h2>About the authors</h2>
-              )}
+              {(() => {
+                const authorCount = article?.properties?.author?.length ?? 0;
+                if (authorCount === 0) return null;
+                return authorCount === 1 ? (
+                  <h2>About the author</h2>
+                ) : (
+                  <h2>About the authors</h2>
+                );
+              })()}
 
               {article?.properties?.author &&
                 article?.properties?.author.map(function (item, index) {

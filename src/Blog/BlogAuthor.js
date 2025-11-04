@@ -217,8 +217,7 @@ const BlogAuthor = () => {
                   <div className="wmcads-css-grid-3-col">
                     <>
                       {authorArticles[0]?.map((article) => (
-                        <>
-                          <div className="wmcads-content-card wmcads-content-card--news">
+                        <div key={article.id} className="wmcads-content-card wmcads-content-card--news">
                             {article.properties.image && (() => {
                               const url = article.properties.image[0].url;
                               const widths = [320, 480, 600];
@@ -250,7 +249,6 @@ const BlogAuthor = () => {
                               {article.name}
                             </Link>
                           </div>
-                        </>
                       ))}
                     </>
                   </div>
@@ -279,7 +277,7 @@ const BlogAuthor = () => {
                 <>
                   <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-m-t-lg">
                     {author.name && (
-                      <h3>Follow {author.name} on social media</h3>
+                      <h2 className="h3">Follow {author.name} on social media</h2>
                     )}
                     <ul>
                       {author.properties?.facebook !== null ? (

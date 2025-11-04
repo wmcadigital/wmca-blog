@@ -59,6 +59,8 @@ const router = createHashRouter([
     element: <BlogArticle />,
     // Dynamically import the loader when the route is navigated to so data
     // fetching logic isn't bundled into the initial JS.
+    // Provide an errorElement so loader/runtime errors show a friendly page
+    errorElement: <ErrorPage />,
     loader: async (args) => {
       const mod = await import("./Blog/BlogArticle");
       return mod.loader ? mod.loader(args) : null;
@@ -67,6 +69,8 @@ const router = createHashRouter([
   {
     path: "author/:authorName",
     element: <BlogAuthor />,
+    // Provide an errorElement so loader/runtime errors show a friendly page
+    errorElement: <ErrorPage />,
     loader: async (args) => {
       const mod = await import("./Blog/BlogAuthor");
       return mod.loader ? mod.loader(args) : null;

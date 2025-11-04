@@ -31,8 +31,9 @@
 @font-face {
   /* Keep the project-specific name used elsewhere for backwards compatibility */
   font-family: 'Noto Sans Display Bold';
-  src: url('https://cloudcdn.wmca.org.uk/fonts/notosansdisplay-bold-webfont.woff2') format('woff2'),
-       url('https://www.wmca.org.uk/fonts/notosansdisplay-bold-webfont.woff2') format('woff2');
+  /* Try the origin first to avoid 404 noise from a misconfigured CDN. */
+  src: url('https://www.wmca.org.uk/fonts/notosansdisplay-bold-webfont.woff2') format('woff2'),
+       url('https://cloudcdn.wmca.org.uk/fonts/notosansdisplay-bold-webfont.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;

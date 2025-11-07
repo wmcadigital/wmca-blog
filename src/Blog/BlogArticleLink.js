@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import formatDate from "../helpers/formatDate";
 import getUmbracoMedia from "../api/getUmbracoMedia"; // <-- import the media API
 import { buildSrc, buildSrcSet } from "../helpers/image";
+import { focalPointToAnchor } from "../helpers/focalPoint";
+import { findCropByAlias } from "../helpers/mediaCrops";
 import { getPageKey } from "../helpers/page";
 
 const BlogArticleLink = ({
@@ -136,11 +138,17 @@ const BlogArticleLink = ({
           This prevents the previous image from being visible while a new image fetch is in progress */}
       {(mediaData && mediaData.url) || (!imageLoading && image && image !== "No Image") ? (
         (() => {
-          const url = mediaData?.url || image;
+          // Prefer the named crop 'Banner' when available in the media item's crops.
+          // Try both 'Banner' and lowercase 'banner' to be tolerant of alias casing.
+          const bannerCrop = mediaData ? (findCropByAlias(mediaData, "Banner") || findCropByAlias(mediaData, "banner")) : null;
+          console.log(bannerCrop);
+          const url = bannerCrop?.url || mediaData?.url || image;
           const widths = [320, 480, 600];
-          const srcSet = buildSrcSet(url, widths, { height: 250, anchor: "center", mode: "crop" });
-          const webpSrcSet = buildSrcSet(url, widths, { height: 250, anchor: "center", mode: "crop", format: "webp" });
-          const fallback = buildSrc(url, { width: 600, height: 250, anchor: "center", mode: "crop" });
+          const focal = mediaData?.focalPoint || (typeof imageID === "object" ? imageID?.focalPoint : null);
+          const anchor = focalPointToAnchor(focal);
+          const srcSet = buildSrcSet(url, widths, { height: 250, anchor, mode: "crop" });
+          const webpSrcSet = buildSrcSet(url, widths, { height: 250, anchor, mode: "crop", format: "webp" });
+          const fallback = buildSrc(url, { width: 600, height: 250, anchor, mode: "crop" });
           const altText = mediaData?.properties?.altText || (typeof imageID === "object" ? imageID?.properties?.altText : "") || "";
 
           return (

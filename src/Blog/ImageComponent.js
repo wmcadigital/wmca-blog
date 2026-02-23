@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import getUmbracoMedia from "../api/getUmbracoMedia";
 import { buildSrc, buildSrcSet } from "../helpers/image";
-import { Helmet } from "react-helmet";
+import Helmet from "react-helmet";
 
 const ImageComponent = ({ imageUrls }) => {
   const [mediaMap, setMediaMap] = useState({});

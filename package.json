@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "node ./scripts/start-dev.js",
     "build": "parcel build src/index.html",
+    "build:cdn": "parcel build src/index.html --dist-dir build --public-url ./",
+    "build:cdn:absolute": "parcel build src/index.html --dist-dir build --public-url https://cloudcdn.wmca.org.uk/staging/wmcaassets/apps/blog/",
+    "build:cdn:lower": "npm run build:cdn:absolute && node ./scripts/lowercase-build.js build",
     "lhci:collect": "lhci collect --config=./.lighthouserc.json",
     "lhci:assert": "lhci assert --config=./.lighthouserc.json",
     "lhci": "npm run lhci:collect && npm run lhci:assert",

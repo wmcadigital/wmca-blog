@@ -96,7 +96,7 @@ const BlogBody = ({
           const base = `https://cms.wmca.org.uk${url}`;
           const widths = [320, 480, 600];
           const srcSet = widths.map((w) => `${base}?anchor=center&mode=crop&width=${w}&height=${Math.round((w * 250) / 600)} ${w}w`).join(", ");
-          const webpSrcSet = widths.map((w) => `${base}?anchor=center&mode=crop&width=${w}&height=${Math.round((w * 250) / 600)}&format=webp ${w}w`).join(", ");
+          const webpSrcSet = widths.map((w) => `${base}?anchor=center&mode=crop&width=${w}&height=${Math.round((w * 250) / 600)} ${w}w`).join(", ");
           const fallback = `${base}?anchor=center&mode=crop&width=600&height=250`;
           return (
             <picture>

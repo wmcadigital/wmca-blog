@@ -78,7 +78,7 @@ const router = createHashRouter([
   },
 ], { future: { v7_startTransition: true } });
 
-console.log("v1.0.21");
+console.log("v1.0.26");
 
 root.render(
   <Suspense fallback={null}>

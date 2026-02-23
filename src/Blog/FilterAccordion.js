@@ -153,7 +153,10 @@ const FilterAccordion = ({
     return Object.values(obj).some((value) => value !== undefined);
   };
 
-  const validationMonthDay = useCallback((updates, date, type) => {
+  // validationMonthDay now accepts the computed isDate1BeforeDate2 value
+  // as a parameter so it doesn't close over component state and can be
+  // used inside effects without forcing them to re-run on error/state changes.
+  const validationMonthDay = useCallback((updates, date, type, isBefore) => {
     let otherError = false;
 
     if (date.day === "") {
@@ -177,9 +180,9 @@ const FilterAccordion = ({
       updates.month = undefined;
     }
 
-    if (type === "before" && isDate1BeforeDate2) {
+    if (type === "before" && isBefore) {
       updates.ToosGreaterThanFrom = undefined;
-    } else if (type === "before" && isDate1BeforeDate2 === false) {
+    } else if (type === "before" && isBefore === false) {
       updates.ToosGreaterThanFrom = "Date to must be greater than date from";
     }
 
@@ -188,7 +191,7 @@ const FilterAccordion = ({
     }
 
     return updates;
-  }, [isDate1BeforeDate2]);
+  }, []);
 
   // Method get the date ranges from the URL and splits the string values back into the required object type before setting the local states
   const setDateValuesFromUrl = useCallback(() => {
@@ -235,7 +238,7 @@ const FilterAccordion = ({
       return new Date(formattedDateString);
     };
 
-    // If false no fields are empty && yearly charachters are 4
+    // Only run validation when all fields are present and years are 4 characters
     if (!isAnyValueEmpty() && yearInputContains4characters()) {
       const afterDateString = `${dateAfter.year}/${dateAfter.month}/${dateAfter.day}`;
       const beforeDateString = `${dateBefore.year}/${dateBefore.month}/${dateBefore.day}`;
@@ -243,25 +246,54 @@ const FilterAccordion = ({
       const afterNewDate = stringDateToNewDate(afterDateString);
       const beforeNewDate = stringDateToNewDate(beforeDateString);
 
-      // before should be greater than after
-      setIsDate1BeforeDate2(beforeNewDate >= afterNewDate);
-      setDateRanges2({ from: afterDateString, to: beforeDateString });
+      // compute comparison once
+      const newIsBefore = beforeNewDate >= afterNewDate;
+
+      // only update boolean state when it actually changes
+      setIsDate1BeforeDate2((prev) => (prev === newIsBefore ? prev : newIsBefore));
+
+      const newDateRanges = { from: afterDateString, to: beforeDateString };
+      setDateRanges2((prev) => {
+        try {
+          if (JSON.stringify(prev) === JSON.stringify(newDateRanges)) return prev;
+        } catch (e) {
+          // ignore circular/serialization errors
+        }
+        return newDateRanges;
+      });
 
       const updatedBeforeErrorsSet = validationMonthDay(
         { ...beforeErrors },
         dateBefore,
-        "before"
+        "before",
+        newIsBefore
       );
       const updatedAfterErrorsSet = validationMonthDay(
         { ...afterErrors },
         dateAfter,
-        "after"
+        "after",
+        newIsBefore
       );
 
-      setBeforeErrors(updatedBeforeErrorsSet);
-      setAfterErrors(updatedAfterErrorsSet);
+      setBeforeErrors((prev) => {
+        try {
+          if (JSON.stringify(prev) === JSON.stringify(updatedBeforeErrorsSet)) return prev;
+        } catch (e) {
+          // ignore circular/serialization errors
+        }
+        return updatedBeforeErrorsSet;
+      });
+
+      setAfterErrors((prev) => {
+        try {
+          if (JSON.stringify(prev) === JSON.stringify(updatedAfterErrorsSet)) return prev;
+        } catch (e) {
+          // ignore circular/serialization errors
+        }
+        return updatedAfterErrorsSet;
+      });
     }
-  }, [dateAfter, dateBefore, isDate1BeforeDate2, afterErrors, beforeErrors, validationMonthDay]);
+  }, [dateAfter, dateBefore, validationMonthDay, afterErrors, beforeErrors]);
 
   
 
@@ -298,13 +330,14 @@ const FilterAccordion = ({
       className={`wmcads-accordion ${accordionOpen ? "wmcads-is--open" : null}`}
     >
       <button
+        id={`${contentId}-button`}
         aria-controls={contentId}
         className="wmcads-accordion__summary-wrapper"
         aria-expanded={accordionOpen}
         onClick={toggleAccordion}
       >
         <div className="wmcads-accordion__summary">
-          <h4 className="wmcads-accordion__summary-title wmcads-m-b-none">
+          <h4 id={`${contentId}-label`} className="wmcads-accordion__summary-title wmcads-m-b-none">
             {title}
           </h4>
         </div>
@@ -321,7 +354,7 @@ const FilterAccordion = ({
           ></use>
         </svg>
       </button>
-      <div className="wmcads-accordion__content" id={contentId}>
+  <div className="wmcads-accordion__content" id={contentId} role="region" aria-labelledby={`${contentId}-label`}>
         <fieldset className="wmcads-fe-fieldset">
           {/* Accessible label for the fieldset */}
           <legend className="visible-hidden">{title}</legend>

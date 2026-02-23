@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import chunk from "lodash/chunk";
 import flatten from "lodash/flatten";
 import { useSearchParams, useLocation } from "react-router-dom";
@@ -67,17 +67,23 @@ const BlogArticles = () => {
 
   let [searchParams, setSearchParams] = useSearchParams();
 
-  let filterQueryString = Object.keys(filter)
-    .map((key) => {
-      if (Array.isArray(filter[key])) {
-        return key + "=" + filter[key].join("/");
-      } else if (typeof filter[key] === "object") {
-        return key + "=" + JSON.stringify(filter[key]);
-      } else {
-        return key + "=" + filter[key];
-      }
-    })
-    .join("&");
+  // Live region message for screen readers when results change
+  const [liveMessage, setLiveMessage] = useState("");
+  const [liveKey, setLiveKey] = useState(0);
+
+  const filterQueryString = useMemo(() => {
+    return Object.keys(filter)
+      .map((key) => {
+        if (Array.isArray(filter[key])) {
+          return key + "=" + filter[key].join("/");
+        } else if (typeof filter[key] === "object") {
+          return key + "=" + JSON.stringify(filter[key]);
+        } else {
+          return key + "=" + filter[key];
+        }
+      })
+      .join("&");
+  }, [filter]);
 
   // Helper to build the search param string including current page (if > 0)
   const buildSearchString = (pageVal = page) => {
@@ -124,9 +130,16 @@ const BlogArticles = () => {
   const topics = queryParams.get("topics");
   const dateRangeSet = queryParams.get("dateRangeSet");
 
-  const setDateRanges = (newRanges) => {
-    setFilter({ ...filter, dateRangeSet: newRanges });
-  };
+  const setDateRanges = useCallback((newRanges) => {
+    setFilter((prev) => {
+      try {
+        if (JSON.stringify(prev.dateRangeSet) === JSON.stringify(newRanges)) return prev;
+      } catch (e) {
+        // ignore serialization errors
+      }
+      return { ...prev, dateRangeSet: newRanges };
+    });
+  }, [setFilter]);
 
   useEffect(() => {
     if (clearFilters) {
@@ -406,6 +419,26 @@ const BlogArticles = () => {
 
     // Update authors shown in the UI
     setAuthors(availableAuthors);
+
+    // Update screen reader live region message. Use the filtered list length
+    // so SR users hear an announcement whenever the results change.
+    try {
+      const resultsCount = Array.isArray(filteredBlogArticles)
+        ? filteredBlogArticles.length
+        : 0;
+      let message = "";
+      if (loading) {
+        message = "Searching blog articles.";
+      } else if (resultsCount === 0) {
+        message = "No matching results. Try removing filters or using fewer keywords.";
+      } else {
+        message = `Found ${resultsCount} matching results.`;
+      }
+      setLiveMessage(message);
+      setLiveKey(Date.now());
+    } catch (e) {
+      // ignore
+    }
   }, [
     clearFilters,
     filter,
@@ -539,6 +572,64 @@ const BlogArticles = () => {
               searchButtonClickedCallback={searchButtonClickedFn}
             />
           </div>
+      <a
+        href="#search_filter"
+        onClick={(e) => {
+          // Prevent default hash navigation; programmatically reveal and focus the filter
+          e.preventDefault();
+          try {
+            // Ensure the mobile filter overlay is visible
+            setShowFilterOverrideMobile(true);
+
+            // Wait a tick for any UI changes (overlay open) to render, then focus
+            window.setTimeout(() => {
+              const target = document.getElementById("search_filter");
+              if (target) {
+                // make focusable, focus, then remove tabindex
+                const prevTab = target.getAttribute("tabindex");
+                target.setAttribute("tabindex", "-1");
+                target.focus({ preventScroll: false });
+                if (prevTab === null) target.removeAttribute("tabindex");
+                // also ensure element is visible in viewport
+                try {
+                  target.scrollIntoView({ behavior: "smooth", block: "start" });
+                } catch (err) {
+                  /* ignore */
+                }
+              }
+            }, 50);
+          } catch (err) {
+            // fallback: jump to hash
+            window.location.hash = "#search_filter";
+          }
+        }}
+        onFocus={(e) => {
+          const el = e.currentTarget;
+          el.style.position = "static";
+          el.style.left = "0";
+          el.style.width = "auto";
+          el.style.height = "auto";
+          el.style.padding = "8px";
+          el.style.background = "#fff";
+          el.style.zIndex = "1000";
+        }}
+        onBlur={(e) => {
+          const el = e.currentTarget;
+          el.style.position = "absolute";
+          el.style.left = "-9999px";
+          el.style.width = "1px";
+          el.style.height = "1px";
+          el.style.padding = "0";
+          el.style.background = "transparent";
+        }}
+        style={{
+          position: "absolute",
+          left: "-9999px",
+          top: 0,
+        }}
+      >
+        Skip to filters
+      </a>
           <div className="wmcads-grid">
             <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-xl wmcads-p-r-lg">
               {/* Live region for screen readers to announce results updates */}
@@ -554,11 +645,11 @@ const BlogArticles = () => {
                   overflow: "hidden",
                 }}
               >
-                {loading
-                  ? "Searching blog articles."
-                  : noOfResults === 0
-                  ? "No matching results. Try removing filters or using fewer keywords."
-                  : `Found ${noOfResults} matching results.`}
+                {loading ? (
+                  "Searching blog articles."
+                ) : (
+                  <span key={liveKey}>{liveMessage}</span>
+                )}
               </div>
 
               {loading ? (
@@ -629,6 +720,8 @@ const BlogArticles = () => {
                           }
                           publishDate={blogArticle.properties.date}
                           introductionText={blogArticle.properties.introduction}
+                          resultIndex={page * 5 + index + 1}
+                          totalResults={noOfResults}
                         />
                       ))}
                       <div className="wmcads-m-t-lg">
@@ -646,7 +739,7 @@ const BlogArticles = () => {
                 </>
               )}
             </div>
-            <aside className="wmcads-col-1 wmcads-col-md-1-3 wmcads-m-b-lg">
+            <aside id="search_filter" className="wmcads-col-1 wmcads-col-md-1-3 wmcads-m-b-lg">
               <hr className="wmcads-hide-desktop" />
               <DelayedComponent>
                 <SortControl

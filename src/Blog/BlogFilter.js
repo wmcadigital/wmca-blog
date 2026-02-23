@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import { useCallback, useMemo } from "react";
 
 import FilterAccordion from "./FilterAccordion";
 
@@ -23,7 +24,7 @@ const BlogFilter = ({
   authors = [],
   setDateRanges = () => {},
 }) => {
-  const dates = [
+  const dates = useMemo(() => [
     {
       value: "updatedLastWeek",
       label: "Posted in the last week",
@@ -52,7 +53,10 @@ const BlogFilter = ({
       // allow user to pick any custom range (enabled by default)
       disabled: false,
     },
-  ];
+  ], [returnedBlogArticles]);
+
+  const topicOptions = useMemo(() => blogCategories.map((category) => ({ label: category, value: category })), [blogCategories]);
+  const authorOptions = useMemo(() => authors.map((a) => ({ label: a, value: a })), [authors]);
 
   return (
     <div
@@ -91,53 +95,37 @@ const BlogFilter = ({
       </div>
       <FilterAccordion
         title="Topic"
-        options={blogCategories.map((category) => ({
-          label: category,
-          value: category,
-        }))}
+        options={topicOptions}
         forceOpen={filter.topics && filter.topics.length > 0}
-        optionSelected={(optionValue) => {
-          const topics = filter.topics;
-          if (topics.includes(optionValue)) {
-            setFilter({
-              ...filter,
-              topics: topics.filter((category) => category !== optionValue),
-            });
-          } else {
-            setFilter({
-              ...filter,
-              topics: [...filter.topics, optionValue],
-            });
-          }
-        }}
-        optionSelectedFn={(value) =>
+        optionSelected={useCallback((optionValue) => {
+          setFilter((prev) => {
+            const topics = prev.topics || [];
+            if (topics.includes(optionValue)) {
+              return { ...prev, topics: topics.filter((category) => category !== optionValue) };
+            }
+            return { ...prev, topics: [...topics, optionValue] };
+          });
+        }, [setFilter])}
+        optionSelectedFn={useCallback((value) =>
           filter.topics.includes(value) ? true : undefined
-        }
+        , [filter.topics])}
       />
       <FilterAccordion
         title="Author"
-        options={authors.map((author) => ({
-          label: author,
-          value: author,
-        }))}
+        options={authorOptions}
         forceOpen={filter.author && filter.author.length > 0}
-        optionSelected={(optionValue) => {
-          const authors = filter.author;
-          if (authors.includes(optionValue)) {
-            setFilter({
-              ...filter,
-              author: authors.filter((author) => author !== optionValue),
-            });
-          } else {
-            setFilter({
-              ...filter,
-              author: [...filter.author, optionValue],
-            });
-          }
-        }}
-        optionSelectedFn={(value) =>
+        optionSelected={useCallback((optionValue) => {
+          setFilter((prev) => {
+            const authors = prev.author || [];
+            if (authors.includes(optionValue)) {
+              return { ...prev, author: authors.filter((a) => a !== optionValue) };
+            }
+            return { ...prev, author: [...authors, optionValue] };
+          });
+        }, [setFilter])}
+        optionSelectedFn={useCallback((value) =>
           filter.author.includes(value) ? true : undefined
-        }
+        , [filter.author])}
       />
       {/* pass the whole filter object into the filter accordion */}
       <FilterAccordion
@@ -147,12 +135,12 @@ const BlogFilter = ({
         filter={filter}
         clearFilters={clearFilters}
         forceOpen={filter.dates != null}
-        optionSelected={(optionValue) => {
-          setFilter({ ...filter, dates: optionValue });
-        }}
-        optionSelectedFn={(value) =>
+        optionSelected={useCallback((optionValue) => {
+          setFilter((prev) => ({ ...prev, dates: optionValue }));
+        }, [setFilter])}
+        optionSelectedFn={useCallback((value) =>
           filter.dates === value ? true : undefined
-        }
+        , [filter.dates])}
         setDateRanges={setDateRanges}
       />
       <div className="wmcads-search-filter__mobile-filter-update wmcads-hide-desktop">
@@ -167,7 +155,7 @@ const BlogFilter = ({
       filter.dates != null ? (
         <button
           type="button"
-          className="wmcads-search-filter__clear-all wmcads-hide-mobile"
+          className="wmcads-search-filter__clear-all wmcads-hide-mobile wmcads-col-1 bg-white wmcads-text-align-left"
           onClick={() => setClearFilters(true)}
         >
           <svg

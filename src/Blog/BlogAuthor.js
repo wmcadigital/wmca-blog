@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { useLoaderData, Link } from "react-router-dom";
 
 import Breadcrumb from "./Breadcrumb";
-import { Helmet } from "react-helmet";
+import Helmet from "react-helmet";
 import formatDate from "../helpers/formatDate";
 import { send as analyticsSend } from "../analytics";
 import sortBlogArticles from "../helpers/sortBlogArticles";
@@ -226,7 +226,7 @@ const BlogAuthor = () => {
                               const { srcSet, webpSrcSet, fallback, imagesizes } = buildPictureAttrs(url, widths, {
                                 height,
                                 heightRatio,
-                                anchor: 'center',
+                                anchor: '0,0',
                                 mode: 'crop',
                                 imagesizes: "(max-width: 600px) 100vw, 600px",
                               });

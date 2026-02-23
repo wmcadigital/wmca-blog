@@ -15,6 +15,7 @@ const SortControl = ({
         className="wmcads-fe-dropdown__select"
         id="dropdown"
         name="dropdown"
+        aria-label="Sort by"
         defaultValue={defaultVal}
         // onChange={(e) => sortChangedCallback(e.target.value)}
         onChange={(e) => {

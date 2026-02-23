@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 
 const AddedAfter = ({ title, handleDateChange, value, name, errors }) => (
   <div
-    id="date-input"
+    id={`date-input-${(name || "").toString().replace(/[^a-zA-Z0-9-_]/g, "-").toLowerCase() || "date"}`}
     className={`wmcads-fe-group ${
       (errors && errors.day !== undefined) ||
       (errors && errors.month !== undefined) ||
@@ -26,7 +26,7 @@ const AddedAfter = ({ title, handleDateChange, value, name, errors }) => (
         <span className="wmcads-fe-error-message">{errors.month}</span>
       )}
       <div className="wmcads-fe-date-input__day">
-        <label className="wmcads-fe-label" htmlFor="LastUsedDateDay">
+        <label className="wmcads-fe-label" htmlFor={`date-input-${(name || "").toString().replace(/[^a-zA-Z0-9-_]/g, "-").toLowerCase() || "date"}_LastUsedDateDay`}>
           Day
         </label>
         <input
@@ -34,7 +34,7 @@ const AddedAfter = ({ title, handleDateChange, value, name, errors }) => (
             errors && errors.day !== undefined ? "wmcads-fe-input--error" : ""
           }`}
           onChange={(e) => handleDateChange(e.target.value, "day", name)}
-          id="date-input_LastUsedDateDay"
+          id={`date-input-${(name || "").toString().replace(/[^a-zA-Z0-9-_]/g, "-").toLowerCase() || "date"}_LastUsedDateDay`}
           inputMode="numeric"
           value={value.day}
           name="date-input"
@@ -44,7 +44,7 @@ const AddedAfter = ({ title, handleDateChange, value, name, errors }) => (
         />
       </div>
       <div className="wmcads-fe-date-input__month">
-        <label className="wmcads-fe-label" htmlFor="LastUsedDateMonth">
+        <label className="wmcads-fe-label" htmlFor={`date-input-${(name || "").toString().replace(/[^a-zA-Z0-9-_]/g, "-").toLowerCase() || "date"}_LastUsedDateMonth`}>
           Month
         </label>
         <input
@@ -52,7 +52,7 @@ const AddedAfter = ({ title, handleDateChange, value, name, errors }) => (
             errors && errors.month !== undefined ? "wmcads-fe-input--error" : ""
           }`}
           onChange={(e) => handleDateChange(e.target.value, "month", name)}
-          id="date-input_LastUsedDateMonth"
+          id={`date-input-${(name || "").toString().replace(/[^a-zA-Z0-9-_]/g, "-").toLowerCase() || "date"}_LastUsedDateMonth`}
           inputMode="numeric"
           value={value.month}
           name="date-input"
@@ -62,13 +62,13 @@ const AddedAfter = ({ title, handleDateChange, value, name, errors }) => (
         />
       </div>
       <div className="wmcads-fe-date-input__year">
-        <label className="wmcads-fe-label" htmlFor="LastUsedDateYear">
+        <label className="wmcads-fe-label" htmlFor={`date-input-${(name || "").toString().replace(/[^a-zA-Z0-9-_]/g, "-").toLowerCase() || "date"}_LastUsedDateYear`}>
           Year
         </label>
         <input
           className={`wmcads-fe-input`}
           onChange={(e) => handleDateChange(e.target.value, "year", name)}
-          id="date-input_LastUsedDateYear"
+          id={`date-input-${(name || "").toString().replace(/[^a-zA-Z0-9-_]/g, "-").toLowerCase() || "date"}_LastUsedDateYear`}
           inputMode="numeric"
           value={value.year}
           name="date-input"
@@ -102,7 +102,7 @@ const FilterByDateRange = ({
         name={name}
         value={value}
         title={title}
-        key={[]}
+        key={name || ""}
         handleDateChange={handleDateChange}
         errors={errors}
       />

@@ -17,16 +17,14 @@
     <link rel="preload" href="https://cloudcdn.wmca.org.uk/wmcaassets/ds/1.5.0/css/templates.min.css" as="style" onload="this.rel='stylesheet'">
     <!-- Load Google Fonts without blocking render; use media trick or onload. -->
     <link rel="preload" href="https://fonts.googleapis.com/css?family=DM+Sans:700&display=swap" as="style" onload="this.rel='stylesheet'">
-  <!-- Preload local webfonts referenced in custom.css to avoid FOIT/CLS -->
-  <link rel="preload" href="https://www.wmca.org.uk/fonts/notosansdisplay-regular-webfont.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="https://www.wmca.org.uk/fonts/notosansdisplay-bold-webfont.woff2" as="font" type="font/woff2" crossorigin>
+    <!-- Preload local webfonts referenced in custom.css to avoid FOIT/CLS -->
+    <link rel="preload" href="https://cloudcdn.wmca.org.uk/wmcaassets/ds/assets/fonts/notosansdisplay-bold-webfont.woff2" as="font" type="font/woff2" crossorigin>
     <!-- Inline critical CSS for above-the-fold to avoid render-blocking and reduce CLS -->
     <style>
       /* Critical font-face declarations (also preloaded as woff2) */
       @font-face {
         font-family: 'Noto Sans Display';
-        src: url('https://www.wmca.org.uk/fonts/notosansdisplay-regular-webfont.woff2') format('woff2'),
-             url('https://cloudcdn.wmca.org.uk/fonts/notosansdisplay-regular-webfont.woff2') format('woff2');
+        src: url('https://cloudcdn.wmca.org.uk/wmcaassets/ds/assets/fonts/notosansdisplay-regular-webfont.woff2') format('woff2');
         font-weight: 400;
         font-style: normal;
         font-display: swap;
@@ -37,8 +35,7 @@
 
       @font-face {
         font-family: 'Noto Sans Display Bold';
-        src: url('https://www.wmca.org.uk/fonts/notosansdisplay-bold-webfont.woff2') format('woff2'),
-             url('https://cloudcdn.wmca.org.uk/fonts/notosansdisplay-bold-webfont.woff2') format('woff2');
+        src: url('https://cloudcdn.wmca.org.uk/wmcaassets/ds/assets/fonts/notosansdisplay-bold-webfont.woff2') format('woff2');
         font-weight: 700;
         font-style: normal;
         font-display: swap;
@@ -454,8 +451,8 @@
   <script type="module" src="./App.js"></script>
     <script>
         window.setTopics = {
-          topics: ["Inclusive growth","Skills, education and careers","Life in the West Midlands","People of the West Midlands"],
-          name: "xxx blog",
+          topics: ["Research and insights", "Inclusive growth","Skills, education and careers","Life in the West Midlands","People of the West Midlands"],
+          name: "Demo blog",
             url: "http://localhost:1234/#/",
             breadcrumbs: {
             breadcrumb: [

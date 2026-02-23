@@ -1,6 +1,14 @@
 import PropTypes from "prop-types";
 
-const Banner = ({ image, title, summary, position, article, label, children }) => {
+const Banner = ({
+  image,
+  title = (typeof window !== "undefined" && window.setTopics ? window.setTopics.name : undefined),
+  summary,
+  position = "center",
+  article = false,
+  label,
+  children,
+}) => {
   return (
     <>
       {image ? (
@@ -21,9 +29,11 @@ const Banner = ({ image, title, summary, position, article, label, children }) =
             }}
           >
             <svg
-              className="wmcads-hub-page-banner__svg-background"
-              viewBox="0 0 40 200"
-            >
+                className="wmcads-hub-page-banner__svg-background"
+                viewBox="0 0 40 200"
+                aria-hidden="true"
+                focusable="false"
+              >
               <path d="M0,0v200h6.03l32.87-93.5c1.48-4.21,1.48-8.79,0-12.99L6.03,0H0z"></path>
             </svg>
           </div>
@@ -56,10 +66,7 @@ Banner.propTypes = {
   children: PropTypes.node,
 };
 
-Banner.defaultProps = {
-  title: window?.setTopics?.name,
-  position: "center",
-  article: false,
-};
+// Note: defaultProps are deprecated for function components. Defaults are
+// provided via destructured parameters above to preserve previous behaviour.
 
 export default Banner;

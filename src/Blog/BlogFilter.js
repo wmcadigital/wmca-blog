@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import { useCallback, useMemo } from "react";
 
 import FilterAccordion from "./FilterAccordion";
 
@@ -11,19 +12,19 @@ if (getSearchParam("author")) {
 }
 
 const BlogFilter = ({
-  returnedBlogArticles,
-  filter,
-  clearFilters,
-  setFilter,
-  setClearFilters,
-  noOfResults,
-  showFilterOverrideMobile,
-  setShowFilterOverrideMobile,
-  blogCategories,
-  authors,
-  setDateRanges,
+  returnedBlogArticles = [],
+  filter = { sort: "", topics: [], author: [], dates: null },
+  clearFilters = false,
+  setFilter = () => {},
+  setClearFilters = () => {},
+  noOfResults = 0,
+  showFilterOverrideMobile = false,
+  setShowFilterOverrideMobile = () => {},
+  blogCategories = [],
+  authors = [],
+  setDateRanges = () => {},
 }) => {
-  const dates = [
+  const dates = useMemo(() => [
     {
       value: "updatedLastWeek",
       label: "Posted in the last week",
@@ -52,7 +53,10 @@ const BlogFilter = ({
       // allow user to pick any custom range (enabled by default)
       disabled: false,
     },
-  ];
+  ], [returnedBlogArticles]);
+
+  const topicOptions = useMemo(() => blogCategories.map((category) => ({ label: category, value: category })), [blogCategories]);
+  const authorOptions = useMemo(() => authors.map((a) => ({ label: a, value: a })), [authors]);
 
   return (
     <div
@@ -66,75 +70,62 @@ const BlogFilter = ({
       <div className="wmcads-search-filter__header">
         <h3 className="wmcads-search-filter__header-title">Filter</h3>
 
-        <a
-          href="#"
+        <button
+          type="button"
           className="wmcads-search-filter__clear-all wmcads-hide-desktop"
           onClick={() => setClearFilters(true)}
         >
           Clear all
-        </a>
-        <a
-          href="#"
+        </button>
+        <button
+          type="button"
           id="hide_filter_btn"
           className="wmcads-search-filter__close"
           onClick={() => setClearFilters(true)}
+          aria-label="Close filter"
         >
-          <svg>
+          <svg aria-hidden="true" focusable="false">
             <title>Close</title>
             <use
               xlinkHref="#wmcads-general-cross"
               href="#wmcads-general-cross"
             ></use>
           </svg>
-        </a>
+        </button>
       </div>
       <FilterAccordion
         title="Topic"
-        options={blogCategories.map((category) => ({
-          label: category,
-          value: category,
-        }))}
-        optionSelected={(optionValue) => {
-          const topics = filter.topics;
-          if (topics.includes(optionValue)) {
-            setFilter({
-              ...filter,
-              topics: topics.filter((category) => category !== optionValue),
-            });
-          } else {
-            setFilter({
-              ...filter,
-              topics: [...filter.topics, optionValue],
-            });
-          }
-        }}
-        optionSelectedFn={(value) =>
+        options={topicOptions}
+        forceOpen={filter.topics && filter.topics.length > 0}
+        optionSelected={useCallback((optionValue) => {
+          setFilter((prev) => {
+            const topics = prev.topics || [];
+            if (topics.includes(optionValue)) {
+              return { ...prev, topics: topics.filter((category) => category !== optionValue) };
+            }
+            return { ...prev, topics: [...topics, optionValue] };
+          });
+        }, [setFilter])}
+        optionSelectedFn={useCallback((value) =>
           filter.topics.includes(value) ? true : undefined
-        }
+        , [filter.topics])}
       />
       <FilterAccordion
         title="Author"
-        options={authors.map((author) => ({
-          label: author,
-          value: author,
-        }))}
-        optionSelected={(optionValue) => {
-          const authors = filter.author;
-          if (authors.includes(optionValue)) {
-            setFilter({
-              ...filter,
-              author: authors.filter((author) => author !== optionValue),
-            });
-          } else {
-            setFilter({
-              ...filter,
-              author: [...filter.author, optionValue],
-            });
-          }
-        }}
-        optionSelectedFn={(value) =>
+        options={authorOptions}
+        forceOpen={filter.author && filter.author.length > 0}
+        optionSelected={useCallback((optionValue) => {
+          setFilter((prev) => {
+            const authors = prev.author || [];
+            if (authors.includes(optionValue)) {
+              return { ...prev, author: authors.filter((a) => a !== optionValue) };
+            }
+            return { ...prev, author: [...authors, optionValue] };
+          });
+        }, [setFilter])}
+        optionSelectedFn={useCallback((value) =>
           filter.author.includes(value) ? true : undefined
-        }
+        , [filter.author])}
       />
       {/* pass the whole filter object into the filter accordion */}
       <FilterAccordion
@@ -143,12 +134,13 @@ const BlogFilter = ({
         selectOne
         filter={filter}
         clearFilters={clearFilters}
-        optionSelected={(optionValue) => {
-          setFilter({ ...filter, dates: optionValue });
-        }}
-        optionSelectedFn={(value) =>
+        forceOpen={filter.dates != null}
+        optionSelected={useCallback((optionValue) => {
+          setFilter((prev) => ({ ...prev, dates: optionValue }));
+        }, [setFilter])}
+        optionSelectedFn={useCallback((value) =>
           filter.dates === value ? true : undefined
-        }
+        , [filter.dates])}
         setDateRanges={setDateRanges}
       />
       <div className="wmcads-search-filter__mobile-filter-update wmcads-hide-desktop">
@@ -161,12 +153,14 @@ const BlogFilter = ({
       {filter.topics.length != 0 ||
       filter.author.length != 0 ||
       filter.dates != null ? (
-        <a
-          href="#"
-          className="wmcads-search-filter__clear-all wmcads-hide-mobile"
+        <button
+          type="button"
+          className="wmcads-search-filter__clear-all wmcads-hide-mobile wmcads-col-1 bg-white wmcads-text-align-left"
           onClick={() => setClearFilters(true)}
         >
           <svg
+            aria-hidden="true"
+            focusable="false"
             style={{
               display: "inline-block",
               fill: "#c05701",
@@ -181,7 +175,7 @@ const BlogFilter = ({
             ></use>
           </svg>
           Clear all filters
-        </a>
+        </button>
       ) : null}
     </div>
   );
@@ -203,14 +197,4 @@ BlogFilter.propTypes = {
   setClearFilters: PropTypes.func,
 };
 
-BlogFilter.defaultProps = {
-  returnedBlogArticles: [],
-  filter: { sort: "", topics: [], author: [], dates: null },
-  noOfResults: 0,
-  setShowFilterOverrideMobile: () => {},
-  setFilter: () => {},
-  blogCategories: [],
-  authors: [],
-  setDateRanges: () => {},
-  setClearFilters: () => {},
-};
+// Defaults provided in the function signature to avoid using defaultProps on a function component

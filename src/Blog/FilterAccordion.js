@@ -1,31 +1,44 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import PropTypes from "prop-types";
 
 import FilterByDateRange from "./FilterByDateRange";
 
-const CheckOption = ({ inputName, option, optionSelected, optionSelectedFn }) => (
-  <label className={`wmcads-fe-checkboxes__container ${option.disabled ? 'wmcads-is--disabled' : ''}`}>
-    {option.label}
-    <input
-      name={inputName}
-      className="wmcads-fe-checkboxes__input"
-      value={option.value}
-      type="checkbox"
-      onChange={(e) => optionSelected(e.target.value)}
-      checked={optionSelectedFn(option.value) || false}
-      disabled={option.disabled || false}
-    />
-    <span className="wmcads-fe-checkboxes__checkmark">
-      <svg className="wmcads-fe-checkboxes__icon">
-        <use
-          xlinkHref="#wmcads-general-checkmark"
-          href="#wmcads-general-checkmark"
-        ></use>
-      </svg>
-    </span>
-  </label>
-);
+const CheckOption = ({ inputName, option, optionSelected, optionSelectedFn }) => {
+  const checked = optionSelectedFn(option.value) || false;
+
+  
+
+    return (
+    <label className={`wmcads-fe-checkboxes__container ${option.disabled ? 'wmcads-is--disabled' : ''}`}>
+      {option.label}
+      <input
+        name={inputName}
+        className="wmcads-fe-checkboxes__input"
+        value={option.value}
+        type="checkbox"
+        onChange={(e) => optionSelected(e.target.value)}
+        onKeyDown={(e) => {
+          if (option.disabled) return;
+          if (e.key === "Enter") {
+            e.preventDefault();
+            optionSelected(option.value);
+          }
+        }}
+        checked={checked}
+        disabled={option.disabled || false}
+      />
+      <span className="wmcads-fe-checkboxes__checkmark">
+        <svg className="wmcads-fe-checkboxes__icon" aria-hidden="true" focusable="false">
+          <use
+            xlinkHref="#wmcads-general-checkmark"
+            href="#wmcads-general-checkmark"
+          ></use>
+        </svg>
+      </span>
+    </label>
+  );
+};
 
 CheckOption.propTypes = {
   inputName: PropTypes.string,
@@ -38,23 +51,34 @@ CheckOption.propTypes = {
   optionSelectedFn: PropTypes.func,
 };
 
-const RadioOption = ({ title, option, optionSelected, optionSelectedFn }) => (
-  <label
-    className={`wmcads-fe-radios__container ${option.disabled ? 'wmcads-is--disabled' : ''}`}
-  >
-    {option.label}
-    <input
-      className="wmcads-fe-radios__input"
-      disabled={option.disabled || false}
-      value={option.value}
-      name={title}
-      type="radio"
-      onChange={(e) => optionSelected(e.target.value)}
-      checked={optionSelectedFn(option.value) || false}
-    />
-    <span className="wmcads-fe-radios__checkmark"></span>
-  </label>
-);
+const RadioOption = ({ title, option, optionSelected, optionSelectedFn }) => {
+  const checked = optionSelectedFn(option.value) || false;
+
+  
+
+  return (
+    <label className={`wmcads-fe-radios__container ${option.disabled ? 'wmcads-is--disabled' : ''}`}>
+      {option.label}
+      <input
+        className="wmcads-fe-radios__input"
+        disabled={option.disabled || false}
+        value={option.value}
+        name={title}
+        type="radio"
+        onChange={(e) => optionSelected(e.target.value)}
+        onKeyDown={(e) => {
+          if (option.disabled) return;
+          if (e.key === "Enter") {
+            e.preventDefault();
+            optionSelected(option.value);
+          }
+        }}
+        checked={checked}
+      />
+      <span className="wmcads-fe-radios__checkmark" aria-hidden="true"></span>
+    </label>
+  );
+};
 
 RadioOption.propTypes = {
   title: PropTypes.string,
@@ -68,15 +92,15 @@ RadioOption.propTypes = {
 };
 
 const FilterAccordion = ({
-  title,
-  options,
-  selectOne,
-  optionSelected,
-  optionSelectedFn,
-  setDateRanges,
-  clearFilters,
-  filter,
-  forceOpen,
+  title = "",
+  options = [],
+  selectOne = false,
+  optionSelected = () => {},
+  optionSelectedFn = () => {},
+  setDateRanges = () => {},
+  clearFilters = false,
+  filter = {},
+  forceOpen = false,
 }) => {
   const [accordionOpen, setAccordionOpen] = useState(!!forceOpen);
   const [dateAfter, setDateAfter] = useState({ day: "", month: "", year: "" });
@@ -91,10 +115,14 @@ const FilterAccordion = ({
   const [dateRanges, setDateRanges2] = useState(undefined);
   const [urlset, setUrlSet] = useState(false);
   const [inputName] = useState(`input-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
+  // unique id for accordion content to avoid duplicate IDs when multiple accordions are rendered
+  const [contentId] = useState(() => `accordion-${inputName}`);
 
   const toggleAccordion = () => {
-    // prevent closing if forceOpen is true
-    if (forceOpen) return;
+    // Allow the user to toggle the accordion even if `forceOpen` is true.
+    // Previously we prevented closing when forced open; that made the UI
+    // feel stuck. Keep `forceOpen` behavior (it will open the accordion when
+    // set) but allow clicking to close it.
     setAccordionOpen(!accordionOpen);
   };
 
@@ -125,7 +153,10 @@ const FilterAccordion = ({
     return Object.values(obj).some((value) => value !== undefined);
   };
 
-  const validationMonthDay = (updates, date, type) => {
+  // validationMonthDay now accepts the computed isDate1BeforeDate2 value
+  // as a parameter so it doesn't close over component state and can be
+  // used inside effects without forcing them to re-run on error/state changes.
+  const validationMonthDay = useCallback((updates, date, type, isBefore) => {
     let otherError = false;
 
     if (date.day === "") {
@@ -149,9 +180,9 @@ const FilterAccordion = ({
       updates.month = undefined;
     }
 
-    if (type === "before" && isDate1BeforeDate2) {
+    if (type === "before" && isBefore) {
       updates.ToosGreaterThanFrom = undefined;
-    } else if (type === "before" && isDate1BeforeDate2 === false) {
+    } else if (type === "before" && isBefore === false) {
       updates.ToosGreaterThanFrom = "Date to must be greater than date from";
     }
 
@@ -160,10 +191,10 @@ const FilterAccordion = ({
     }
 
     return updates;
-  };
+  }, []);
 
   // Method get the date ranges from the URL and splits the string values back into the required object type before setting the local states
-  const setDateValuesFromUrl = () => {
+  const setDateValuesFromUrl = useCallback(() => {
     const to = filter?.dateRangeSet?.to.split("/");
     if (to?.length === 3) {
       const [year, month, day] = to;
@@ -175,7 +206,7 @@ const FilterAccordion = ({
       const [year, month, day] = from;
       setDateAfter({ day, month, year });
     }
-  };
+  }, [filter, setDateBefore, setDateAfter]);
 
   useEffect(() => {
     const updatedDateAfter = { ...dateAfter };
@@ -207,7 +238,7 @@ const FilterAccordion = ({
       return new Date(formattedDateString);
     };
 
-    // If false no fields are empty && yearly charachters are 4
+    // Only run validation when all fields are present and years are 4 characters
     if (!isAnyValueEmpty() && yearInputContains4characters()) {
       const afterDateString = `${dateAfter.year}/${dateAfter.month}/${dateAfter.day}`;
       const beforeDateString = `${dateBefore.year}/${dateBefore.month}/${dateBefore.day}`;
@@ -215,27 +246,56 @@ const FilterAccordion = ({
       const afterNewDate = stringDateToNewDate(afterDateString);
       const beforeNewDate = stringDateToNewDate(beforeDateString);
 
-      // before should be greater than after
-      setIsDate1BeforeDate2(beforeNewDate >= afterNewDate);
-      setDateRanges2({ from: afterDateString, to: beforeDateString });
+      // compute comparison once
+      const newIsBefore = beforeNewDate >= afterNewDate;
+
+      // only update boolean state when it actually changes
+      setIsDate1BeforeDate2((prev) => (prev === newIsBefore ? prev : newIsBefore));
+
+      const newDateRanges = { from: afterDateString, to: beforeDateString };
+      setDateRanges2((prev) => {
+        try {
+          if (JSON.stringify(prev) === JSON.stringify(newDateRanges)) return prev;
+        } catch (e) {
+          // ignore circular/serialization errors
+        }
+        return newDateRanges;
+      });
 
       const updatedBeforeErrorsSet = validationMonthDay(
         { ...beforeErrors },
         dateBefore,
-        "before"
+        "before",
+        newIsBefore
       );
       const updatedAfterErrorsSet = validationMonthDay(
         { ...afterErrors },
         dateAfter,
-        "after"
+        "after",
+        newIsBefore
       );
 
-      setBeforeErrors(updatedBeforeErrorsSet);
-      setAfterErrors(updatedAfterErrorsSet);
-    }
-  }, [dateAfter, dateBefore, isDate1BeforeDate2]);
+      setBeforeErrors((prev) => {
+        try {
+          if (JSON.stringify(prev) === JSON.stringify(updatedBeforeErrorsSet)) return prev;
+        } catch (e) {
+          // ignore circular/serialization errors
+        }
+        return updatedBeforeErrorsSet;
+      });
 
-  useEffect(() => {}, []);
+      setAfterErrors((prev) => {
+        try {
+          if (JSON.stringify(prev) === JSON.stringify(updatedAfterErrorsSet)) return prev;
+        } catch (e) {
+          // ignore circular/serialization errors
+        }
+        return updatedAfterErrorsSet;
+      });
+    }
+  }, [dateAfter, dateBefore, validationMonthDay, afterErrors, beforeErrors]);
+
+  
 
   useEffect(() => {
     // Here we check the the dates are required and valid before we filter the articles
@@ -246,7 +306,7 @@ const FilterAccordion = ({
     ) {
       setDateRanges(dateRanges);
     }
-  }, [dateRanges]);
+  }, [dateRanges, afterErrors, beforeErrors, isDate1BeforeDate2, setDateRanges]);
 
   useEffect(() => {
     //Here is triggered when date ranges have been passed in via the URL
@@ -263,38 +323,41 @@ const FilterAccordion = ({
       setBeforeErrors(undefined);
       setDateRanges(undefined);
     }
-  }, [clearFilters, filter?.dateRangeSet]);
+  }, [clearFilters, filter?.dateRangeSet, setDateRanges, setDateValuesFromUrl, urlset]);
 
   return (
     <div
       className={`wmcads-accordion ${accordionOpen ? "wmcads-is--open" : null}`}
     >
       <button
-        aria-controls="accordion-Topic"
+        id={`${contentId}-button`}
+        aria-controls={contentId}
         className="wmcads-accordion__summary-wrapper"
         aria-expanded={accordionOpen}
         onClick={toggleAccordion}
       >
         <div className="wmcads-accordion__summary">
-          <h4 className="wmcads-accordion__summary-title wmcads-m-b-none">
+          <h4 id={`${contentId}-label`} className="wmcads-accordion__summary-title wmcads-m-b-none">
             {title}
           </h4>
         </div>
-        <svg className="wmcads-accordion__icon">
+        <svg className="wmcads-accordion__icon" aria-hidden="true" focusable="false">
           <use
             xlinkHref="#wmcads-general-expand"
             href="#wmcads-general-expand"
           ></use>
         </svg>{" "}
-        <svg className="wmcads-accordion__icon wmcads-accordion__icon--minimise">
+        <svg className="wmcads-accordion__icon wmcads-accordion__icon--minimise" aria-hidden="true" focusable="false">
           <use
             xlinkHref="#wmcads-general-minimise"
             href="#wmcads-general-minimise"
           ></use>
         </svg>
       </button>
-      <div className="wmcads-accordion__content" id="accordion-Topic">
+  <div className="wmcads-accordion__content" id={contentId} role="region" aria-labelledby={`${contentId}-label`}>
         <fieldset className="wmcads-fe-fieldset">
+          {/* Accessible label for the fieldset */}
+          <legend className="visible-hidden">{title}</legend>
           <div
             className={`${
               selectOne ? "wmcads-fe-radios" : "wmcads-fe-checkboxes"
@@ -367,12 +430,6 @@ FilterAccordion.propTypes = {
   forceOpen: PropTypes.bool,
 };
 
-FilterAccordion.defaultProps = {
-  options: [],
-  optionSelected: () => {},
-  optionSelectedFn: () => {},
-  setDateRanges: () => {},
-  forceOpen: false,
-};
+// Defaults provided in the function signature to avoid using defaultProps on a function component
 
 export default FilterAccordion;

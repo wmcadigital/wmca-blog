@@ -1,17 +1,17 @@
 import PropTypes from "prop-types";
 
 const Breadcrumb = ({
-  article,
-  current,
-  name,
-  parent,
-  parent2,
-  parent3,
-  parent4,
-  parent5,
-  parent6,
-  parent7,
-  parent8,
+  article = null,
+  current = null,
+  name = null,
+  parent = [],
+  parent2 = [],
+  parent3 = [],
+  parent4 = [],
+  parent5 = [],
+  parent6 = [],
+  parent7 = [],
+  parent8 = [],
 }) => {
   // rename wmca to home for homepage link
   const breadHome = parent[0];
@@ -142,18 +142,7 @@ Breadcrumb.propTypes = {
   parent8: PropTypes.array,
 };
 
-Breadcrumb.defaultProps = {
-  article: null,
-  current: null,
-  name: null,
-  parent: [],
-  parent2: [],
-  parent3: [],
-  parent4: [],
-  parent5: [],
-  parent6: [],
-  parent7: [],
-  parent8: [],
-};
+// Note: defaultProps on function components is deprecated in future React versions.
+// Default parameter values above provide the same defaults and avoid the warning.
 
 export default Breadcrumb;

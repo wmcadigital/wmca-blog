@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import getUmbracoMedia from "../api/getUmbracoMedia";
 import { buildSrc, buildSrcSet } from "../helpers/image";
+import Helmet from "react-helmet";
 
 const ImageComponent = ({ imageUrls }) => {
   const [mediaMap, setMediaMap] = useState({});
@@ -51,20 +52,31 @@ const ImageComponent = ({ imageUrls }) => {
         const fallbackSrc = buildSrc(path, { width: imgWidth, height: imgHeight });
         const alt = media?.properties?.altText || "";
 
+        const isPriority = !!imageUrl?.priority;
+
         return (
-          <picture key={imageUrl?.id || imageUrl?.url || index}>
+          <React.Fragment key={imageUrl?.id || imageUrl?.url || index}>
+            {isPriority && (
+              // inject preload for LCP / priority images so the browser can fetch earlier
+              <Helmet>
+                <link rel="preload" as="image" href={fallbackSrc} />
+              </Helmet>
+            )}
+            <picture>
             <source type="image/webp" srcSet={webpSrcSet} sizes="(max-width: 600px) 100vw, 600px" />
             <source srcSet={srcSet} sizes="(max-width: 600px) 100vw, 600px" />
             <img
               src={fallbackSrc}
               alt={alt}
-              loading="lazy"
+              // allow callers to mark an image as priority to opt-out of lazy loading
+              loading={isPriority ? "eager" : "lazy"}
               decoding="async"
               width={imgWidth}
               height={imgHeight}
               style={{ maxWidth: "100%", height: "auto" }}
             />
           </picture>
+          </React.Fragment>
         );
       })}
     </div>

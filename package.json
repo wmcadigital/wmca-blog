@@ -3,16 +3,25 @@
   "version": "1.0.0",
   "description": "WMCA Blog",
   "scripts": {
-    "dev": "parcel src/index.html",
+    "dev": "node ./scripts/start-dev.js",
     "build": "parcel build src/index.html",
+    "build:cdn": "parcel build src/index.html --dist-dir build --public-url ./",
+    "build:cdn:absolute": "parcel build src/index.html --dist-dir build --public-url https://cloudcdn.wmca.org.uk/staging/wmcaassets/apps/blog/",
+    "build:cdn:lower": "npm run build:cdn:absolute && node ./scripts/lowercase-build.js build",
+    "lhci:collect": "lhci collect --config=./.lighthouserc.json",
+    "lhci:assert": "lhci assert --config=./.lighthouserc.json",
+    "lhci": "npm run lhci:collect && npm run lhci:assert",
     "sitemap": "node scripts/generate-sitemap.js",
     "test": "npm test --silent -- --runInBand",
     "format": "prettier --write \"src/**/*.{js,jsx}\"",
-    "lint": "npm run lint --silent"
+    "lint": "npm run lint --silent",
+    "upgrade-deps": "npx npm-check-updates -u && npm install",
+    "ncu": "npx npm-check-updates"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-react": "^7.16.7",
+    "@lhci/cli": "^0.11.0",
     "@testing-library/dom": "^8.13.0",
     "@testing-library/react": "^13.1.1",
     "@testing-library/user-event": "^14.1.1",
@@ -27,7 +36,9 @@
     "parcel": "^2.4.1",
     "prettier": "^2.6.2",
     "process": "^0.11.10",
-    "react-test-renderer": "^18.0.0"
+    "react-test-renderer": "^18.0.0",
+    "source-map-explorer": "^2.5.3",
+    "npm-check-updates": "^16.0.0"
   },
   "dependencies": {
     "@swc/helpers": "^0.3.8",
@@ -37,11 +48,32 @@
     "react-dom": "^18.0.0",
     "react-ga4": "^2.1.0",
     "react-helmet": "^6.1.0",
-    "react-router-dom": "^6.14.2",
-    "regenerator-runtime": "^0.13.9"
+    "react-router-dom": "^6.14.2"
   },
   "jest": {
     "testEnvironment": "jsdom"
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions",
+    "last 2 Safari versions",
+    "Edge >= 79",
+    "not dead",
+    "not ie 11"
+  ],
+  "targets": {
+    "default": {
+      "context": "browser",
+      "includeNodeModules": true,
+      "engines": {
+        "browsers": [
+          "last 2 Chrome versions",
+          "last 2 Firefox versions",
+          "last 2 Safari versions",
+          "Edge >= 79"
+        ]
+      }
+    }
   },
   "author": "",
   "license": "ISC"

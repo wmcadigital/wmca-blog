@@ -1,10 +1,10 @@
 import PropTypes from "prop-types";
 
 const SortControl = ({
-  filter,
-  setFilter,
-  defaultVal,
-  sortChangedCallback,
+  filter = { sort: "", topics: [], author: [], dates: null },
+  setFilter = () => {},
+  defaultVal = "q",
+  sortChangedCallback = () => {},
 }) => (
   <div className="wmcads-search-sort wmcads-fe-group">
     <label className="wmcads-fe-label" htmlFor="dropdown">
@@ -15,6 +15,7 @@ const SortControl = ({
         className="wmcads-fe-dropdown__select"
         id="dropdown"
         name="dropdown"
+        aria-label="Sort by"
         defaultValue={defaultVal}
         // onChange={(e) => sortChangedCallback(e.target.value)}
         onChange={(e) => {
@@ -38,11 +39,6 @@ SortControl.propTypes = {
   defaultVal: PropTypes.string,
 };
 
-SortControl.defaultProps = {
-  filter: { sort: "", topics: [], author: [], dates: null },
-  setFilter: () => {},
-  sortChangedCallback: () => {},
-  defaultVal: "q",
-};
+// Note: default props are provided via function default parameters above.
 
 export default SortControl;

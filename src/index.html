@@ -7,17 +7,55 @@
     <!-- Preconnect to CMS and font hosts to reduce DNS/TCP/TLS setup time for images and fonts -->
     <link rel="preconnect" href="https://cms.wmca.org.uk" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://www.wmca.org.uk" crossorigin />
+  <link rel="preconnect" href="https://cloudcdn.wmca.org.uk" crossorigin />
     <link rel="dns-prefetch" href="//cms.wmca.org.uk" />
     <link rel="dns-prefetch" href="//fonts.gstatic.com" />
-    <link
-      rel="stylesheet"
-      href="https://www.wmca.org.uk/css/wmcads.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cloudcdn.wmca.org.uk/wmcaassets/ds/1.5.0/css/templates.min.css"
-    />
-    <link rel="stylesheet" href="./custom.css" />
+    <!-- Defer third-party styles to avoid render-blocking. We preload then switch rel to stylesheet on load. -->
+    <link rel="preload" href="https://www.wmca.org.uk/css/wmcads.min.css" as="style" onload="this.rel='stylesheet'">
+    <link rel="preload" href="https://cloudcdn.wmca.org.uk/wmcaassets/ds/1.5.0/css/templates.min.css" as="style" onload="this.rel='stylesheet'">
+    <!-- Load Google Fonts without blocking render; use media trick or onload. -->
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=DM+Sans:700&display=swap" as="style" onload="this.rel='stylesheet'">
+    <!-- Preload local webfonts referenced in custom.css to avoid FOIT/CLS -->
+    <link rel="preload" href="https://cloudcdn.wmca.org.uk/wmcaassets/ds/assets/fonts/notosansdisplay-bold-webfont.woff2" as="font" type="font/woff2" crossorigin>
+    <!-- Inline critical CSS for above-the-fold to avoid render-blocking and reduce CLS -->
+    <style>
+      /* Critical font-face declarations (also preloaded as woff2) */
+      @font-face {
+        font-family: 'Noto Sans Display';
+        src: url('https://cloudcdn.wmca.org.uk/wmcaassets/ds/assets/fonts/notosansdisplay-regular-webfont.woff2') format('woff2');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+        ascent-override: 90%;
+        descent-override: 10%;
+        line-gap-override: 0%;
+      }
+
+      @font-face {
+        font-family: 'Noto Sans Display Bold';
+        src: url('https://cloudcdn.wmca.org.uk/wmcaassets/ds/assets/fonts/notosansdisplay-bold-webfont.woff2') format('woff2');
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+        ascent-override: 88%;
+        descent-override: 12%;
+        line-gap-override: 0%;
+      }
+
+      /* Minimal focus styles used by above-the-fold interactive controls */
+      *:focus:not(:focus-visible) { outline: none; }
+      *:focus-visible { outline: 3px solid #ffbf47; outline-offset: 2px; }
+      #wmcads-main-content[tabindex="-1"]:focus { outline: none; box-shadow: none; }
+    </style>
+
+    <!-- Load the remainder of local styles non-blocking: preload then switch rel to stylesheet on load -->
+    <link rel="preload" href="./custom.css" as="style" onload="this.rel='stylesheet'">
+    <!-- Fallback for no-JS clients: ensure styles still load -->
+    <noscript>
+      <link rel="stylesheet" href="./custom.css">
+    </noscript>
     <title>WMCA Blog</title>
     <meta name="keywords" content="west midlands, combined authority, local authorities, culture, economy, innovation, environment, energy, housing, land, communities, skills, wellbeing, transport">
     <meta name="description" content="West Midlands Combined Authority (WMCA) is making the West Midlands the best place to live, work and visit.">
@@ -78,10 +116,13 @@
               href="/"
               title="West Midlands Combined Authority Design System"
             >
+              <!-- Provide intrinsic dimensions to avoid layout shift (assumption: logo approx 150x40). -->
               <img
                 class="wmcads-header__logo"
                 alt="West Midlands Combined Authority logo"
                 src="https://cloudcdn.wmca.org.uk/wmcaassets/ds/1.5.0/img/logo.svg"
+                width="150"
+                height="40"
               />
             </a>
           </div>
@@ -94,7 +135,7 @@
               aria-controls="-primary-menu"
             >
               Menu
-              <svg class="wmcads-mega-menu__close-icon">
+              <svg aria-hidden="true" focusable="false" class="wmcads-mega-menu__close-icon">
                 <use
                   xlink:href="#wmcads-general-cross"
                   href="#wmcads-general-cross"
@@ -202,7 +243,7 @@
                 class="wmcads-footer__collapse-button wmcads-hide-desktop"
                 title="Expand first menu"
               >
-                <svg class="wmcads-collapse-heading__indicator">
+                <svg aria-hidden="true" focusable="false" class="wmcads-collapse-heading__indicator">
                   <use href="#wmcads-general-chevron-right"></use>
                 </svg>
               </button>
@@ -262,7 +303,7 @@
                 class="wmcads-footer__collapse-button wmcads-hide-desktop"
                 title="Expand second menu"
               >
-                <svg class="wmcads-collapse-heading__indicator">
+                <svg aria-hidden="true" focusable="false" class="wmcads-collapse-heading__indicator">
                   <use href="#wmcads-general-chevron-right"></use>
                 </svg>
               </button>
@@ -295,7 +336,7 @@
                   title="https://www.facebook.com/westmidlandsca"
                   target="_blank"
                 >
-                  <svg>
+                  <svg aria-hidden="true" focusable="false">
                     <use href="#wmcads-social-facebook"></use>
                   </svg>
                 </a>
@@ -306,7 +347,7 @@
                   title="https://twitter.com/WestMids_CA"
                   target="_blank"
                 >
-                  <svg>
+                  <svg aria-hidden="true" focusable="false">
                     <use href="#wmcads-social-twitter"></use>
                   </svg>
                 </a>
@@ -317,7 +358,7 @@
                   title="Instagram page for West Midlands Combined Authority"
                   target="_blank"
                 >
-                  <svg>
+                  <svg aria-hidden="true" focusable="false">
                     <use href="#wmcads-social-instagram"></use>
                   </svg>
                 </a>
@@ -328,7 +369,7 @@
                   title="YouTube channel for West Midlands Combined Authority"
                   target="_blank"
                 >
-                  <svg>
+                  <svg aria-hidden="true" focusable="false">
                     <use href="#wmcads-social-youtube"></use>
                   </svg>
                 </a>
@@ -339,7 +380,7 @@
                   title="LinkedIn page for West Midlands Combined Authority"
                   target="_blank"
                 >
-                  <svg>
+                  <svg aria-hidden="true" focusable="false">
                     <use href="#wmcads-social-linkedin"></use>
                   </svg>
                 </a>
@@ -407,11 +448,11 @@
         });
       })();
     </script>
-    <script src="App.js" type="module"></script>
+  <script type="module" src="./App.js"></script>
     <script>
         window.setTopics = {
-          topics: ["Inclusive growth","Skills, education and careers","Life in the West Midlands","People of the West Midlands"],
-          name: "xxx blog",
+          topics: ["Research and insights", "Inclusive growth","Skills, education and careers","Life in the West Midlands","People of the West Midlands"],
+          name: "Demo blog",
             url: "http://localhost:1234/#/",
             breadcrumbs: {
             breadcrumb: [

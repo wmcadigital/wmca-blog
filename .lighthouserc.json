@@ -1,0 +1,30 @@
+{
+  "ci": {
+    "collect": {
+  "startServerCommand": "npx serve dist -l 1234",
+  "startServerReadyPattern": "Accepting connections|Serving|Local:|listening|ready",
+      "numberOfRuns": 3,
+      "url": ["http://localhost:1234"],
+      "settings": {
+        "formFactor": "mobile",
+        "throttlingMethod": "simulate",
+        "throttling": {
+          "rttMs": 150,
+          "throughputKbps": 1638.4,
+          "cpuSlowdownMultiplier": 4
+        },
+        "chromeFlags": "--no-sandbox --disable-web-security --user-data-dir=/tmp/lhci-chrome-profile"
+      }
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["warn", {"minScore": 0.9}],
+        "categories:accessibility": ["warn", {"minScore": 0.9}]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": ".lighthouseci"
+    }
+  }
+}

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import chunk from "lodash/chunk";
 import flatten from "lodash/flatten";
 import { useSearchParams, useLocation } from "react-router-dom";
+import Helmet from "react-helmet";
 
 import getBlogArticles from "../api/getBlogArticles";
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -113,7 +114,7 @@ const BlogArticles = () => {
     setBlogCategories(blogTopics);
 
     returnedBlogArticles = returnedBlogArticles.filter((prop) =>
-      prop.properties.tags.some((tags) => blogTopics.includes(tags))
+      prop.properties.tags.some((tags) => blogTopics.includes(tags)),
     );
 
     setReturnedBlogArticles(returnedBlogArticles);
@@ -130,16 +131,20 @@ const BlogArticles = () => {
   const topics = queryParams.get("topics");
   const dateRangeSet = queryParams.get("dateRangeSet");
 
-  const setDateRanges = useCallback((newRanges) => {
-    setFilter((prev) => {
-      try {
-        if (JSON.stringify(prev.dateRangeSet) === JSON.stringify(newRanges)) return prev;
-      } catch (e) {
-        // ignore serialization errors
-      }
-      return { ...prev, dateRangeSet: newRanges };
-    });
-  }, [setFilter]);
+  const setDateRanges = useCallback(
+    (newRanges) => {
+      setFilter((prev) => {
+        try {
+          if (JSON.stringify(prev.dateRangeSet) === JSON.stringify(newRanges))
+            return prev;
+        } catch (e) {
+          // ignore serialization errors
+        }
+        return { ...prev, dateRangeSet: newRanges };
+      });
+    },
+    [setFilter],
+  );
 
   useEffect(() => {
     if (clearFilters) {
@@ -178,7 +183,7 @@ const BlogArticles = () => {
       }, 0);
     }
 
-  if (dateRangeSet !== "undefined" && dateRangeSet !== null) {
+    if (dateRangeSet !== "undefined" && dateRangeSet !== null) {
       if (filter.dateRangeSet === undefined) {
         setFilter({ ...filter, dateRangeSet: JSON.parse(dateRangeSet) });
       }
@@ -217,26 +222,26 @@ const BlogArticles = () => {
       const parsed = parseInt(qpPage, 10);
       if (!Number.isNaN(parsed)) setPage(Math.max(0, parsed - 1));
     }
-      // If any filters or page were present in the URL, mark that we're restoring
-      // state from the URL so we don't treat this programmatic restore as
-      // a user-initiated filter change.
-      if (topics || author || dates || sort || dateRangeSet || qpPage !== null) {
-        urlRestorePending.current = true;
-      }
+    // If any filters or page were present in the URL, mark that we're restoring
+    // state from the URL so we don't treat this programmatic restore as
+    // a user-initiated filter change.
+    if (topics || author || dates || sort || dateRangeSet || qpPage !== null) {
+      urlRestorePending.current = true;
+    }
 
-      // Debug trace: log restoration values (remove this in production)
-      /* eslint-disable no-console */
-      console.debug("BlogArticles mount restore", {
-        topics,
-        author,
-        dates,
-        sort,
-        dateRangeSet,
-        qpPage,
-        initialPage: page,
-        urlRestorePending: urlRestorePending.current,
-      });
-      /* eslint-enable no-console */
+    // Debug trace: log restoration values (remove this in production)
+    /* eslint-disable no-console */
+    console.debug("BlogArticles mount restore", {
+      topics,
+      author,
+      dates,
+      sort,
+      dateRangeSet,
+      qpPage,
+      initialPage: page,
+      urlRestorePending: urlRestorePending.current,
+    });
+    /* eslint-enable no-console */
     // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => {
       mounted = false;
@@ -256,8 +261,6 @@ const BlogArticles = () => {
       const resultsCountEl = document.getElementById("wmcads-results-count");
       const fallbackEl = document.getElementById("wmcads-main-content");
 
-      
-
       if (resultsCountEl) {
         // Directly scroll the results count element into view at the top of the
         // viewport so users see the "Found X matching results" line (block: 'start').
@@ -275,11 +278,16 @@ const BlogArticles = () => {
         // adjust for fixed header overlap if necessary
         const headerEl = document.querySelector(".wmcads-header");
         const cookieBannerEl = document.querySelector(".wmcads-cookies-banner");
-        const headerHeight = (headerEl?.offsetHeight || 0) + (cookieBannerEl?.offsetHeight || 0);
+        const headerHeight =
+          (headerEl?.offsetHeight || 0) + (cookieBannerEl?.offsetHeight || 0);
         if (headerHeight > 0) {
           // run another frame then nudge up by headerHeight + small gap
           window.requestAnimationFrame(() => {
-            window.scrollBy({ top: -(headerHeight + 8), left: 0, behavior: "smooth" });
+            window.scrollBy({
+              top: -(headerHeight + 8),
+              left: 0,
+              behavior: "smooth",
+            });
           });
         }
 
@@ -293,7 +301,10 @@ const BlogArticles = () => {
         try {
           fallbackEl.scrollIntoView({ behavior: "smooth", block: "start" });
         } catch (e) {
-          window.scrollTo({ top: fallbackEl.offsetTop || 0, behavior: "smooth" });
+          window.scrollTo({
+            top: fallbackEl.offsetTop || 0,
+            behavior: "smooth",
+          });
         }
 
         const hadTabIndex = fallbackEl.hasAttribute("tabindex");
@@ -325,21 +336,21 @@ const BlogArticles = () => {
     if (searchTerm) {
       filteredBlogArticles = searchBlogArticles(
         returnedBlogArticles,
-        searchTerm
+        searchTerm,
       );
     }
 
     if (filter.topics.length) {
       filteredBlogArticles = filterBlogArticlesByTopic(
         filteredBlogArticles,
-        filter.topics
+        filter.topics,
       );
     }
 
     if (filter.author.length) {
       filteredBlogArticles = filterBlogArticlesByAuthor(
         filteredBlogArticles,
-        filter.author
+        filter.author,
       );
     }
 
@@ -347,7 +358,7 @@ const BlogArticles = () => {
       filter.dates !== "updatedByRange"
         ? (filteredBlogArticles = filterBlogArticlesByDate(
             filteredBlogArticles,
-            filter.dates
+            filter.dates,
           ))
         : null;
     }
@@ -356,7 +367,7 @@ const BlogArticles = () => {
       filteredBlogArticles = filterBlogArticlesByDate(
         filteredBlogArticles,
         filter.dates,
-        filter.dateRangeSet
+        filter.dateRangeSet,
       );
     }
 
@@ -407,9 +418,14 @@ const BlogArticles = () => {
     // Only prune selected authors after blog data has loaded. During initial
     // mount the returnedBlogArticles may be empty and would incorrectly cause
     // selected authors (restored from the URL) to be removed.
-    if (returnedBlogArticles && returnedBlogArticles.length && filter.author && filter.author.length) {
+    if (
+      returnedBlogArticles &&
+      returnedBlogArticles.length &&
+      filter.author &&
+      filter.author.length
+    ) {
       const filteredSelectedAuthors = filter.author.filter((a) =>
-        availableAuthors.includes(a)
+        availableAuthors.includes(a),
       );
 
       if (filteredSelectedAuthors.length !== filter.author.length) {
@@ -430,7 +446,8 @@ const BlogArticles = () => {
       if (loading) {
         message = "Searching blog articles.";
       } else if (resultsCount === 0) {
-        message = "No matching results. Try removing filters or using fewer keywords.";
+        message =
+          "No matching results. Try removing filters or using fewer keywords.";
       } else {
         message = `Found ${resultsCount} matching results.`;
       }
@@ -544,239 +561,275 @@ const BlogArticles = () => {
   }, []);
 
   return (
-    <div className="template-search">
-      <Breadcrumb
-        current={window?.setTopics?.url}
-        name={window?.setTopics?.name}
-        parent={window?.setTopics?.breadcrumbs?.breadcrumb[0]}
-        parent2={window?.setTopics?.breadcrumbs?.breadcrumb[1]}
-        parent3={window?.setTopics?.breadcrumbs?.breadcrumb[2]}
-        parent4={window?.setTopics?.breadcrumbs?.breadcrumb[3]}
-        parent5={window?.setTopics?.breadcrumbs?.breadcrumb[4]}
-        parent6={window?.setTopics?.breadcrumbs?.breadcrumb[5]}
-        parent7={window?.setTopics?.breadcrumbs?.breadcrumb[6]}
-        parent8={window?.setTopics?.breadcrumbs?.breadcrumb[7]}
-      />
-      <Banner
-        image={window?.setBanner?.bannerimg}
-        title={window?.setBanner?.name}
-        summary={window?.setBanner?.summary}
-        position={window?.setBanner?.position}
-      />
-      <div className="wmcads-container">
-      <main id="wmcads-main-content" className="wmcads-container--main" tabIndex={-1} role="main">
-          <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-p-r-xl wmcads-m-b-lg">
-            <Search
-              placeholder="Blog search..."
-              changeCallback={setSearchTerm}
-              searchButtonClickedCallback={searchButtonClickedFn}
-            />
-          </div>
-      <a
-        href="#search_filter"
-        onClick={(e) => {
-          // Prevent default hash navigation; programmatically reveal and focus the filter
-          e.preventDefault();
-          try {
-            // Ensure the mobile filter overlay is visible
-            setShowFilterOverrideMobile(true);
+    <>
+      <Helmet>
+        <title>{window?.setTopics?.name || "WMCA blog"}</title>
 
-            // Wait a tick for any UI changes (overlay open) to render, then focus
-            window.setTimeout(() => {
-              const target = document.getElementById("search_filter");
-              if (target) {
-                // make focusable, focus, then remove tabindex
-                const prevTab = target.getAttribute("tabindex");
-                target.setAttribute("tabindex", "-1");
-                target.focus({ preventScroll: false });
-                if (prevTab === null) target.removeAttribute("tabindex");
-                // also ensure element is visible in viewport
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={window?.setTopics?.name || "WMCA blog"} />
+        <meta property="og:description" content={window?.setTopics?.summary || ""} />
+        <meta property="og:url" content={window?.setTopics?.url} />
+        <meta property="og:image" content={window?.setBanner?.bannerimg} />
+
+        <meta property="og:site_name" content={window?.setBanner?.name} />
+        <meta property="og:locale" content="en_GB" />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={window?.setTopics?.name || "WMCA blog"} />
+        <meta name="twitter:description" content={window?.setTopics?.summary || ""} />
+        <meta name="twitter:image" content={window?.setBanner?.bannerimg} />
+      </Helmet>
+      <div className="template-search">
+        <Breadcrumb
+          current={window?.setTopics?.url}
+          name={window?.setTopics?.name}
+          parent={window?.setTopics?.breadcrumbs?.breadcrumb[0]}
+          parent2={window?.setTopics?.breadcrumbs?.breadcrumb[1]}
+          parent3={window?.setTopics?.breadcrumbs?.breadcrumb[2]}
+          parent4={window?.setTopics?.breadcrumbs?.breadcrumb[3]}
+          parent5={window?.setTopics?.breadcrumbs?.breadcrumb[4]}
+          parent6={window?.setTopics?.breadcrumbs?.breadcrumb[5]}
+          parent7={window?.setTopics?.breadcrumbs?.breadcrumb[6]}
+          parent8={window?.setTopics?.breadcrumbs?.breadcrumb[7]}
+        />
+        <Banner
+          image={window?.setBanner?.bannerimg}
+          title={window?.setBanner?.name}
+          summary={window?.setBanner?.summary}
+          position={window?.setBanner?.position}
+        />
+        <div className="wmcads-container">
+          <main
+            id="wmcads-main-content"
+            className="wmcads-container--main"
+            tabIndex={-1}
+            role="main"
+          >
+            <div className="wmcads-col-1 wmcads-col-md-2-3 wmcads-p-r-xl wmcads-m-b-lg">
+              <Search
+                placeholder="Blog search..."
+                changeCallback={setSearchTerm}
+                searchButtonClickedCallback={searchButtonClickedFn}
+              />
+            </div>
+            <a
+              href="#search_filter"
+              onClick={(e) => {
+                // Prevent default hash navigation; programmatically reveal and focus the filter
+                e.preventDefault();
                 try {
-                  target.scrollIntoView({ behavior: "smooth", block: "start" });
+                  // Ensure the mobile filter overlay is visible
+                  setShowFilterOverrideMobile(true);
+
+                  // Wait a tick for any UI changes (overlay open) to render, then focus
+                  window.setTimeout(() => {
+                    const target = document.getElementById("search_filter");
+                    if (target) {
+                      // make focusable, focus, then remove tabindex
+                      const prevTab = target.getAttribute("tabindex");
+                      target.setAttribute("tabindex", "-1");
+                      target.focus({ preventScroll: false });
+                      if (prevTab === null) target.removeAttribute("tabindex");
+                      // also ensure element is visible in viewport
+                      try {
+                        target.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start",
+                        });
+                      } catch (err) {
+                        /* ignore */
+                      }
+                    }
+                  }, 50);
                 } catch (err) {
-                  /* ignore */
+                  // fallback: jump to hash
+                  window.location.hash = "#search_filter";
                 }
-              }
-            }, 50);
-          } catch (err) {
-            // fallback: jump to hash
-            window.location.hash = "#search_filter";
-          }
-        }}
-        onFocus={(e) => {
-          const el = e.currentTarget;
-          el.style.position = "static";
-          el.style.left = "0";
-          el.style.width = "auto";
-          el.style.height = "auto";
-          el.style.padding = "8px";
-          el.style.background = "#fff";
-          el.style.zIndex = "1000";
-        }}
-        onBlur={(e) => {
-          const el = e.currentTarget;
-          el.style.position = "absolute";
-          el.style.left = "-9999px";
-          el.style.width = "1px";
-          el.style.height = "1px";
-          el.style.padding = "0";
-          el.style.background = "transparent";
-        }}
-        style={{
-          position: "absolute",
-          left: "-9999px",
-          top: 0,
-        }}
-      >
-        Skip to filters
-      </a>
-          <div className="wmcads-grid">
-            <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-xl wmcads-p-r-lg">
-              {/* Live region for screen readers to announce results updates */}
-              <div
-                role="status"
-                aria-live="polite"
-                aria-atomic="true"
-                style={{
-                  position: "absolute",
-                  left: "-9999px",
-                  width: "1px",
-                  height: "1px",
-                  overflow: "hidden",
-                }}
-              >
+              }}
+              onFocus={(e) => {
+                const el = e.currentTarget;
+                el.style.position = "static";
+                el.style.left = "0";
+                el.style.width = "auto";
+                el.style.height = "auto";
+                el.style.padding = "8px";
+                el.style.background = "#fff";
+                el.style.zIndex = "1000";
+              }}
+              onBlur={(e) => {
+                const el = e.currentTarget;
+                el.style.position = "absolute";
+                el.style.left = "-9999px";
+                el.style.width = "1px";
+                el.style.height = "1px";
+                el.style.padding = "0";
+                el.style.background = "transparent";
+              }}
+              style={{
+                position: "absolute",
+                left: "-9999px",
+                top: 0,
+              }}
+            >
+              Skip to filters
+            </a>
+            <div className="wmcads-grid">
+              <div className="main wmcads-col-1 wmcads-col-md-2-3 wmcads-m-b-xl wmcads-p-r-lg">
+                {/* Live region for screen readers to announce results updates */}
+                <div
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                  style={{
+                    position: "absolute",
+                    left: "-9999px",
+                    width: "1px",
+                    height: "1px",
+                    overflow: "hidden",
+                  }}
+                >
+                  {loading ? (
+                    "Searching blog articles."
+                  ) : (
+                    <span key={liveKey}>{liveMessage}</span>
+                  )}
+                </div>
+
                 {loading ? (
-                  "Searching blog articles."
+                  <div className="wmcads-loader wmcads-loader--small wmcads-m-l-xs"></div>
                 ) : (
-                  <span key={liveKey}>{liveMessage}</span>
+                  <>
+                    <p id="wmcads-results-count">
+                      Found <b>{noOfResults}</b> matching results
+                    </p>
+
+                    {noOfResults === 0 && (
+                      <div className="wmcads-msg-summary wmcads-msg-summary--warning ">
+                        <div className="wmcads-msg-summary__header">
+                          <svg
+                            className="wmcads-msg-summary__icon"
+                            aria-hidden="true"
+                            focusable="false"
+                          >
+                            <use
+                              xlinkHref="#wmcads-general-warning-circle"
+                              href="#wmcads-general-warning-circle"
+                            ></use>
+                          </svg>
+                          <h3 className="wmcads-msg-summary__title">
+                            There are no matching results
+                          </h3>
+                        </div>
+                        <div className="wmcads-msg-summary__info">
+                          <p>Improve your search results by:</p>
+                          <ul className="wmcads-unordered-list">
+                            <li>Removing filters</li>
+                            <li>Double-checking your spelling</li>
+                            <li>Using fewer keywords</li>
+                            <li>Searching for something less specific</li>
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+
+                    {blogArticles.length ? (
+                      <>
+                        {blogArticles[page]?.map((blogArticle, index) => (
+                          <BlogArticleLink
+                            route={blogArticle.route.path}
+                            key={blogArticle.id || `${page}-${index}`}
+                            filter={filter}
+                            setFilter={setFilter}
+                            name={blogArticle.name}
+                            id={blogArticle.id}
+                            authors={blogArticle.properties.author}
+                            tags={blogArticle.properties.tags}
+                            image={
+                              Array.isArray(blogArticle.properties.image) &&
+                              blogArticle.properties.image.length > 0 &&
+                              blogArticle.properties.image[0].url
+                                ? blogArticle.properties.image[0].url
+                                : "No Image"
+                            }
+                            imageAlt={
+                              Array.isArray(blogArticle.properties.image) &&
+                              blogArticle.properties.image.length > 0 &&
+                              blogArticle.properties.image[0].url
+                                ? blogArticle.properties.image[0].url
+                                : "No Image"
+                            }
+                            imageID={
+                              Array.isArray(blogArticle.properties.image) &&
+                              blogArticle.properties.image.length > 0 &&
+                              blogArticle.properties.image[0].id
+                                ? blogArticle.properties.image[0].id
+                                : null
+                            }
+                            publishDate={blogArticle.properties.date}
+                            introductionText={
+                              blogArticle.properties.introduction
+                            }
+                            resultIndex={page * 5 + index + 1}
+                            totalResults={noOfResults}
+                          />
+                        ))}
+                        <div className="wmcads-m-t-lg">
+                          <Pagination
+                            numberOfPages={blogArticles.length}
+                            activePage={page}
+                            // setPage only; URL is updated by the combined effect
+                            callBack={(p) => {
+                              setPage(p);
+                            }}
+                          />
+                        </div>
+                      </>
+                    ) : null}
+                  </>
                 )}
               </div>
-
-              {loading ? (
-                <div className="wmcads-loader wmcads-loader--small wmcads-m-l-xs"></div>
-              ) : (
-                <>
-                  <p id="wmcads-results-count">
-                    Found <b>{noOfResults}</b> matching results
-                  </p>
-
-                  {noOfResults === 0 && (
-                    <div className="wmcads-msg-summary wmcads-msg-summary--warning ">
-                      <div className="wmcads-msg-summary__header">
-                        <svg className="wmcads-msg-summary__icon" aria-hidden="true" focusable="false">
-                          <use
-                            xlinkHref="#wmcads-general-warning-circle"
-                            href="#wmcads-general-warning-circle"
-                          ></use>
-                        </svg>
-                        <h3 className="wmcads-msg-summary__title">
-                          There are no matching results
-                        </h3>
-                      </div>
-                      <div className="wmcads-msg-summary__info">
-                        <p>Improve your search results by:</p>
-                        <ul className="wmcads-unordered-list">
-                          <li>Removing filters</li>
-                          <li>Double-checking your spelling</li>
-                          <li>Using fewer keywords</li>
-                          <li>Searching for something less specific</li>
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-
-                  {blogArticles.length ? (
-                    <>
-                      {blogArticles[page]?.map((blogArticle, index) => (
-                        <BlogArticleLink
-                          route={blogArticle.route.path}
-                          key={blogArticle.id || `${page}-${index}`}
-                          filter={filter}
-                          setFilter={setFilter}
-                          name={blogArticle.name}
-                          id={blogArticle.id}
-                          authors={blogArticle.properties.author}
-                          tags={blogArticle.properties.tags}
-                          image={
-                            Array.isArray(blogArticle.properties.image) &&
-                            blogArticle.properties.image.length > 0 &&
-                            blogArticle.properties.image[0].url
-                              ? blogArticle.properties.image[0].url
-                              : "No Image"
-                          }
-                          imageAlt={
-                            Array.isArray(blogArticle.properties.image) &&
-                            blogArticle.properties.image.length > 0 &&
-                            blogArticle.properties.image[0].url
-                              ? blogArticle.properties.image[0].url
-                              : "No Image"
-                          }
-                          imageID={
-                            Array.isArray(blogArticle.properties.image) &&
-                            blogArticle.properties.image.length > 0 &&
-                            blogArticle.properties.image[0].id
-                              ? blogArticle.properties.image[0].id
-                              : null
-                          }
-                          publishDate={blogArticle.properties.date}
-                          introductionText={blogArticle.properties.introduction}
-                          resultIndex={page * 5 + index + 1}
-                          totalResults={noOfResults}
-                        />
-                      ))}
-                      <div className="wmcads-m-t-lg">
-                        <Pagination
-                          numberOfPages={blogArticles.length}
-                          activePage={page}
-                          // setPage only; URL is updated by the combined effect
-                          callBack={(p) => {
-                            setPage(p);
-                          }}
-                        />
-                      </div>
-                    </>
-                  ) : null}
-                </>
-              )}
-            </div>
-            <aside id="search_filter" className="wmcads-col-1 wmcads-col-md-1-3 wmcads-m-b-lg">
-              <hr className="wmcads-hide-desktop" />
-              <DelayedComponent>
-                <SortControl
+              <aside
+                id="search_filter"
+                className="wmcads-col-1 wmcads-col-md-1-3 wmcads-m-b-lg"
+              >
+                <hr className="wmcads-hide-desktop" />
+                <DelayedComponent>
+                  <SortControl
+                    filter={filter}
+                    setFilter={setFilter}
+                    defaultVal={sortDefault}
+                  />
+                </DelayedComponent>
+                <div className="wmcads-hide-desktop">
+                  <button
+                    className="wmcads-btn wmcads-btn--primary wmcads-btn--block"
+                    id="show_filter_btn"
+                    aria-controls="search_filter"
+                    aria-expanded="false"
+                    onClick={() => setShowFilterOverrideMobile(true)}
+                  >
+                    Filter your results
+                  </button>
+                </div>
+                <BlogFilter
+                  clearFilters={clearFilters}
+                  returnedBlogArticles={returnedBlogArticles}
                   filter={filter}
+                  setClearFilters={setClearFilters}
                   setFilter={setFilter}
-                  defaultVal={sortDefault}
+                  showFilterOverrideMobile={showFilterOverrideMobile}
+                  setShowFilterOverrideMobile={setShowFilterOverrideMobile}
+                  noOfResults={noOfResults}
+                  blogCategories={blogCategories}
+                  authors={authors}
+                  setDateRanges={setDateRanges}
                 />
-              </DelayedComponent>
-              <div className="wmcads-hide-desktop">
-                <button
-                  className="wmcads-btn wmcads-btn--primary wmcads-btn--block"
-                  id="show_filter_btn"
-                  aria-controls="search_filter"
-                  aria-expanded="false"
-                  onClick={() => setShowFilterOverrideMobile(true)}
-                >
-                  Filter your results
-                </button>
-              </div>
-              <BlogFilter
-                clearFilters={clearFilters}
-                returnedBlogArticles={returnedBlogArticles}
-                filter={filter}
-                setClearFilters={setClearFilters}
-                setFilter={setFilter}
-                showFilterOverrideMobile={showFilterOverrideMobile}
-                setShowFilterOverrideMobile={setShowFilterOverrideMobile}
-                noOfResults={noOfResults}
-                blogCategories={blogCategories}
-                authors={authors}
-                setDateRanges={setDateRanges}
-              />
-            </aside>
-          </div>
-        </main>
+              </aside>
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

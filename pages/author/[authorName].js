@@ -25,7 +25,7 @@ export async function getStaticProps(context) {
   try {
     // Fetch from internal API route (same host)
     const proto = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-    const host = process.env.VERCEL_URL || 'localhost:3000';
+    const host = process.env.VERCEL_URL || process.env.NETLIFY_HOST || 'localhost:3000';
     const base = `${proto}://${host}`;
     
     const r = await fetch(`${base}/api/getAuthor?id=${encodeURIComponent(authorName)}`, {
@@ -37,7 +37,7 @@ export async function getStaticProps(context) {
     if (!r.ok) {
       return {
         notFound: true,
-        revalidate: 60,
+        // For Netlify: don't use revalidate
       };
     }
     
@@ -48,7 +48,8 @@ export async function getStaticProps(context) {
         initialAuthor: data,
         authorName,
       },
-      revalidate: 60, // Regenerate page every 60 seconds in the background
+      // For Netlify: disable ISR revalidate
+      revalidate: false, // Disables ISR on static hosts
     };
   } catch (e) {
     console.error(`Error fetching author ${authorName}:`, e);

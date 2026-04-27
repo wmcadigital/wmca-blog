@@ -1,12 +1,6 @@
-# Netlify Next.js routing configuration
-# ISR (Incremental Static Regeneration) routes
+# Netlify routing for Next.js (non-ISR mode for Netlify)
+# All requests route to Next.js for handling
 
-# Preserve exact matches for pre-rendered pages
-/article/:articleTitle 200!
-/author/:authorName 200!
-/demo-topics 200!
-/ 200!
+/* /index.html 200
 
-# Catch-all: ISR will handle on-demand generation
-/* /:splat 200
 

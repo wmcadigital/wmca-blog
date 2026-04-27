@@ -1,15 +1,13 @@
-# Use Netlify's official Next.js plugin for proper runtime support
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
+# Next.js static export configuration for Netlify
 
 [build]
   command = "npm run next:build"
-  # Plugin handles the publish directory automatically
-  # Default is .next/public for standalone, but we're using default export
+  publish = "out"
 
 [env.production]
   NODE_ENV = "production"
 
+# Static file caching
 [[headers]]
   for = "/_next/static/*"
   [headers.values]
@@ -19,11 +17,6 @@
   for = "/fonts/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
-
-[[headers]]
-  for = "/api/*"
-  [headers.values]
-    Cache-Control = "public, max-age=60, s-maxage=60, stale-while-revalidate=86400"
 
 
 

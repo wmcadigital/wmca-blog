@@ -2,8 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  // For Netlify: use default export instead of standalone to work with @netlify/plugin-nextjs
-  // output: 'standalone' breaks Netlify routing
+  // Export as static site for Netlify - all data fetching happens client-side
+  output: 'export',
   // Optimize images: enable automatic image optimization
   images: {
     remotePatterns: [

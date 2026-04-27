@@ -1,5 +1,6 @@
-# Netlify Next.js plugin handles all routing automatically
-# No additional redirects needed for @netlify/plugin-nextjs
+# Catch-all for client-side routing
+# All requests to non-existent routes go to index.html
+/*    /index.html    200
 
 
 

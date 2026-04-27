@@ -28,34 +28,3 @@ export async function getStaticProps() {
     revalidate: false,
   };
 }
-    
-    const r = await fetch(`${base}/api/getBlogArticle?id=${encodeURIComponent(articleTitle)}`, {
-      headers: {
-        'User-Agent': 'Next.js ISR', // Identify as internal request
-      },
-    });
-    
-    if (!r.ok) {
-      return {
-        notFound: true,
-        revalidate: 60,
-      };
-    }
-    
-    const data = await r.json();
-    
-    return {
-      props: {
-        initialArticle: data,
-        articleTitle,
-      },
-      revalidate: 60, // ISR: regenerate every 60 seconds
-    };
-  } catch (e) {
-    console.error(`Error fetching article ${articleTitle}:`, e);
-    return {
-      notFound: true,
-      revalidate: 60, // Retry 404 in 60 seconds
-    };
-  }
-}

@@ -1,11 +1,13 @@
 import PropTypes from "prop-types";
-import { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 
 import FilterAccordion from "./FilterAccordion";
 
 import { getSearchParam } from "../helpers/urlSearchParams";
 
 import filterBlogArticlesByDate from "../helpers/filterBlogArticlesByDate";
+import filterBlogArticlesByTopic from "../helpers/filterBlogArticlesByTopic";
+import filterBlogArticlesByAuthor from "../helpers/filterBlogArticlesByAuthor";
 
 if (getSearchParam("author")) {
   // console.log('url has authors');
@@ -21,42 +23,116 @@ const BlogFilter = ({
   showFilterOverrideMobile = false,
   setShowFilterOverrideMobile = () => {},
   blogCategories = [],
-  authors = [],
   setDateRanges = () => {},
+  topicsGlobal = {},
 }) => {
-  const dates = useMemo(() => [
-    {
-      value: "updatedLastWeek",
-      label: "Posted in the last week",
-      // disable when there are no matching articles for this date range
-      disabled:
-        filterBlogArticlesByDate(returnedBlogArticles, "updatedLastWeek")
-          .length === 0,
-    },
-    {
-      value: "updatedLastMonth",
-      label: "Posted in the last month",
-      disabled:
-        filterBlogArticlesByDate(returnedBlogArticles, "updatedLastMonth")
-          .length === 0,
-    },
-    {
-      value: "updatedLastYear",
-      label: "Posted in the last year",
-      disabled:
-        filterBlogArticlesByDate(returnedBlogArticles, "updatedLastYear")
-          .length === 0,
-    },
-    {
-      value: "updatedByRange",
-      label: "Posted within date range",
-      // allow user to pick any custom range (enabled by default)
-      disabled: false,
-    },
-  ], [returnedBlogArticles]);
+  const dates = useMemo(() => {
+    // Start with all returned articles and apply the same topic/author filtering
+    // pipeline used by BlogArticles so the availability calculation matches
+    // what users will actually see.
+    let articlesForDateCheck = Array.isArray(returnedBlogArticles)
+      ? [...returnedBlogArticles]
+      : [];
 
-  const topicOptions = useMemo(() => blogCategories.map((category) => ({ label: category, value: category })), [blogCategories]);
-  const authorOptions = useMemo(() => authors.map((a) => ({ label: a, value: a })), [authors]);
+    // Apply global topics configuration (from web component) like BlogArticles
+    if (topicsGlobal?.topics && Array.isArray(topicsGlobal.topics) && topicsGlobal.topics.length > 0) {
+      articlesForDateCheck = articlesForDateCheck.filter((article) =>
+        (article?.properties?.tags || []).some((tag) => topicsGlobal.topics.includes(tag)),
+      );
+    }
+
+    // Apply topic filter (user selection)
+    if (filter?.topics && filter.topics.length > 0) {
+      articlesForDateCheck = filterBlogArticlesByTopic(articlesForDateCheck, filter.topics);
+    }
+
+    // Apply author filter (user selection)
+    if (filter?.author && filter.author.length > 0) {
+      articlesForDateCheck = filterBlogArticlesByAuthor(articlesForDateCheck, filter.author);
+    }
+
+    return [
+      {
+        value: "updatedLastWeek",
+        label: "Posted in the last week",
+        disabled: filterBlogArticlesByDate(articlesForDateCheck, "updatedLastWeek").length === 0,
+      },
+      {
+        value: "updatedLastMonth",
+        label: "Posted in the last month",
+        disabled: filterBlogArticlesByDate(articlesForDateCheck, "updatedLastMonth").length === 0,
+      },
+      {
+        value: "updatedLastYear",
+        label: "Posted in the last year",
+        disabled: filterBlogArticlesByDate(articlesForDateCheck, "updatedLastYear").length === 0,
+      },
+      {
+        value: "updatedByRange",
+        label: "Posted within date range",
+        disabled: false,
+      },
+    ];
+  }, [returnedBlogArticles, topicsGlobal, filter?.topics, filter?.author]);
+
+  const topicOptions = useMemo(() => {
+    // If topics are configured via web component, ONLY show those topics in the filter
+    if (topicsGlobal?.topics && Array.isArray(topicsGlobal.topics) && topicsGlobal.topics.length > 0) {
+      return topicsGlobal.topics
+        .map((category) => ({ label: category, value: category }));
+    }
+
+    // Otherwise, show all available topics from the articles
+    return blogCategories
+      .map((category) => ({ label: category.charAt(0).toUpperCase() + category.slice(1), value: category }));
+  }, [blogCategories, topicsGlobal]);
+  // Compute authors filtered by the currently available topics (configuredTopics)
+  const authorOptions = useMemo(() => {
+    // Start with global topics if configured, otherwise use all available topics
+    let topicsToFilter = [];
+    
+    if (topicsGlobal?.topics && Array.isArray(topicsGlobal.topics) && topicsGlobal.topics.length > 0) {
+      topicsToFilter = topicsGlobal.topics;
+    } else if (blogCategories && blogCategories.length > 0) {
+      topicsToFilter = blogCategories;
+    }
+
+    // If user has selected specific topics, narrow down to those topics only
+    if (filter?.topics && Array.isArray(filter.topics) && filter.topics.length > 0) {
+      topicsToFilter = filter.topics;
+    }
+
+    // If there are no topics to filter by, return all authors from the full article list
+    if (!topicsToFilter || topicsToFilter.length === 0) {
+      const allAuthors = new Set();
+      returnedBlogArticles.forEach((article) => {
+        const authorList = article?.properties?.author;
+        if (authorList && Array.isArray(authorList)) {
+          authorList.forEach((a) => allAuthors.add(a.name));
+        }
+      });
+      return Array.from(allAuthors).sort().map((a) => ({ label: a, value: a }));
+    }
+
+    // Create a set of lowercase topics for case-insensitive matching
+    const allowedTopics = new Set(topicsToFilter.map(t => t.toLowerCase()));
+    const authorsWithTopics = new Set();
+
+    // Find authors whose articles have tags in the allowed topics
+    returnedBlogArticles.forEach((article) => {
+      const articleTags = article?.properties?.tags || [];
+      const authorList = article?.properties?.author;
+      if (!authorList || !Array.isArray(authorList)) return;
+      
+      // Check if any of the article's tags match the allowed topics (case-insensitive)
+      if (articleTags.some((tag) => allowedTopics.has(tag.trim().toLowerCase()))) {
+        authorList.forEach((a) => authorsWithTopics.add(a.name));
+      }
+    });
+
+    // Return sorted authors
+    return Array.from(authorsWithTopics).sort().map((a) => ({ label: a, value: a }));
+  }, [returnedBlogArticles, topicsGlobal, blogCategories, filter?.topics]);
 
   return (
     <div
@@ -181,7 +257,7 @@ const BlogFilter = ({
   );
 };
 
-export default BlogFilter;
+export default React.memo(BlogFilter);
 
 BlogFilter.propTypes = {
   returnedBlogArticles: PropTypes.arrayOf(PropTypes.object),
@@ -195,6 +271,7 @@ BlogFilter.propTypes = {
   authors: PropTypes.arrayOf(PropTypes.string),
   setDateRanges: PropTypes.func,
   setClearFilters: PropTypes.func,
+  topicsGlobal: PropTypes.object,
 };
 
 // Defaults provided in the function signature to avoid using defaultProps on a function component

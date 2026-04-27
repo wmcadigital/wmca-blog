@@ -1,0 +1,219 @@
+.wmcads-footer {
+  -webkit-box-shadow: 0 100vh 0 100vh #231f20;
+  box-shadow: 0 100vh 0 100vh #231f20;
+}
+
+/*
+  Local @font-face overrides to ensure fonts use font-display: swap
+  and to provide optional font metric overrides (ascent/descent/line-gap)
+  where supported to reduce layout shifts when the webfont loads.
+
+  We declare both the normal family name and the project-specific
+  name "Noto Sans Display Bold" used in existing rules so the font
+  is available immediately from our origin and can be controlled.
+
+  NOTE: metric override properties are relatively new and may be
+  ignored by older browsers — they are safe progressive enhancements.
+*/
+@font-face {
+  font-family: 'Noto Sans Display';
+  src: url('https://cloudcdn.wmca.org.uk/wmcaassets/ds/assets/fonts/notosansdisplay-regular-webfont.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  /* Metric overrides (percentages) to reduce CLS where supported */
+  ascent-override: 90%;
+  descent-override: 10%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  /* Keep the project-specific name used elsewhere for backwards compatibility */
+  font-family: 'Noto Sans Display Bold';
+  /* Try the origin first to avoid 404 noise from a misconfigured CDN. */
+  src: url('https://cloudcdn.wmca.org.uk/wmcaassets/ds/assets/fonts/notosansdisplay-bold-webfont.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  ascent-override: 88%;
+  descent-override: 12%;
+  line-gap-override: 0%;
+}
+
+
+/* Reset default browser button styles for consistency */
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.wmcads-fe-radios__container.disabled {
+  color: rgb(184, 184, 184, 0.5);
+  cursor: default;
+} 
+
+/* New shared disabled state utility used by FilterAccordion */
+.wmcads-is--disabled {
+  color: rgba(109, 109, 109, 1) !important;
+  cursor: not-allowed !important;
+}
+
+.wmcads-is--disabled input,
+.wmcads-is--disabled button {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.wmcads-is--disabled .wmcads-fe-checkboxes__checkmark,
+.wmcads-is--disabled .wmcads-fe-radios__checkmark {
+  border-color: rgba(109, 109, 109, 1) !important;
+  background: none !important;
+}
+
+/* Prefer :focus-visible where supported to avoid showing focus for mouse users */
+/* Hide focus outline for elements that are focused but not keyboard-focused */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 3px solid #ffbf47;
+  outline-offset: 2px;
+}
+
+/* When the main results container is programmatically focused (tabindex="-1"),
+   don't show the browser focus ring — keep focus semantics for assistive tech
+   but avoid a visual border appearing for programmatic focus. */
+#wmcads-main-content[tabindex="-1"]:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Ensure disabled controls that receive focus are clear */
+.wmcads-fe-radios__container.disabled:focus-visible {
+  outline: 2px dashed rgba(184,184,184,0.6);
+}
+
+.wmcads-fe-radios__container.disabled:focus {
+  color: rgb(184, 184, 184, 0.5);
+  cursor: default;
+  background-color: none!important;
+} 
+
+
+.wmcads-fe-radios__container.disabled .wmcads-fe-radios__checkmark {
+  border-color: rgb(184, 184, 184, 0.5);
+  background: none;
+}
+
+
+@media only screen and (min-width: 768px) {
+  .wmcads-search-filter .wmcads-search-filter__clear-all.wmcads-hide-mobile {
+    display: block;
+  }
+}
+
+.wmcads-content-card.sidebar {
+  margin-top: 1.5rem;
+}
+
+/* Error Boundary Styling - WMCA Brand */
+.wmcads-btn--primary {
+  background-color: #c41e3a;
+  color: #fff;
+  border: 1px solid #c41e3a;
+}
+
+.wmcads-btn--primary:hover {
+  background-color: #a01730;
+  border-color: #a01730;
+}
+
+.wmcads-btn--primary:focus-visible {
+  outline: 3px solid #ffbf47;
+  outline-offset: 2px;
+}
+
+.wmcads-btn--secondary {
+  background-color: #757575;
+  color: #fff;
+  border: 1px solid #757575;
+}
+
+.wmcads-btn--secondary:hover {
+  background-color: #616161;
+  border-color: #616161;
+}
+
+.wmcads-btn--secondary:focus-visible {
+  outline: 3px solid #ffbf47;
+  outline-offset: 2px;
+}
+
+.ds-btn{-webkit-box-sizing:border-box;box-sizing:border-box;display:inline-block;position:relative;padding:.75rem;-webkit-transition:background-color .2s ease-in-out,border .2s ease-in-out;transition:background-color .2s ease-in-out,border .2s ease-in-out;border:1px solid transparent;border-radius:5px;color: #fff !important;;background-color:#c05701;font-family:"Noto Sans Display Bold",sans-serif;font-size:1rem;font-weight:700;text-align:center;text-decoration:none!important;cursor:pointer}.ds-btn:hover{background-color:#863d01}.ds-btn.ds-is--active,.ds-btn:active,.ds-btn:focus,.ds-btn:target{outline:0;background-color:#602c01;-webkit-appearance:none;appearance:none}.ds-btn__icon{width:22px;height:22px;fill:#fff;vertical-align:top}.ds-btn__icon--right{margin-left:.75rem;float:right}.ds-btn--dark-bg{color:#c05701;background-color:#fff}.ds-btn--dark-bg:hover{background-color:#f9eee6}.ds-btn--dark-bg:active,.ds-btn--dark-bg:focus,.ds-btn--dark-bg:target{background-color:#fd0}.ds-btn--dark-bg.ds-is--active{background-color:#f2ddcc}.ds-btn--primary{background-color:#c05701}.ds-btn--primary:hover{background-color:#863d01}.ds-btn--primary.ds-is--active,.ds-btn--primary:active,.ds-btn--primary:focus,.ds-btn--primary:target{background-color:#602c01}.ds-btn--secondary{border:1px solid #c05701;color:#c05701;background-color:transparent}.ds-btn--secondary .ds-btn__icon{fill:#c05701}.ds-btn--secondary:hover{background-color:#f9eee6}.ds-btn--secondary:active,.ds-btn--secondary:focus,.ds-btn--secondary:target{background-color:initial}.ds-btn--secondary.ds-is--active{background-color:#efd5c0}.ds-btn--secondary.ds-btn--disabled:disabled{border-color:#676869;color:#676869;background:0 0}.ds-btn--secondary.ds-btn--disabled:disabled .ds-btn__icon{fill:#676869}.ds-btn--cta{background-color:#007da8}.ds-btn--cta:hover{background-color:#005876}.ds-btn--cta.ds-is--active,.ds-btn--cta:active,.ds-btn--cta:focus,.ds-btn--cta:target{background-color:#003f54}.ds-btn--destructive{background-color:#d4351c}.ds-btn--destructive:hover{background-color:#942514}.ds-btn--destructive.ds-is--active,.ds-btn--destructive:active,.ds-btn--destructive:focus,.ds-btn--destructive:target{background-color:#6a1b0e}.ds-btn--start{background-color:#00703c}.ds-btn--start span{border:1px solid transparent}.ds-btn--start:hover{background-color:#004e2a}.ds-btn--start.ds-is--active,.ds-btn--start:active,.ds-btn--start:focus,.ds-btn--start:target{background-color:#00381e}.ds-btn--disabled:disabled{background-color:#676869;cursor:not-allowed}.ds-btn--disabled:disabled .ds-btn__icon{fill:#fff}.ds-btn--disabled:disabled.ds-is--active,.ds-btn--disabled:disabled:active,.ds-btn--disabled:disabled:focus,.ds-btn--disabled:disabled:target{background-color:#676869}.ds-btn--block{display:block;width:100%}.ds-btn--link{display:inline;padding:0;border-radius:0;color:#007197;background:0 0;font-weight:700;text-decoration:underline;cursor:pointer}.ds-btn--link.ds-is--active,.ds-btn--link:active,.ds-btn--link:focus,.ds-btn--link:hover,.ds-btn--link:target{background:0 0}
+
+/* Back-to-Top Button Styling */
+.wmca-back-to-top-btn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border: 2px solid #fe811b;
+  border-radius: 50%;
+  background-color: #fff;
+  color: #fe811b;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease-in-out;
+  z-index: 999;
+}
+
+.wmca-back-to-top-btn:hover {
+  background-color: #fe811b;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(254, 129, 27, 0.3);
+  transform: translateY(-2px);
+}
+
+.wmca-back-to-top-btn:focus-visible {
+  outline: 3px solid #ffbf47;
+  outline-offset: 2px;
+}
+
+.wmca-back-to-top-btn:active {
+  transform: translateY(0);
+}
+
+.wmca-back-to-top-icon {
+  display: block;
+  font-weight: bold;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .wmca-back-to-top-btn {
+    bottom: 1rem;
+    right: 1rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.25rem;
+  }
+}

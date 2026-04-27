@@ -6,9 +6,14 @@ const filterBlogArticlesByTopic = (blogArticles, categoryFilter) =>
       article?.properties?.tags ??
       (article?.ArticleCategory ? [article.ArticleCategory] : undefined);
 
-    const articleCategory = tags || ["None"];
+    const articleCategory = (tags || ["None"]).map((t) => {
+      return typeof t === "string" ? t.trim().toLowerCase() : t;
+    });
 
-    return categoryFilter.some((cat) => articleCategory.includes(cat));
+    // Case-insensitive matching
+    return categoryFilter.some((cat) => 
+      articleCategory.includes(cat.trim().toLowerCase())
+    );
   });
 
 export default filterBlogArticlesByTopic;

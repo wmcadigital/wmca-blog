@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import Link from 'next/link';
 import formatDate from "../helpers/formatDate";
 import getUmbracoMedia from "../api/getUmbracoMedia"; // <-- import the media API
 import { buildSrc, buildSrcSet } from "../helpers/image";
@@ -34,7 +34,7 @@ const BlogArticleLink = ({
 
   useEffect(() => {
     // match check to mark which topics should be linked
-    let blogTopics = window?.setTopics.topics;
+    const blogTopics = window?.setTopics?.topics || [];
 
     const topics = tags.map((el1) => ({
       name: el1,
@@ -93,12 +93,21 @@ const BlogArticleLink = ({
     return result;
   };
 
+  // Build article URL with topics query parameter to preserve filter when returning
+  const getArticleUrl = () => {
+    const baseUrl = `/article/${routePath(route)}`;
+    if (filter.topics && filter.topics.length > 0) {
+      return `${baseUrl}?topics=${filter.topics.join('/')}`;
+    }
+    return baseUrl;
+  };
+
   return (
     <div className="wmcads-search-result">
       <h2 className="wmcads-m-b-sm wmcads-search-result__title">
         <Link
+          href={getArticleUrl()}
           className="h2 wmcads-search-result__title"
-          to={{ pathname: `article/${routePath(route)}` }}
           aria-label={
             resultIndex
               ? `${name} — result ${resultIndex} of ${totalResults || ""}`
@@ -264,4 +273,4 @@ BlogArticleLink.propTypes = {
   totalResults: PropTypes.number,
 };
 
-export default BlogArticleLink;
+export default React.memo(BlogArticleLink);

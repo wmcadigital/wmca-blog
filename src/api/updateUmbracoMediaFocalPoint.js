@@ -12,8 +12,10 @@
 // starting point and will throw a helpful error if the management API key
 // is not configured.
 
-const managementEndpoint = process.env.REACT_APP_UMBRACO_MANAGEMENT_ENDPOINT || "https://cms.wmca.org.uk/umbraco/management/api/v1";
-const managementApiKey = process.env.REACT_APP_UMBRACO_MANAGEMENT_API_KEY;
+// NOTE: These are kept for reference. The actual request is proxied through
+// the server-side API route, so the management key isn't exposed in the client bundle.
+// const managementEndpoint = process.env.REACT_APP_UMBRACO_MANAGEMENT_ENDPOINT;
+// const managementApiKey = process.env.REACT_APP_UMBRACO_MANAGEMENT_API_KEY;
 
 /**
  * Update the focalPoint for a media item.
@@ -22,37 +24,23 @@ const managementApiKey = process.env.REACT_APP_UMBRACO_MANAGEMENT_API_KEY;
  * @returns {Promise<object>} - parsed JSON response from management API
  */
 async function updateUmbracoMediaFocalPoint(id, focalPoint) {
-  if (!managementApiKey) {
-    throw new Error('Missing REACT_APP_UMBRACO_MANAGEMENT_API_KEY environment variable. Cannot update Umbraco media.');
-  }
-
+  // Proxy through server-side API route so management key isn't exposed in client bundle
   if (!id) throw new Error('Media id required');
   if (!focalPoint) throw new Error('focalPoint object required');
 
-  // Construct URL. This path may need to be adapted for your Umbraco instance.
-  const url = `${managementEndpoint.replace(/\/$/, '')}/media/${id}`;
-
-  const body = { focalPoint };
-
-  const res = await fetch(url, {
+  const r = await fetch(`/api/updateUmbracoMediaFocalPoint?id=${encodeURIComponent(id)}`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'Api-Key': managementApiKey,
-    },
-    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(focalPoint),
   });
-
-  if (!res.ok) {
-    const txt = await res.text().catch(() => '');
-    throw new Error(`Failed to update media focalPoint: ${res.status} ${res.statusText} ${txt}`);
+  if (!r.ok) {
+    const txt = await r.text().catch(() => '');
+    throw new Error(`Failed to update media focalPoint: ${r.status} ${txt}`);
   }
-
-  // Return parsed response if available
   try {
-    return await res.json();
+    return await r.json();
   } catch (e) {
-    return {}; // some APIs return 204 No Content
+    return {};
   }
 }
 

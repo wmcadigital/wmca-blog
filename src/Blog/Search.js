@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 const Search = ({
   placeholder,
@@ -7,6 +7,7 @@ const Search = ({
   searchButtonClickedCallback = () => {},
 }) => {
   const [value, setValue] = useState("");
+  const inputRef = useRef(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -29,7 +30,28 @@ const Search = ({
         placeholder={placeholder}
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        ref={inputRef}
       />
+      {/* Clear button shown when there's a value */}
+      {value ? (
+        <button
+          className="wmcads-search-bar__clear wmcads-search-bar__btn"
+          type="button"
+          aria-label="Clear search"
+          onClick={() => {
+            setValue("");
+            changeCallback("");
+            // return focus to the input
+            try { inputRef.current && inputRef.current.focus(); } catch (e) { /* ignore */ }
+          }}
+        >
+          <svg aria-hidden="true" focusable="false">
+            <title>Clear</title>
+            <use xlinkHref="#wmcads-general-cross" href="#wmcads-general-cross"></use>
+          </svg>
+        </button>
+      ) : null}
+
       <button
         className="wmcads-search-bar__btn"
         type="submit"

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMCA Blog Web Component Example</title>
+    <link rel="stylesheet" href="https://www.wmca.org.uk/css/wmcads.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 2rem;
+        }
+
+        .blog-section {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .blog-section h2 {
+            margin-bottom: 1rem;
+            color: #003366;
+        }
+
+        wmca-blog {
+            margin: 2rem 0;
+            display: block;
+        }
+
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        .controls {
+            margin: 1rem 0;
+            padding: 1rem;
+            background-color: #e8f4f8;
+            border-left: 4px solid #003366;
+            border-radius: 4px;
+        }
+
+        .controls button {
+            background-color: #003366;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            margin-right: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .controls button:hover {
+            background-color: #005599;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            main {
+                padding: 0 1rem 1rem;
+            }
+
+            .blog-section {
+                padding: 1rem;
+            }
+
+            wmca-blog {
+                height: 600px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <h1>WMCA Blog</h1>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <section class="blog-section">
+            <h2>Latest Blog Articles</h2>
+            <p>Below is your WMCA blog embedded as a web component. You can interact with it using the buttons below or embed it directly in any HTML page.</p>
+
+            <!-- Controls for testing -->
+            <div class="controls">
+                <h3>Component Controls</h3>
+                <button onclick="reloadBlog()">🔄 Reload</button>
+                <button onclick="goToArticle()">📄 Go to Article</button>
+                <button onclick="goToAuthor()">👤 Go to Author</button>
+            </div>
+
+            <!-- The Web Component -->
+            <wmca-blog 
+                id="blog-component"
+                app-url="https://wmca-blog.vercel.app"
+                height="900px"
+                theme="light">
+            </wmca-blog>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 West Midlands Combined Authority. All rights reserved.</p>
+    </footer>
+
+    <!-- Load the Web Component Script -->
+    <script src="http://localhost:3000/wmca-blog-component.js"></script>
+
+    <!-- JavaScript to demonstrate component API -->
+    <script>
+        function reloadBlog() {
+            const blog = document.getElementById('blog-component');
+            if (blog && blog.reload) {
+                blog.reload();
+                console.log('Blog reloaded');
+            }
+        }
+
+        function goToArticle() {
+            const articleTitle = prompt('Enter article title:', 'welcome-to-our-blog');
+            if (articleTitle) {
+                const blog = document.getElementById('blog-component');
+                if (blog && blog.navigateToArticle) {
+                    blog.navigateToArticle(articleTitle);
+                    console.log('Navigating to article:', articleTitle);
+                }
+            }
+        }
+
+        function goToAuthor() {
+            const authorName = prompt('Enter author name:', 'John Smith');
+            if (authorName) {
+                const blog = document.getElementById('blog-component');
+                if (blog && blog.navigateToAuthor) {
+                    blog.navigateToAuthor(authorName);
+                    console.log('Navigating to author:', authorName);
+                }
+            }
+        }
+
+        // Log component registration
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('WmcaBlogComponent registered:', customElements.get('wmca-blog') ? 'Yes' : 'No');
+        });
+    </script>
+</body>
+</html>

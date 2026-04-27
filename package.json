@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "description": "WMCA Blog",
   "scripts": {
-    "dev": "node ./scripts/start-dev.js",
-    "build": "parcel build src/index.html",
-    "build:cdn": "parcel build src/index.html --dist-dir build --public-url ./",
-    "build:cdn:absolute": "parcel build src/index.html --dist-dir build --public-url https://cloudcdn.wmca.org.uk/staging/wmcaassets/apps/blog/",
+    "next:dev": "next dev",
+    "next:build": "next build",
+    "next:start": "next start",
+    "wc:build": "node ./scripts/build-web-component.js",
+    "build": "parcel build src/index.html && node ./scripts/lowercase-build.js dist",
+    "build:cdn": "parcel build src/index.html --dist-dir build --public-url ./ && node ./scripts/lowercase-build.js build",
+    "build:cdn:absolute": "parcel build src/index.html --dist-dir build --public-url https://cloudcdn.wmca.org.uk/staging/wmcaassets/apps/blog/ && node ./scripts/lowercase-build.js build",
     "build:cdn:lower": "npm run build:cdn:absolute && node ./scripts/lowercase-build.js build",
+    "build:lower": "npm run build && node ./scripts/lowercase-build.js dist",
     "lhci:collect": "lhci collect --config=./.lighthouserc.json",
     "lhci:assert": "lhci assert --config=./.lighthouserc.json",
     "lhci": "npm run lhci:collect && npm run lhci:assert",
@@ -16,7 +20,8 @@
     "format": "prettier --write \"src/**/*.{js,jsx}\"",
     "lint": "npm run lint --silent",
     "upgrade-deps": "npx npm-check-updates -u && npm install",
-    "ncu": "npx npm-check-updates"
+    "ncu": "npx npm-check-updates",
+    "start:ssr": "node server/index.js"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.16.11",
@@ -41,7 +46,9 @@
     "npm-check-updates": "^16.0.0"
   },
   "dependencies": {
+    "next": "^14.0.0",
     "@swc/helpers": "^0.3.8",
+    "express": "^4.18.2",
     "lodash": "^4.17.21",
     "prop-types": "^15.8.1",
     "react": "^18.0.0",

@@ -14,21 +14,33 @@ const Breadcrumb = ({
   parent8 = [],
 }) => {
   // rename wmca to home for homepage link
-  const breadHome = parent[0];
-  let breadHomeVal = breadHome.replace(
-    "West Midlands Combined Authority",
-    "Home"
-  );
+  const breadHome = Array.isArray(parent) && parent.length ? parent[0] : "";
+  let breadHomeVal = breadHome
+    ? breadHome.replace("West Midlands Combined Authority", "Home")
+    : "Home";
 
   // get urlParams from session storage. this is so filter values are kept if breadcrumb link is used
-  const searchSessionParams = sessionStorage.getItem("urlParams");
-  let searchParams = "";
-
-  if (searchSessionParams == null) {
-    searchParams = "";
-  } else {
-    searchParams = "?" + searchSessionParams;
+  let searchSessionParams = null;
+  try {
+    searchSessionParams =
+      typeof window !== "undefined" && window.sessionStorage
+        ? window.sessionStorage.getItem("urlParams")
+        : null;
+  } catch (e) {
+    // sessionStorage may not be available in sandboxed iframes
+    // This is expected when iframe lacks allow-same-origin for security
+    console.debug('[Breadcrumb] sessionStorage not available:', e.message);
+    searchSessionParams = null;
   }
+  let searchParams = searchSessionParams == null ? "" : "?" + searchSessionParams;
+
+  // `current` can be either a string href or an object with a `url` property.
+  // Normalize to a string to avoid derefencing null during SSR.
+  const currentHref = current
+    ? typeof current === "string"
+      ? current
+      : current.url || ""
+    : "";
 
   return (
     <nav
@@ -97,10 +109,10 @@ const Breadcrumb = ({
             </a>
           </li>
         ) : null}
-        {current ? (
+        {currentHref ? (
           <li className="wmcads-breadcrumb__list-item">
             <a
-              href={current + searchParams}
+              href={currentHref + searchParams}
               className={
                 article
                   ? "wmcads-breadcrumb__link"
@@ -115,7 +127,7 @@ const Breadcrumb = ({
         {article ? (
           <li className="wmcads-breadcrumb__list-item">
             <a
-              href={current.url}
+              href={currentHref}
               className="wmcads-breadcrumb__link wmcads-breadcrumb__link--current"
               aria-current="page"
             >

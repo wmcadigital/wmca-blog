@@ -1,13 +1,22 @@
 import React from "react";
-import chunk from "lodash/chunk";
+import PropTypes from "prop-types";
 import getAuthor from "../api/getAuthor";
+
+// Helper to chunk array into smaller arrays
+const chunkArray = (arr, size) => {
+  const chunks = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+};
 import getAuthorArticles from "../api/getAuthorArticles";
 import ScrollToTop from "../helpers/ScrollToTop";
 import { useState, useEffect } from "react";
-import { useLoaderData, Link } from "react-router-dom";
+import Link from 'next/link';
 
 import Breadcrumb from "./Breadcrumb";
-import Helmet from "react-helmet";
+import Head from 'next/head';
 import formatDate from "../helpers/formatDate";
 import { send as analyticsSend } from "../analytics";
 import sortBlogArticles from "../helpers/sortBlogArticles";
@@ -17,13 +26,9 @@ import { getPageKey } from "../helpers/page";
 
 // Make loader synchronous to avoid blocking initial render.
 // Fetch the author inside the component if not provided by the loader.
-export function loader({ params }) {
-  return { author: null, authorName: params.authorName };
-}
-
-const BlogAuthor = () => {
+const BlogAuthor = (props) => {
   const [authorArticles, setAuthorArticles] = useState([]);
-  const loaderData = useLoaderData();
+  const loaderData = props.loaderData || { author: props.initialAuthor || null, authorName: props.authorName || null };
   const [author, setAuthor] = useState(loaderData?.author ?? null);
   const authorName = loaderData?.authorName;
 
@@ -100,7 +105,7 @@ const BlogAuthor = () => {
 
     // Sort the data by date in descending order
     setAuthorArticles(
-      chunk(sortBlogArticles(returnedBlogArticles, "descending"), 4)
+      chunkArray(sortBlogArticles(returnedBlogArticles, "descending"), 4)
     );
   }, [author?.id]);
 
@@ -121,9 +126,9 @@ const BlogAuthor = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{author?.name || "WMCA blog"}</title>
-      </Helmet>
+      <Head>
+        <title>{author?.name || 'WMCA blog'}</title>
+      </Head>
       <ScrollToTop />
       <Breadcrumb
         current={window?.setTopics?.url}
@@ -239,15 +244,14 @@ const BlogAuthor = () => {
                               );
                             })()}
                             <p>{formatDate(article.properties.date)}</p>
-                            <Link
-                              to={{
-                                pathname: `/article/${routePathArticle(
-                                  article.route.path
-                                )}`,
-                              }}
-                            >
-                              {article.name}
-                            </Link>
+                            <Link href={(() => {
+                              const baseHref = `/article/${routePathArticle(article.route.path)}`;
+                              const topics = window?.setTopics?.topics;
+                              if (topics && Array.isArray(topics) && topics.length > 0) {
+                                return `${baseHref}?topics=${topics.join('/')}`;
+                              }
+                              return baseHref;
+                            })()}>{article.name}</Link>
                           </div>
                       ))}
                     </>
@@ -255,13 +259,8 @@ const BlogAuthor = () => {
                   {author.name && (
                     <>
                       <Link
+                        href={`/?sort=descending&topics=&author=${formatAuthorFilterUrl(author.route.path)}&dates=null&dateRangeSet=undefined`}
                         className="wmcads-link wmcads-m-t-lg"
-                        to={{
-                          pathname: `/`,
-                          search: `?sort=descending&topics=&author=${formatAuthorFilterUrl(
-                            author.route.path
-                          )}&dates=null&dateRangeSet=undefined`,
-                        }}
                       >
                         View more posts written by {author.name}
                       </Link>
@@ -331,6 +330,12 @@ const BlogAuthor = () => {
       </div>
     </>
   );
+};
+
+BlogAuthor.propTypes = {
+  loaderData: PropTypes.object,
+  initialAuthor: PropTypes.object,
+  authorName: PropTypes.string,
 };
 
 export default BlogAuthor;

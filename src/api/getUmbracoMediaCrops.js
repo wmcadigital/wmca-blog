@@ -1,8 +1,7 @@
 import getUmbracoMedia from './getUmbracoMedia';
 
 /**
- * Fetch a media item's crops from the Umbraco Delivery API.
- * Returns an array (possibly empty) of crop descriptors.
+ * Fetch a media item's crops via server-side proxy.
  */
 const getUmbracoMediaCrops = async (id) => {
   if (!id) return [];

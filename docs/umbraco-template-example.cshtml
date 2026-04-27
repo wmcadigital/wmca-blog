@@ -1,0 +1,64 @@
+@using Umbraco.Cms.Web.Common.PublishedModels;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.BlogPage>
+@{
+    Layout = "master.cshtml";
+}
+
+<!-- WMCA Blog Web Component Integration Example -->
+<section class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>@Model.Value<string>("pageTitle")</h1>
+            <p class="lead">@Model.Value<string>("pageDescription")</p>
+        </div>
+    </div>
+</section>
+
+<!-- Blog Web Component -->
+<section class="container-fluid bg-light py-4">
+    <div class="container">
+        <!-- The web component element -->
+        <wmca-blog 
+            app-url="https://wmca-blog.vercel.app"
+            height="900px"
+            theme="light">
+        </wmca-blog>
+    </div>
+</section>
+
+<!-- Load the web component script -->
+<script src="https://cloudcdn.wmca.org.uk/wmcaassets/apps/blog/wmca-blog-component.js"></script>
+
+<!-- Optional: Custom styling for the web component -->
+<style>
+    wmca-blog {
+        display: block;
+        margin: 2rem 0;
+    }
+
+    @media (max-width: 768px) {
+        wmca-blog {
+            height: auto !important;
+            min-height: 600px;
+        }
+    }
+</style>
+
+<!-- Optional: JavaScript to interact with the component -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const blog = document.querySelector('wmca-blog');
+        
+        // Example: Navigate to article from external link
+        document.querySelectorAll('[data-blog-article]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const articleTitle = this.getAttribute('data-blog-article');
+                blog.navigateToArticle(articleTitle);
+            });
+        });
+
+        // Log that component is ready
+        console.log('WMCA Blog component initialized');
+    });
+</script>

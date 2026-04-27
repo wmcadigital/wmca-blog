@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import getUmbracoMedia from "../api/getUmbracoMedia";
 import { buildSrc, buildSrcSet } from "../helpers/image";
-import Helmet from "react-helmet";
+import Head from 'next/head';
 
 const ImageComponent = ({ imageUrls }) => {
   const [mediaMap, setMediaMap] = useState({});
@@ -58,9 +58,9 @@ const ImageComponent = ({ imageUrls }) => {
           <React.Fragment key={imageUrl?.id || imageUrl?.url || index}>
             {isPriority && (
               // inject preload for LCP / priority images so the browser can fetch earlier
-              <Helmet>
+              <Head>
                 <link rel="preload" as="image" href={fallbackSrc} />
-              </Helmet>
+              </Head>
             )}
             <picture>
             <source type="image/webp" srcSet={webpSrcSet} sizes="(max-width: 600px) 100vw, 600px" />

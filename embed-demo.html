@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WMCA Blog Demo - Embedded Next.js App</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 {
+      color: #c05701;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .controls {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .controls h2 {
+      color: #333;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    .control-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .control-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .control-group input[type="text"] {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      min-width: 250px;
+    }
+
+    button {
+      background: #c05701;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #863d01;
+    }
+
+    button.secondary {
+      background: #666;
+    }
+
+    button.secondary:hover {
+      background: #444;
+    }
+
+    .app-container {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+      margin-bottom: 20px;
+    }
+
+    .app-header {
+      background: linear-gradient(135deg, #c05701 0%, #863d01 100%);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .app-header h3 {
+      font-size: 16px;
+    }
+
+    .app-header .url {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-family: monospace;
+    }
+
+    .app-iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+      display: block;
+    }
+
+    .code-section {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .code-section h2 {
+      color: #333;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    .code-block {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+
+    .status {
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #2e7d32;
+    }
+
+    .status.error {
+      background: #ffebee;
+      border-left-color: #f44336;
+      color: #c62828;
+    }
+
+    .status.info {
+      background: #e3f2fd;
+      border-left-color: #2196f3;
+      color: #1565c0;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .tab-button {
+      background: none;
+      border: none;
+      color: #666;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .tab-button.active {
+      color: #c05701;
+      border-bottom-color: #c05701;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .info-box {
+      background: #f0f4f8;
+      border-left: 4px solid #c05701;
+      padding: 15px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #333;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .info-box code {
+      background: white;
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: #c05701;
+      font-family: monospace;
+    }
+
+    .footer {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Header -->
+    <div class="header">
+      <h1>🎯 WMCA Blog - Next.js Embedded Demo</h1>
+      <p>
+        This page demonstrates how to embed the WMCA Blog Next.js application into an external HTML page 
+        (such as an Umbraco CMS template). The app is loaded via iframe and topics are passed via window.topics.
+      </p>
+    </div>
+
+    <!-- Status -->
+    <div id="statusContainer"></div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <h2>⚙️ Configuration</h2>
+      
+      <div class="info-box">
+        <strong>Note:</strong> The Next.js app must be running locally on port 3000 for this demo to work:
+        <code>npm run next:dev</code>
+      </div>
+
+      <div class="control-group">
+        <label>
+          App URL:
+          <input type="text" id="appUrl" value="http://localhost:3000/demo-topics" />
+        </label>
+        <button onclick="updateAppUrl()">Load App</button>
+        <button class="secondary" onclick="resetTopics()">Reset Topics</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-button active" onclick="switchTab('preview')">Preview</button>
+        <button class="tab-button" onclick="switchTab('integration')">Integration Guide</button>
+        <button class="tab-button" onclick="switchTab('code')">Code Examples</button>
+      </div>
+    </div>
+
+    <!-- Preview Tab -->
+    <div id="preview" class="tab-content active">
+      <div class="app-container">
+        <div class="app-header">
+          <h3>📱 Next.js App Preview</h3>
+          <span class="url" id="appUrlDisplay">http://localhost:3000/demo-topics</span>
+        </div>
+        <iframe 
+          id="appFrame" 
+          class="app-iframe"
+          src="http://localhost:3000/demo-topics"
+          title="WMCA Blog App"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- Integration Guide Tab -->
+    <div id="integration" class="tab-content">
+      <div class="code-section">
+        <h2>🔧 Umbraco CMS Integration Guide</h2>
+        
+        <div class="info-box">
+          <strong>How to embed this Next.js app in your Umbraco template:</strong>
+        </div>
+
+        <h3 style="margin-top: 20px; margin-bottom: 10px; color: #c05701;">Step 1: Set Topics in Your Umbraco View</h3>
+        <div class="code-block">@{
+  var topics = Model.Topics; // Your topics from Umbraco
+}
+
+&lt;script&gt;
+  window.topics = @Html.Raw(Json.Encode(topics));
+&lt;/script&gt;</div>
+
+        <h3 style="margin-top: 20px; margin-bottom: 10px; color: #c05701;">Step 2: Embed the App via iframe</h3>
+        <div class="code-block">&lt;div id="blog-app"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  var appUrl = "http://localhost:3000/demo-topics"; // or your production URL
+  document.getElementById('blog-app').innerHTML = 
+    '&lt;iframe src="' + appUrl + '" style="width:100%; height:600px; border:none;"&gt;&lt;/iframe&gt;';
+&lt;/script&gt;</div>
+
+        <h3 style="margin-top: 20px; margin-bottom: 10px; color: #c05701;">Step 3: Or Embed Directly in HTML</h3>
+        <div class="code-block">&lt;iframe 
+  src="http://localhost:3000/demo-topics" 
+  style="width:100%; height:600px; border:none; border-radius:8px;"
+  title="WMCA Blog"
+&gt;&lt;/iframe&gt;</div>
+
+        <h3 style="margin-top: 20px; margin-bottom: 10px; color: #c05701;">Topics Format</h3>
+        <div class="code-block">window.topics = [
+  "Research and insights",
+  "Inclusive growth",
+  "Skills, education and careers",
+  "Life in the West Midlands",
+  "People of the West Midlands"
+];</div>
+      </div>
+    </div>
+
+    <!-- Code Examples Tab -->
+    <div id="code" class="tab-content">
+      <div class="code-section">
+        <h2>💻 React Component Integration</h2>
+        
+        <h3 style="margin-top: 20px; margin-bottom: 10px; color: #c05701;">Accessing Topics in BlogFilter.js</h3>
+        <div class="code-block">const topicOptions = useMemo(() => {
+  // Get topics from window object (set by parent CMS or HTML page)
+  const allowedTopics = typeof window !== 'undefined' && window.topics 
+    ? window.topics 
+    : blogCategories;
+  
+  return blogCategories
+    .filter((category) => allowedTopics.includes(category))
+    .map((category) => ({
+      label: category.charAt(0).toUpperCase() + category.slice(1),
+      value: category
+    }));
+}, [blogCategories]);</div>
+
+        <h3 style="margin-top: 20px; margin-bottom: 10px; color: #c05701;">Setting Topics in _document.js</h3>
+        <div class="code-block">import Document, { Html, Head, Main, NextScript } from 'next/document';
+import Script from 'next/script';
+
+class MyDocument extends Document {
+  render() {
+    return (
+      &lt;Html lang="en-GB"&gt;
+        &lt;Head&gt;
+          &lt;Script 
+            strategy="beforeInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.topics = [
+                  "Research and insights",
+                  "Inclusive growth",
+                  "Skills, education and careers",
+                  "Life in the West Midlands",
+                  "People of the West Midlands"
+                ];
+              `,
+            }}
+          /&gt;
+        &lt;/Head&gt;
+        &lt;body&gt;
+          &lt;Main /&gt;
+          &lt;NextScript /&gt;
+        &lt;/body&gt;
+      &lt;/Html&gt;
+    );
+  }
+}
+
+export default MyDocument;</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>WMCA Blog Demo • Next.js Application • Local Development Mode</p>
+      <p style="margin-top: 10px; color: #999;">
+        Ensure the Next.js dev server is running: <code>npm run next:dev</code>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Initialize app
+    function initApp() {
+      updateStatus();
+      setTopics();
+    }
+
+    // Update status
+    function updateStatus() {
+      const container = document.getElementById('statusContainer');
+      const appUrl = document.getElementById('appUrl').value;
+      
+      try {
+        const url = new URL(appUrl);
+        container.innerHTML = `
+          <div class="status info">
+            ✓ Ready to load app from: <code>${appUrl}</code>
+          </div>
+        `;
+      } catch (e) {
+        container.innerHTML = `
+          <div class="status error">
+            ✗ Invalid URL: ${appUrl}
+          </div>
+        `;
+      }
+    }
+
+    // Set topics on window
+    function setTopics() {
+      window.topics = [
+        "Research and insights",
+        "Inclusive growth",
+        "Skills, education and careers",
+        "Life in the West Midlands",
+        "People of the West Midlands"
+      ];
+      console.log('Topics set:', window.topics);
+    }
+
+    // Update app URL
+    function updateAppUrl() {
+      const url = document.getElementById('appUrl').value;
+      const frame = document.getElementById('appFrame');
+      const display = document.getElementById('appUrlDisplay');
+      
+      try {
+        new URL(url);
+        frame.src = url;
+        display.textContent = url;
+        updateStatus();
+      } catch (e) {
+        alert('Invalid URL: ' + e.message);
+      }
+    }
+
+    // Reset topics
+    function resetTopics() {
+      setTopics();
+      alert('Topics reset to default values. Reload the iframe to see changes.');
+    }
+
+    // Tab switching
+    function switchTab(tabName) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // Show selected tab
+      document.getElementById(tabName).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // Initialize on page load
+    window.addEventListener('load', initApp);
+  </script>
+</body>
+</html>

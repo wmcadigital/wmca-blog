@@ -1,5 +1,6 @@
-// Lightweight helper used by tests; the tests mock this module so this file
-// just returns a resolved promise to avoid runtime errors in non-mocked runs.
+// Client wrapper that calls server-side stub
 export default async function getData() {
-  return Promise.resolve({});
+  const r = await fetch('/api/getData');
+  if (!r.ok) return {};
+  return r.json();
 }

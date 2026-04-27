@@ -78,4 +78,4 @@ Pagination.propTypes = {
   callBack: PropTypes.func,
 };
 
-export default Pagination;
+export default React.memo(Pagination);

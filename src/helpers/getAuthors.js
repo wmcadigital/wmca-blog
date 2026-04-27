@@ -1,9 +1,11 @@
 const getAuthors = (blogArticles, topics = []) => {
-  // If topics are provided, only consider articles that match those topics
+  // If topics are provided, only consider articles that match those topics (case-insensitive)
   const articles = Array.isArray(topics) && topics.length
-    ? blogArticles.filter((article) =>
-        article.properties.tags.some((tag) => topics.includes(tag))
-      )
+    ? blogArticles.filter((article) => {
+        const articleTags = article.properties.tags || [];
+        const lowerTopics = topics.map(t => t.toLowerCase());
+        return articleTags.some((tag) => lowerTopics.includes(tag.trim().toLowerCase()));
+      })
     : blogArticles;
 
   const categorySet = new Set();

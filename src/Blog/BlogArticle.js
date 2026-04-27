@@ -1,13 +1,16 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { useLoaderData, Link } from "react-router-dom";
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import getBlogArticle from "../api/getBlogArticle";
 import ScrollToTop from "../helpers/ScrollToTop";
-import { useState, useEffect } from "react";
+import BackToTopButton from "../helpers/BackToTopButton";
+import { useState, useEffect, useMemo } from "react";
 import getUmbracoMedia from "../api/getUmbracoMedia";
 import getMediaCrops from "../helpers/getMediaCrops";
 import { findBestCrop } from "../helpers/mediaCrops";
 import { buildSrc, buildSrcSet } from "../helpers/image";
+import { generateArticleSchema, generateBreadcrumbSchema, generateOrganizationSchema, generateCanonicalUrl } from "../helpers/seoHelpers";
 
 import Banner from "./Banner";
 import formatDate from "../helpers/formatDate";
@@ -17,26 +20,83 @@ import ImageComponent from "./ImageComponent";
 import SidebarCardComponent from "./SidebarCardComponent";
 import AccordionComponent from "./AccordionComponent";
 import Breadcrumb from "./Breadcrumb";
-import Helmet from "react-helmet";
+import Head from 'next/head';
 import { send as analyticsSend } from "../analytics";
 import { getPageKey } from "../helpers/page";
 
 // Make loader synchronous to avoid blocking initial render.
 // The article will be fetched inside the component so LCP isn't delayed by the route loader.
-export function loader({ params }) {
-  return { article: null, articleTitle: params.articleTitle };
-}
+const BlogArticle = (props) => {
+  const router = useRouter();
+  
+  // Do NOT read `window` during render — initialize to an empty object so
+  // server and initial client render match. Populate from `window` only
+  // inside a client-only effect to avoid hydration mismatches.
+  const [setTopicsGlobal, setSetTopicsGlobal] = useState({});
+  const [setBannerGlobal, setSetBannerGlobal] = useState({});
 
-const BlogArticle = () => {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.setTopics) setSetTopicsGlobal(window.setTopics);
+    if (window.setBanner) setSetBannerGlobal(window.setBanner);
+
+    // Listen for banner/topics updates from the web component
+    const handleTopicsUpdate = (ev) => {
+      try {
+        const detail = ev?.detail || {};
+        if (detail.topics !== undefined) {
+          setSetTopicsGlobal(prev => ({ ...prev, topics: detail.topics }));
+        }
+        if (detail.banner !== undefined) {
+          setSetBannerGlobal(detail.banner);
+        }
+        if (detail.breadcrumbs !== undefined) {
+          setSetTopicsGlobal(prev => ({ ...prev, breadcrumbs: detail.breadcrumbs }));
+        }
+        if (detail.name !== undefined) {
+          setSetTopicsGlobal(prev => ({ ...prev, name: detail.name }));
+        }
+        if (detail.page !== undefined) {
+          setSetTopicsGlobal(prev => ({ ...prev, page: detail.page }));
+        }
+        console.debug('[BlogArticle] Received wmca:setTopics event:', detail);
+      } catch (e) {
+        console.error('[BlogArticle] Error handling wmca:setTopics event:', e);
+      }
+    };
+
+    window.addEventListener('wmca:setTopics', handleTopicsUpdate);
+    return () => window.removeEventListener('wmca:setTopics', handleTopicsUpdate);
+  }, []);
+
+  // Listen for route changes to ensure clean unmount when navigating away from article
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    const handleRouteChangeStart = (url) => {
+      // If navigating away from article page, ensure we're not staying visible
+      if (!url.startsWith('/article/')) {
+        // Trigger any cleanup needed
+        if (typeof window !== 'undefined') {
+          // Dispatch a custom event so parent components know we're leaving
+          window.dispatchEvent(new CustomEvent('article-unmount', { detail: { url } }));
+        }
+      }
+    };
+
+    router.events?.on('routeChangeStart', handleRouteChangeStart);
+    
+    return () => {
+      router.events?.off('routeChangeStart', handleRouteChangeStart);
+    };
+  }, [router.events, router.isReady]);
+
+  const hasWindow = typeof window !== "undefined";
   const [articleContentItems, setArticleContentItems] = useState([]);
-  const [articleSidebarContentItems, setArticleSidebarContentItems] = useState(
-    []
-  );
-  const [articleAccordionBlockItems, setArticleAccordionBlockItems] = useState(
-    []
-  );
-  const loaderData = useLoaderData();
-  // keep local article state; start with loader-provided article (may be null)
+  const [articleSidebarContentItems, setArticleSidebarContentItems] = useState([]);
+  const [articleAccordionBlockItems, setArticleAccordionBlockItems] = useState([]);
+  // Accept server-provided props: props.initialArticle and props.articleTitle
+  const loaderData = props.loaderData || { article: props.initialArticle || null, articleTitle: props.articleTitle || null };
   const [articleData, setArticleData] = useState(loaderData?.article ?? null);
   const articleTitle = loaderData?.articleTitle;
 
@@ -51,7 +111,7 @@ const BlogArticle = () => {
     if (articleData || !articleTitle) return;
     let mounted = true;
     // defer fetch until after first paint to avoid blocking LCP/network contention
-    const rafId = window.requestAnimationFrame
+    const rafId = hasWindow && window.requestAnimationFrame
       ? window.requestAnimationFrame(() => {
           // small timeout to ensure paint
           const t = setTimeout(() => {
@@ -80,7 +140,7 @@ const BlogArticle = () => {
 
     return () => {
       mounted = false;
-      if (rafCleanup.raf && window.cancelAnimationFrame) {
+      if (rafCleanup.raf && hasWindow && window.cancelAnimationFrame) {
         window.cancelAnimationFrame(rafCleanup.raf);
       }
       if (rafCleanup.timeout) clearTimeout(rafCleanup.timeout);
@@ -137,7 +197,7 @@ const BlogArticle = () => {
   useEffect(() => {
     // match check to mark which topics should be linked
     if (!article?.properties?.tags) return;
-    let blogTopics = window?.setTopics.topics;
+    let blogTopics = setTopicsGlobal?.topics || [];
 
     const topics = article.properties.tags.map((el1) => ({
       name: el1,
@@ -145,7 +205,14 @@ const BlogArticle = () => {
     }));
 
     setTopics(topics);
-  }, [article?.properties?.tags]);
+  }, [article?.properties?.tags, setTopicsGlobal?.topics]);
+
+  // Set blog topics to window object for JavaScript access
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.blogTopics = topics;
+    }
+  }, [topics]);
 
   // remove authors from url
   const routePath = (path) => {
@@ -220,7 +287,7 @@ const BlogArticle = () => {
     const bestCrop = findBestCrop({ crops }, { targetWidth: width, targetHeight: height }) || null;
     const sourceUrl = bannerCrop?.url || bestCrop?.url || img?.url || (typeof img === "string" ? img : "");
     const focalPoint = img?.focalPoint ? `${img.focalPoint.left},${img.focalPoint.top}` : "0,0";
-    const widths = [320, 480, 768, width];
+    const widths = useMemo(() => [320, 480, 768, width], [width]);
     const heightRatio = height / width;
     const srcSet = buildSrcSet(sourceUrl, widths, { heightRatio, anchor: focalPoint, mode: "crop" });
     const webpSrcSet = buildSrcSet(sourceUrl, widths, { heightRatio, anchor: focalPoint, mode: "crop", format: "webp" });
@@ -271,59 +338,132 @@ const BlogArticle = () => {
 
   const title = article?.name || "WMCA blog";
   const description = article?.properties?.introduction || "";
-  const url = window.location.href;
-  const blogImg = blogBannerImage;
+
+  // Extract the first image from article content blocks
+  const firstContentImage = useMemo(() => {
+    if (!articleContentItems || articleContentItems.length === 0) return null;
+    
+    for (const item of articleContentItems) {
+      if (item.content.contentType === "imageBlock" && item.content.properties?.image) {
+        const imageArray = item.content.properties.image;
+        if (Array.isArray(imageArray) && imageArray.length > 0) {
+          const image = imageArray[0];
+          // Return the URL, ensuring it's absolute
+          if (typeof image === 'string') return image;
+          if (image?.url) return image.url;
+        }
+      }
+    }
+    return null;
+  }, [articleContentItems]);
+
+  // Use first content image if available, otherwise use banner image
+  const blogImg = firstContentImage || blogBannerImage;
+
+  // Generate SEO data
+  const baseUrl = hasWindow ? `${window.location.protocol}//${window.location.host}` : "https://www.wmca.org.uk";
+  const currentPath = hasWindow ? window.location.pathname : "";
+  const canonicalUrl = generateCanonicalUrl(baseUrl, currentPath);
+  
+  // Generate JSON-LD schemas
+  const articleSchema = generateArticleSchema(article, baseUrl, currentPath);
+  const breadcrumbItems = setTopicsGlobal?.breadcrumbs?.breadcrumb || [];
+  const breadcrumbSchema = generateBreadcrumbSchema(breadcrumbItems, article?.name);
+  const organizationSchema = generateOrganizationSchema();
 
   const renderContent = () => (
     <>
-      <Helmet>
-        <title>{article?.name || "WMCA blog"}</title>
-        {/* Preload article image for better performance and to ensure it's available for social cards, but only if it's not the default placeholder image to avoid unnecessary requests and broken images in social cards */}
-        {article?.properties?.image &&
-          article.properties.image[0] &&
-          (() => {
-            return (
-              <link
-                rel="preload"
-                as="image"
-                href={blogImg}
-                crossOrigin="anonymous"
-              />
-            );
-          })()}
+      <Head>
+        <title>{article?.name || 'WMCA blog'}</title>
+        
+        {/* Preconnect and DNS prefetch for external CDNs to improve font loading */}
+        <link rel="preconnect" href="https://cloudcdn.wmca.org.uk" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.wmca.org.uk" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        
+        {/* Canonical URL for SEO */}
+        <link rel="canonical" href={canonicalUrl} />
+        
+        {/* Image preload */}
+        {article?.properties?.image && article.properties.image[0] && (
+          <link rel="preload" as="image" href={blogImg} crossOrigin="anonymous" />
+        )}
 
-        <meta property="og:type" content="website" />
+        {/* Enhanced meta tags */}
+        <meta name="description" content={description || setTopicsGlobal?.summary || 'WMCA blog'} />
+        <meta name="keywords" content={article?.properties?.tags?.map(t => t.trim()).join(', ') || 'WMCA, blog'} />
+        <meta name="author" content={article?.properties?.author?.[0]?.name || 'West Midlands Combined Authority'} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="index, follow" />
+        <meta name="language" content="en-GB" />
+        
+        {/* Open Graph */}
+        <meta property="og:type" content="article" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
-        <meta property="og:url" content={url} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={blogImg} />
-
-        <meta property="og:site_name" content={window?.setBanner?.name} />
+        <meta property="og:image:alt" content={title} />
+        <meta property="og:site_name" content={setBannerGlobal?.name || 'WMCA Blog'} />
         <meta property="og:locale" content="en_GB" />
+        {article?.properties?.createDate && (
+          <meta property="article:published_time" content={article.properties.createDate} />
+        )}
+        {article?.properties?.author && article.properties.author.length > 0 && (
+          <meta property="article:author" content={article.properties.author[0].name} />
+        )}
+        {article?.properties?.tags && article.properties.tags.length > 0 && (
+          article.properties.tags.map((tag, idx) => (
+            <meta key={idx} property="article:tag" content={tag.trim()} />
+          ))
+        )}
 
+        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={blogImg} />
-      </Helmet>
+        <meta name="twitter:image:alt" content={title} />
+
+        {/* JSON-LD Structured Data */}
+        {articleSchema && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+          />
+        )}
+        {breadcrumbSchema && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+          />
+        )}
+        {organizationSchema && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          />
+        )}
+      </Head>
       <ScrollToTop />
+      <BackToTopButton />
       <Breadcrumb
         article={article?.name}
-        current={window?.setTopics?.url}
-        name={window?.setTopics?.name}
-        parent={window?.setTopics?.breadcrumbs?.breadcrumb[0]}
-        parent2={window?.setTopics?.breadcrumbs?.breadcrumb[1]}
-        parent3={window?.setTopics?.breadcrumbs?.breadcrumb[2]}
-        parent4={window?.setTopics?.breadcrumbs?.breadcrumb[3]}
-        parent5={window?.setTopics?.breadcrumbs?.breadcrumb[4]}
-        parent6={window?.setTopics?.breadcrumbs?.breadcrumb[5]}
-        parent7={window?.setTopics?.breadcrumbs?.breadcrumb[6]}
-        parent8={window?.setTopics?.breadcrumbs?.breadcrumb[7]}
+        current={setTopicsGlobal?.url}
+        name={setTopicsGlobal?.name}
+        parent={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[0]}
+        parent2={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[1]}
+        parent3={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[2]}
+        parent4={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[3]}
+        parent5={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[4]}
+        parent6={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[5]}
+        parent7={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[6]}
+        parent8={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[7]}
       />
       <Banner
-        image={window?.setBanner?.bannerimg}
-        title={window?.setBanner?.name}
-        summary={window?.setBanner?.summary}
+        image={setBannerGlobal?.bannerimg}
+        title={setBannerGlobal?.name}
+        summary={setBannerGlobal?.summary}
         article={true}
       />
       <div className="wmcads-container">
@@ -343,14 +483,9 @@ const BlogArticle = () => {
                       article?.properties?.author?.length ?? 0;
                     return (
                       <React.Fragment key={item.id || item.name || index}>
-                        <Link
-                          to={`/?author=${item.name}`}
-                          aria-label={`Use this link to view all articles by ${item.name}`}
-                        >
-                          {item.name}
-                        </Link>
-                        {index < authorCount - 1 && ", "}
-                      </React.Fragment>
+                            <Link href={`/?author=${item.name}`} aria-label={`Use this link to view all articles by ${item.name}`}>{item.name}</Link>
+                            {index < authorCount - 1 && ", "}
+                          </React.Fragment>
                     );
                   })}
                 {article?.properties?.author && article.properties.author.length > 0 ? (
@@ -377,7 +512,7 @@ const BlogArticle = () => {
                           href="#wmcads-general-info"
                         ></use>
                       </svg>
-                      This blog post is an opinion and may not reflect WMCA's views.
+                      This blog post is an opinion and may not reflect WMCA&apos;s views.
                     </div>
                   ) : (
                     <div className="wmcads-m-t-md wmcads-m-b-md"></div>
@@ -437,7 +572,7 @@ const BlogArticle = () => {
                     <React.Fragment key={item.name || index}>
                       {index > 0 && ", "}
                       {item.match ? (
-                        <Link to={`/?topics=${item.name}`}>{item.name}</Link>
+                        <Link href={`/?topics=${item.name}`}>{item.name}</Link>
                       ) : (
                         <span>{item.name}</span>
                       )}
@@ -464,15 +599,7 @@ const BlogArticle = () => {
                       key={`${index}`}
                     >
                       {item.properties.bio != null ? (
-                        <Link
-                          className="wmcads-btn wmcads-btn--link"
-                          to={{
-                            pathname: `/author/${routePath(item.route.path)}`,
-                          }}
-                          aria-label={`View the profile of ${item.name}`}
-                        >
-                          {item.name}
-                        </Link>
+                        <Link href={`/author/${routePath(item.route.path)}`} className="wmcads-btn wmcads-btn--link" aria-label={`View the profile of ${item.name}`}>{item.name}</Link>
                       ) : (
                         <p>
                           <strong>{item.name}</strong>

@@ -9,9 +9,32 @@ const TextComponent = ({ htmlContent }) => {
     const hasParams = path.includes("?");
     const newSrc = path.startsWith("https://cms.wmca.org.uk") ? path : `https://cms.wmca.org.uk${path}${hasParams ? "" : "?width=600"}`;
     // inject loading and decoding attributes into the img tag
-    const updated = match.replace(p1, newSrc).replace(/<img/, '<img loading="lazy" decoding="async"');
+    // ensure width/height are present to avoid layout shifts (fallback to 620x300)
+    let updated = match.replace(p1, newSrc).replace(/<img/, '<img loading="lazy" decoding="async"');
+    if (!/\bwidth=/.test(updated) && !/\bwidth="/.test(updated)) {
+      updated = updated.replace(/<img/, '<img width="620"');
+    }
+    if (!/\bheight=/.test(updated) && !/\bheight="/.test(updated)) {
+      updated = updated.replace(/<img/, '<img height="300"');
+    }
+    // ensure responsive sizing
+    if (!/style=/.test(updated)) {
+      updated = updated.replace(/<img([^>]*)>/, '<img$1 style="max-width:100%;height:auto">');
+    }
     return updated;
   });
+  // Remove margin-left: auto from image styles
+  updatedHtmlContent = updatedHtmlContent.replace(
+    /<img([^>]*?)style="([^"]*margin-left\s*:\s*auto[^"]*)"/gi,
+    (match, beforeStyle, styleContent) => {
+      // Remove margin-left: auto from the style attribute
+      const cleanedStyle = styleContent.replace(/margin-left\s*:\s*auto\s*;?\s*/gi, "").trim();
+      if (cleanedStyle) {
+        return `<img${beforeStyle}style="${cleanedStyle}"`;
+      }
+      return `<img${beforeStyle}`;
+    }
+  );
   // Remove all class attributes
   updatedHtmlContent = updatedHtmlContent.replace(/\sclass="[^"]*"/g, "");
   // Remove any <span> tags that wrap headings (e.g., <span><h1>...</h1></span>)

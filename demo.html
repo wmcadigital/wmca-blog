@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMCA Blog Web Component Demo</title>
+    <link rel="stylesheet" href="https://www.wmca.org.uk/css/wmcads.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            border-bottom: 4px solid #667eea;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        main {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        section {
+            padding: 2rem;
+        }
+
+        section:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+
+        h3 {
+            color: #333;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+        }
+
+        h3:first-child {
+            margin-top: 0;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .code-block code {
+            display: block;
+        }
+
+        .demo-section {
+            border: 2px dashed #667eea;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            background: #f0f4ff;
+        }
+
+        .demo-section h3 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        wmca-blog {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: #6c757d;
+        }
+
+        button.secondary:hover {
+            background: #5a6268;
+        }
+
+        input[type="text"] {
+            padding: 0.75rem;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            width: 200px;
+            max-width: 100%;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0 0.5rem 2rem;
+            position: relative;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .nav-tabs button {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid transparent;
+            border-bottom-color: #e0e0e0;
+            padding: 0.75rem 1.5rem;
+            margin-bottom: -2px;
+        }
+
+        .nav-tabs button.active {
+            background: #667eea;
+            color: white;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .highlight {
+            background: #fff9e6;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.75rem;
+            }
+
+            .sections {
+                grid-template-columns: 1fr;
+            }
+
+            section {
+                padding: 1.5rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            input[type="text"] {
+                width: 100%;
+            }
+
+            wmca-blog {
+                height: 500px !important;
+            }
+
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <h1>🎯 WMCA Blog Web Component</h1>
+            <p>Embed your Next.js blog anywhere with a custom HTML element</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <main>
+            <!-- Navigation Tabs -->
+            <div style="padding: 2rem;">
+                <div class="nav-tabs">
+                    <button class="nav-tab-btn active" onclick="switchTab('demo')">Live Demo</button>
+                    <button class="nav-tab-btn" onclick="switchTab('features')">Features</button>
+                    <button class="nav-tab-btn" onclick="switchTab('usage')">Usage</button>
+                </div>
+            </div>
+
+            <!-- TAB: Demo -->
+            <div id="demo-tab" class="tab-content active">
+                <div class="sections">
+                    <!-- Demo 1: Basic -->
+                    <section>
+                        <h2>📰 Basic Demo</h2>
+                        <p>The simplest way to embed the WMCA blog:</p>
+                        
+                        <div class="demo-section">
+                            <h3>Default Configuration</h3>
+                            <wmca-blog 
+                                id="demo-basic"
+                                app-url="http://localhost:3000"
+                                height="600px">
+                            </wmca-blog>
+                        </div>
+
+                        <div class="code-block"><code>&lt;wmca-blog 
+  app-url="http://localhost:3000"
+  height="600px"&gt;
+&lt;/wmca-blog&gt;</code></div>
+                    </section>
+
+                    <!-- Demo 2: Controls -->
+                    <section>
+                        <h2>🎮 Interactive Controls</h2>
+                        <p>Programmatically control the component:</p>
+                        
+                        <div class="controls">
+                            <button onclick="reloadBlog('demo-basic')">🔄 Reload</button>
+                            <button onclick="promptNavigate('demo-basic', 'article')" class="secondary">📄 Go to Article</button>
+                            <button onclick="promptNavigate('demo-basic', 'author')" class="secondary">👤 Go to Author</button>
+                        </div>
+
+                        <div class="code-block"><code>const blog = document.querySelector('wmca-blog');
+blog.reload();
+blog.navigateToArticle('article-title');
+blog.navigateToAuthor('Author Name');</code></div>
+                    </section>
+                </div>
+
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e0e0e0;">
+
+                <div class="sections">
+                    <!-- Demo 3: Topics -->
+                    <section>
+                        <h2>📋 Configure Topics</h2>
+                        <p>Filter visible topics in the blog:</p>
+                        
+                        <div class="controls">
+                            <button onclick="setDefaultTopics()">📌 Set Default Topics</button>
+                            <button onclick="addCustomTopic()" class="secondary">➕ Add Topic</button>
+                            <button onclick="clearAllTopics()" class="secondary">🗑️ Clear Topics</button>
+                        </div>
+
+                        <div class="code-block"><code>&lt;wmca-blog 
+  app-url="http://localhost:3000"
+  topics="Research and insights,Inclusive growth,Skills"&gt;
+&lt;/wmca-blog&gt;</code></div>
+
+                        <h3>Or via JavaScript:</h3>
+                        <div class="code-block"><code>const blog = document.querySelector('wmca-blog');
+
+// Set topics
+blog.setTopics(['Research', 'Skills', 'Growth']);
+
+// Add topic
+blog.addTopic('NewTopic');
+
+// Get current topics
+console.log(blog.getTopics());
+
+// Remove topic
+blog.removeTopic('Research');
+
+// Clear all topics
+blog.clearTopics();</code></div>
+                    </section>
+
+                    <!-- Demo 4: Latest Features -->
+                    <section>
+                        <h2>✨ Latest Features</h2>
+                        
+                        <h3>Topics Management</h3>
+                        <ul class="feature-list">
+                            <li>Configure visible topics via attribute</li>
+                            <li>Manage topics with JavaScript API</li>
+                            <li>Topics sync to blog automatically</li>
+                            <li>Real-time topic filtering</li>
+                        </ul>
+
+                        <h3>Topics Attribute</h3>
+                        <p>Comma-separated list of available topics:</p>
+                        <div class="code-block"><code>topics="Topic1, Topic2, Topic3"</code></div>
+
+                        <h3>Current Topics</h3>
+                        <p id="current-topics" style="font-family: monospace; background: #f0f4ff; padding: 1rem; border-radius: 6px;">
+                            Loading...
+                        </p>
+                    </section>
+                </div>
+                    <!-- Demo 3: Light Theme -->
+                    <section>
+                        <h2>🎨 Light Theme</h2>
+                        <p>Perfect for light-themed sites:</p>
+                        
+                        <div class="demo-section">
+                            <h3>Light Theme (Default)</h3>
+                            <wmca-blog 
+                                app-url="http://localhost:3000"
+                                height="400px"
+                                theme="light">
+                            </wmca-blog>
+                        </div>
+
+                        <div class="code-block"><code>&lt;wmca-blog
+  app-url="http://localhost:3000"
+  theme="light"
+  height="400px"&gt;
+&lt;/wmca-blog&gt;</code></div>
+                    </section>
+
+                    <!-- Demo 4: Dark Theme -->
+                    <section>
+                        <h2>🌙 Dark Theme</h2>
+                        <p>Seamlessly integrate with dark-themed sites:</p>
+                        
+                        <div class="demo-section" style="background: #2d2d2d; border-color: #667eea;">
+                            <h3 style="color: #fff;">Dark Theme</h3>
+                            <wmca-blog 
+                                app-url="http://localhost:3000"
+                                height="400px"
+                                theme="dark">
+                            </wmca-blog>
+                        </div>
+
+                        <div class="code-block"><code>&lt;wmca-blog
+  app-url="http://localhost:3000"
+  theme="dark"
+  height="400px"&gt;
+&lt;/wmca-blog&gt;</code></div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- TAB: Features -->
+            <div id="features-tab" class="tab-content">
+                <section>
+                    <h2>✨ Key Features</h2>
+                    
+                    <ul class="feature-list">
+                        <li><strong>Zero Dependencies</strong> - Single JavaScript file</li>
+                        <li><strong>Shadow DOM Encapsulation</strong> - Isolated styling</li>
+                        <li><strong>Iframe Sandboxing</strong> - Secure embedding</li>
+                        <li><strong>Responsive Design</strong> - Works on all devices</li>
+                        <li><strong>API Control</strong> - Navigate and interact programmatically</li>
+                        <li><strong>Multiple Instances</strong> - Embed multiple blogs</li>
+                        <li><strong>Theme Support</strong> - Light and dark modes</li>
+                        <li><strong>Cross-Origin Compatible</strong> - Works across domains</li>
+                    </ul>
+
+                    <h3>🔒 Security Features</h3>
+                    <ul class="feature-list">
+                        <li>Iframe sandbox restrictions</li>
+                        <li>Shadow DOM prevents CSS leaks</li>
+                        <li>API keys stored server-side</li>
+                        <li>CSP compatible</li>
+                        <li>CORS validation on all API requests</li>
+                    </ul>
+
+                    <h3>📱 Browser Support</h3>
+                    <p>✓ Chrome/Edge 67+ | ✓ Firefox 63+ | ✓ Safari 10.1+ | ✓ iOS Safari 10.3+</p>
+                </section>
+            </div>
+
+            <!-- TAB: Usage -->
+            <div id="usage-tab" class="tab-content">
+                <section>
+                    <h2>💡 Quick Start Guide</h2>
+
+                    <h3>1. Basic HTML Embedding</h3>
+                    <div class="code-block"><code>&lt;wmca-blog app-url="https://blog.example.com"&gt;&lt;/wmca-blog&gt;
+&lt;script src="https://cdn.example.com/wmca-blog-component.js"&gt;&lt;/script&gt;</code></div>
+
+                    <h3>2. With Configuration</h3>
+                    <div class="code-block"><code>&lt;wmca-blog 
+  app-url="https://blog.example.com"
+  height="900px"
+  theme="light"&gt;
+&lt;/wmca-blog&gt;
+&lt;script src="https://cdn.example.com/wmca-blog-component.js"&gt;&lt;/script&gt;</code></div>
+
+                    <h3>3. In Umbraco Template (C#)</h3>
+                    <div class="code-block"><code>@* Your Umbraco .cshtml template *@
+&lt;wmca-blog 
+  app-url="@Model.BlogUrl"
+  height="900px"
+  theme="light"&gt;
+&lt;/wmca-blog&gt;
+
+&lt;script src="@Model.CdnPath/wmca-blog-component.js"&gt;&lt;/script&gt;</code></div>
+
+                    <h3>4. JavaScript Control</h3>
+                    <div class="code-block"><code>const blog = document.querySelector('wmca-blog');
+
+// Reload
+blog.reload();
+
+// Navigate to article
+blog.navigateToArticle('getting-started');
+
+// Navigate to author
+blog.navigateToAuthor('Jane Smith');</code></div>
+
+                    <h3>Component Attributes</h3>
+                    <ul class="feature-list">
+                        <li><span class="highlight">app-url</span> - URL of your deployed Next.js app (required)</li>
+                        <li><span class="highlight">height</span> - Container height (default: 800px)</li>
+                        <li><span class="highlight">theme</span> - light or dark (default: light)</li>
+                        <li><span class="highlight">data-api-key</span> - Umbraco API key (optional)</li>
+                    </ul>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>
+            <strong>WMCA Blog Web Component Demo</strong> | 
+            📚 See <span class="highlight">docs/WEB-COMPONENT-INTEGRATION.md</span> for full documentation
+        </p>
+        <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">
+            © 2024 West Midlands Combined Authority. All rights reserved.
+        </p>
+    </footer>
+
+    <!-- Load Web Component -->
+    <script src="http://localhost:3000/wmca-blog-component.js"></script>
+
+    <!-- Demo Script -->
+    <script>
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            const tab = document.getElementById(tabName + '-tab');
+            if (tab) {
+                tab.classList.add('active');
+                event.target.classList.add('active');
+            }
+        }
+
+        // Component controls
+        function reloadBlog(componentId) {
+            const blog = document.getElementById(componentId);
+            if (blog && blog.reload) {
+                blog.reload();
+                console.log('✓ Blog reloaded');
+            }
+        }
+
+        function promptNavigate(componentId, type) {
+            const blog = document.getElementById(componentId);
+            if (!blog) return;
+
+            const promptText = type === 'article' 
+                ? 'Enter article title:'
+                : 'Enter author name:';
+
+            const input = prompt(promptText);
+            if (input) {
+                if (type === 'article' && blog.navigateToArticle) {
+                    blog.navigateToArticle(input);
+                    console.log('✓ Navigating to article:', input);
+                } else if (type === 'author' && blog.navigateToAuthor) {
+                    blog.navigateToAuthor(input);
+                    console.log('✓ Navigating to author:', input);
+                }
+            }
+        }
+
+        // Topics management
+        const defaultTopics = [
+            'Research and insights',
+            'Inclusive growth',
+            'Skills, education and careers',
+            'Life in the West Midlands',
+            'People of the West Midlands'
+        ];
+
+        function setDefaultTopics() {
+            const blog = document.querySelector('wmca-blog');
+            if (blog && blog.setTopics) {
+                blog.setTopics(defaultTopics);
+                updateTopicsDisplay();
+                console.log('✓ Default topics set:', defaultTopics);
+            }
+        }
+
+        function addCustomTopic() {
+            const blog = document.querySelector('wmca-blog');
+            if (!blog) return;
+
+            const topic = prompt('Enter topic name:');
+            if (topic && blog.addTopic) {
+                blog.addTopic(topic);
+                updateTopicsDisplay();
+                console.log('✓ Topic added:', topic);
+            }
+        }
+
+        function clearAllTopics() {
+            const blog = document.querySelector('wmca-blog');
+            if (blog && blog.clearTopics) {
+                blog.clearTopics();
+                updateTopicsDisplay();
+                console.log('✓ All topics cleared');
+            }
+        }
+
+        function updateTopicsDisplay() {
+            const blog = document.querySelector('wmca-blog');
+            const display = document.getElementById('current-topics');
+            
+            if (blog && blog.getTopics && display) {
+                const topics = blog.getTopics();
+                const topicsAttr = blog.getAttribute('topics');
+                
+                if (topics.length === 0) {
+                    display.textContent = 'No topics configured';
+                } else {
+                    display.textContent = topics.map((t, i) => `${i + 1}. ${t}`).join('\n');
+                }
+            }
+        }
+
+        // Log component status on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const isRegistered = customElements.get('wmca-blog');
+            console.log('WMCA Blog Component:', isRegistered ? '✓ Ready' : '✗ Not Loaded');
+            
+            // Initialize topics display
+            updateTopicsDisplay();
+        });
+    </script>
+</body>
+</html>

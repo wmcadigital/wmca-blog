@@ -1,21 +1,32 @@
 const getBlogArticleTopics = (blogArticles) => {
-  const categorySet = new Set();
+  // Use a Map to deduplicate topics while preserving the first capitalization variant
+  const categoryMap = new Map(); // key: lowercase topic, value: original casing
+  
   blogArticles.forEach((article) => {
     const tags = article?.properties?.tags ??
       (article?.ArticleCategory ? [article.ArticleCategory] : undefined);
     if (tags) {
       tags.forEach((tag) => {
-        categorySet.add(tag);
+        const trimmedTag = tag.trim();
+        const lowerTag = trimmedTag.toLowerCase();
+        // Only add if we haven't seen this topic before (case-insensitive)
+        if (!categoryMap.has(lowerTag)) {
+          categoryMap.set(lowerTag, trimmedTag);
+        }
       });
     } else {
-      categorySet.add("None");
+      if (!categoryMap.has('none')) {
+        categoryMap.set('none', 'None');
+      }
     }
   });
-  const sortedBlogTopics = Array.from(categorySet).sort((a, b) => {
-    if (a > b) {
+
+  // Get unique topics (preserving original casing from first occurrence)
+  const sortedBlogTopics = Array.from(categoryMap.values()).sort((a, b) => {
+    if (a.toLowerCase() > b.toLowerCase()) {
       return 1;
     }
-    if (a < b) {
+    if (a.toLowerCase() < b.toLowerCase()) {
       return -1;
     }
     return 0;

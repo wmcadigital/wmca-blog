@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import Link from 'next/link';
 
 import formatDate from "../helpers/formatDate";
 import getUmbracoMedia from "../api/getUmbracoMedia";
@@ -79,7 +79,7 @@ const BlogBody = ({
   return (
     <div className="wmcads-search-result">
       <h2 className="wmcads-m-b-sm">
-        <Link className="h2" to={`article/${name}`}>
+        <Link href={filter.topics && filter.topics.length > 0 ? `/article/${name}?topics=${filter.topics.join('/')}` : `/article/${name}`} className="h2">
           {name}
         </Link>
       </h2>

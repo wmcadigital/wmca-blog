@@ -1,8 +1,7 @@
-import { useRouteError } from "react-router-dom";
+import PropTypes from 'prop-types';
 
-export default function ErrorPage() {
-  const error = useRouteError();
-  console.error(error);
+export default function ErrorPage({ error }) {
+  if (error) console.error(error);
 
   return (
     <main
@@ -40,3 +39,7 @@ export default function ErrorPage() {
     </main>
   );
 }
+
+ErrorPage.propTypes = {
+  error: PropTypes.object,
+};

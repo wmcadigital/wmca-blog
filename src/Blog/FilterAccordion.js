@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useId } from "react";
 
 import PropTypes from "prop-types";
 
@@ -114,9 +114,10 @@ const FilterAccordion = ({
   const [isDate1BeforeDate2, setIsDate1BeforeDate2] = useState(undefined);
   const [dateRanges, setDateRanges2] = useState(undefined);
   const [urlset, setUrlSet] = useState(false);
-  const [inputName] = useState(`input-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
+  const uid = useId();
+  const inputName = `input-${uid}`;
   // unique id for accordion content to avoid duplicate IDs when multiple accordions are rendered
-  const [contentId] = useState(() => `accordion-${inputName}`);
+  const contentId = `accordion-${uid}`;
 
   const toggleAccordion = () => {
     // Allow the user to toggle the accordion even if `forceOpen` is true.

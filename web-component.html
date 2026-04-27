@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Component Demo</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        wmca-blog {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <wmca-blog id="wmca-blog-component" app-url="http://localhost:3000" page="3" name="This is a test Blog 123" banner='{name: "Test blog 1234", summary: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud", bannerimg: "https://picsum.photos/600/400", position: "center"}' topics="Research and insights,Inclusive growth,Growth" breadcrumbs='[["West Midlands Combined Authority", "/"],["What we do test", "/what-we-do"],["Inclusive Growth", "/inclusive-growth"]]'></wmca-blog>
+
+    <script>
+        // Get query parameters from the current URL
+        const urlParams = new URLSearchParams(window.location.search);
+        // Extract the 'page' parameter value
+        const pageParam = urlParams.get('page');
+        // Reference the wmca-blog component by its ID
+        const blogComponent = document.getElementById('wmca-blog-component');
+        
+        // Update the component's page attribute if a page parameter exists in the URL
+        if (pageParam) {
+            blogComponent.setAttribute('page', pageParam);
+        }
+    </script>
+
+    <script src="./web-component-dist/wmca-blog-component.js"></script>
+</body>
+</html>

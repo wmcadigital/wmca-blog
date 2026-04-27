@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import React from "react";
 
 const SortControl = ({
   filter = { sort: "", topics: [], author: [], dates: null },
@@ -41,4 +42,4 @@ SortControl.propTypes = {
 
 // Note: default props are provided via function default parameters above.
 
-export default SortControl;
+export default React.memo(SortControl);

@@ -1,8 +1,18 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import chunk from "lodash/chunk";
-import flatten from "lodash/flatten";
-import { useSearchParams, useLocation } from "react-router-dom";
-import Helmet from "react-helmet";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
+import Head from 'next/head';
+import { generateBreadcrumbSchema, generateOrganizationSchema } from "../helpers/seoHelpers";
+import { getStoredPreferences, savePreferences, clearPreferences, extractPreferences } from "../helpers/filterPreferences";
+
+// Helper to chunk array into smaller arrays
+const chunkArray = (arr, size) => {
+  const chunks = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+};
 
 import getBlogArticles from "../api/getBlogArticles";
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -12,9 +22,23 @@ import Banner from "./Banner";
 // import Link from "./Link";
 import BlogArticleLink from "./BlogArticleLink";
 import Search from "./Search";
-import Pagination from "./Pagination";
-import SortControl from "./SortControl";
-import BlogFilter from "./BlogFilter";
+
+// Dynamic imports for non-critical UI components (loaded after main content)
+const Pagination = dynamic(() => import("./Pagination"), {
+  loading: () => <div style={{ height: '40px' }} />, // Placeholder to prevent layout shift
+  ssr: true,
+});
+
+const SortControl = dynamic(() => import("./SortControl"), {
+  loading: () => <div style={{ height: '40px' }} />,
+  ssr: true,
+});
+
+const BlogFilter = dynamic(() => import("./BlogFilter"), {
+  loading: () => <div style={{ height: '100px' }} />,
+  ssr: true,
+});
+
 import searchBlogArticles from "../helpers/searchBlogArticles";
 import sortBlogArticles from "../helpers/sortBlogArticles";
 import getBlogArticleTopics from "../helpers/getBlogArticleTopics";
@@ -28,7 +52,28 @@ import Breadcrumb from "./Breadcrumb";
 // Import Helper functions
 import { getSearchParam } from "../helpers/urlSearchParams"; // (used to sync state with URL)
 
+// Note: do not read `window` at module initialization. Use component state
+// and a client-only effect to populate values so server and initial client
+// renders remain identical.
+
 const BlogArticles = () => {
+  const router = useRouter();
+  const [topicsGlobal, setTopicsGlobal] = useState({});
+  const [bannerGlobal, setBannerGlobal] = useState({});
+  const [testError, setTestError] = useState(false);
+  const [showProductionError, setShowProductionError] = useState(false);
+
+  // Throw error during render if testError is true
+  if (testError) {
+    throw new Error('🧪 Test error boundary - This is a deliberate test error to verify error handling works correctly.');
+  }
+
+  // Debug: Log banner data to help identify if it's being received from web component
+  useEffect(() => {
+  }, [bannerGlobal]);
+
+  const hasWindow = typeof window !== "undefined";
+  const win = hasWindow ? window : undefined;
   const [returnedBlogArticles, setReturnedBlogArticles] = useState([]);
   const [blogArticles, setBlogArticles] = useState([]);
   const [blogCategories, setBlogCategories] = useState([]);
@@ -37,7 +82,7 @@ const BlogArticles = () => {
   const [page, setPage] = useState(() => {
     try {
       // URL page param is 1-based (user-facing). Internal state is 0-based.
-      const qp = new URLSearchParams(window.location.search).get("page");
+      const qp = new URLSearchParams(hasWindow ? win.location.search : "").get("page");
       const asNumber = qp !== null ? parseInt(qp, 10) : 1;
       if (Number.isNaN(asNumber)) return 0;
       return Math.max(0, asNumber - 1);
@@ -45,12 +90,197 @@ const BlogArticles = () => {
       return 0;
     }
   });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.setTopics) setTopicsGlobal(window.setTopics);
+    
+    // Try to get banner from multiple sources in priority order:
+    // 1. window.setBanner (web component direct injection)
+    // 2. window.setTopics.banner (web component postMessage injection)
+    // 3. localStorage (standalone mode saved banner configuration)
+    if (window.setBanner) {
+      setBannerGlobal(window.setBanner);
+    } else if (window.setTopics?.banner) {
+      setBannerGlobal(window.setTopics.banner);
+    } else {
+      // Standalone mode fallback: try localStorage
+      try {
+        const storedBanner = window.localStorage?.getItem('wmca-blog-banner');
+        if (storedBanner) {
+          const parsedBanner = JSON.parse(storedBanner);
+          setBannerGlobal(parsedBanner);
+        }
+      } catch (e) {
+        // ignore parse errors
+      }
+    }
+    
+    // If the host provided a page number via the web component, apply it.
+    try {
+      const injectedPage = window.setTopics?.page;
+      const qp = new URLSearchParams(hasWindow ? win.location.search : "").get("page");
+      // Only apply injected page if URL doesn't explicitly set page
+      if (injectedPage && !qp) {
+        const p = Number(injectedPage);
+        if (!Number.isNaN(p)) {
+          applyingHostPageRef.current = true;
+          setPage(Math.max(0, p - 1));
+          hostProvidedPageRef.current = true;
+          setTimeout(() => { applyingHostPageRef.current = false; }, 0);
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  // Listen for postMessage-injected topics from the host and apply page updates
+  useEffect(() => {
+    if (!hasWindow) return;
+    const handler = (ev) => {
+      try {
+        const payload = ev?.detail || null;
+        if (!payload) return;
+        // Web component properties take priority - only apply postMessage values if not already set by web component
+        if (payload.topics && !window.setTopics?.topics) setTopicsGlobal(Object.assign({}, window.setTopics || {}, { topics: payload.topics }));
+        if (payload.banner && !window.setBanner) setBannerGlobal(payload.banner);
+        if (payload.name && !window.setTopics?.name) setTopicsGlobal((prev) => ({ ...(prev || {}), name: payload.name }));
+        if (payload.page && window.setTopics?.page === undefined) {
+          const p = Number(payload.page);
+          if (!Number.isNaN(p)) {
+            applyingHostPageRef.current = true;
+            setPage(Math.max(0, p - 1));
+            hostProvidedPageRef.current = true;
+            setTimeout(() => { applyingHostPageRef.current = false; }, 0);
+          }
+        }
+      } catch (e) {
+        // ignore malformed events
+      }
+    };
+    window.addEventListener('wmca:setTopics', handler);
+    return () => window.removeEventListener('wmca:setTopics', handler);
+  }, []);
+
+  // Sync page state with URL query parameter whenever router is ready
+  useEffect(() => {
+    if (!router.isReady) return;
+    
+    const pageParam = router.query.page;
+    if (pageParam) {
+      const parsed = parseInt(pageParam, 10);
+      if (!Number.isNaN(parsed)) {
+        setPage(Math.max(0, parsed - 1));
+      }
+    }
+  }, [router.query.page, router.isReady]);
+
+  // Listen for Next.js router route changes to handle back navigation from article
+  useEffect(() => {
+    if (!hasWindow || !router.isReady) return;
+
+    const resetFiltersFromURL = () => {
+      // Re-apply all filters from the current URL
+      const qp = new URLSearchParams(window.location.search);
+      const dates = qp.get("dates");
+      const sort = qp.get("sort");
+      const author = qp.get("author");
+      const topics = qp.get("topics");
+      const dateRangeSet = qp.get("dateRangeSet");
+      const pageParam = qp.get("page");
+
+      // Reset filters to match URL
+      setFilter((prev) => {
+        const updated = { ...prev };
+        updated.sort = sort || "descending";
+        updated.topics = topics ? topics.split("/") : [];
+        updated.author = author ? author.split("/") : [];
+        updated.dates = dates || null;
+        if (dateRangeSet) {
+          try {
+            updated.dateRangeSet = JSON.parse(dateRangeSet);
+          } catch (e) {
+            updated.dateRangeSet = undefined;
+          }
+        } else {
+          updated.dateRangeSet = undefined;
+        }
+        return updated;
+      });
+
+      // Reset page to match URL
+      if (pageParam !== null) {
+        const parsed = parseInt(pageParam, 10);
+        if (!Number.isNaN(parsed)) setPage(Math.max(0, parsed - 1));
+      } else {
+        setPage(0);
+      }
+
+      // Force scroll to top
+      if (window.scrollTo) {
+        window.scrollTo(0, 0);
+      }
+    };
+
+    const handleRouteChange = (url) => {
+      if (url === '/' || url === '/demo-topics') {
+        setTimeout(resetFiltersFromURL, 50);
+      }
+    };
+
+    // Listen for article unmount event
+    const handleArticleUnmount = () => {
+      if ((window.location.pathname === '/' || window.location.pathname === '/demo-topics')) {
+        resetFiltersFromURL();
+      }
+    };
+
+    router.events?.on('routeChangeComplete', handleRouteChange);
+    window.addEventListener('article-unmount', handleArticleUnmount);
+    
+    return () => {
+      router.events?.off('routeChangeComplete', handleRouteChange);
+      window.removeEventListener('article-unmount', handleArticleUnmount);
+    };
+  }, [router.events, router.isReady, hasWindow]);
+
+  // Notify host (web component) when the current page changes so the
+  // host can keep its `page` property/attribute in sync.
+  useEffect(() => {
+    if (!hasWindow) return;
+    try {
+      const currentPage = page + 1; // expose as 1-based
+      // If embedded in a host iframe, post to parent
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'wmca:pageChange', page: currentPage }, '*');
+      } else {
+        // If running top-level and a host element exists, update it directly
+        try {
+          const host = document.querySelector && document.querySelector('wmca-blog');
+          if (host) {
+            if (typeof host.setPage === 'function') host.setPage(currentPage);
+            else if (host.setAttribute) host.setAttribute('page', String(currentPage));
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [page]);
+
   // previous filter query string; initialize empty and set later to avoid
   // referencing `filterQueryString` before it's defined.
   const prevFilterQueryRef = useRef(null);
   const isFirstCombinedEffectRun = useRef(true);
   const urlRestorePending = useRef(false);
+  const hostProvidedPageRef = useRef(false);
+  const applyingHostPageRef = useRef(false);
+  const searchDebounceTimerRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState(null);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(() => null);
   const [searchButtonClicked, setSearchButtonClicked] = useState("tick");
   const [showFilterOverrideMobile, setShowFilterOverrideMobile] =
     useState(false);
@@ -58,19 +288,67 @@ const BlogArticles = () => {
 
   const [clearFilters, setClearFilters] = useState(false);
 
-  const [filter, setFilter] = useState({
-    sort: "descending",
-    topics: [],
-    author: [],
-    dates: null,
-    dateRangeSet: undefined,
+  const [filter, setFilter] = useState(() => {
+    const stored = getStoredPreferences();
+    return {
+      sort: stored.sort || "descending",
+      topics: stored.topics || [],
+      author: stored.author || [],
+      dates: stored.dates || null,
+      dateRangeSet: stored.dates ? true : undefined,
+    };
   });
 
-  let [searchParams, setSearchParams] = useSearchParams();
+  // shim for react-router `useSearchParams`
+  const [searchParams, setSearchParamsState] = useState(() => {
+    try {
+      return new URLSearchParams(hasWindow ? win.location.search : '');
+    } catch (e) {
+      return new URLSearchParams('');
+    }
+  });
+  const setSearchParams = (qs) => {
+    // `qs` is expected to be a query-string (no leading '?')
+    const search = qs ? `?${qs}` : '';
+    if (hasWindow) {
+      const newUrl = `${win.location.pathname}${search}`;
+      // Debug: log page, incoming qs and the URL we will write to history.
+      // Temporary instrumentation to help diagnose why `?page=` is not
+      // appearing during pagination updates. Remove once verified.
+      try {
+        // `page` is the internal 0-based page state; expose both for clarity
+        // in logs. Use console.log to ensure visibility in browsers that
+        // hide debug-level messages.
+      } catch (e) {
+        // ignore logging failures
+      }
+      win.history.replaceState(null, '', newUrl);
+      // Only update state if the search string actually changed to avoid
+      // creating a new URLSearchParams object on every call (which would
+      // trigger effects that depend on `searchParams` and can cause
+      // infinite update loops).
+      try {
+        const current = searchParams ? searchParams.toString() : '';
+        const incoming = qs || '';
+        if (current === incoming) return;
+      } catch (e) {
+        // fall through and update state if anything unexpected happens
+      }
+      setSearchParamsState(new URLSearchParams(search));
+    }
+  };
 
   // Live region message for screen readers when results change
   const [liveMessage, setLiveMessage] = useState("");
   const [liveKey, setLiveKey] = useState(0);
+
+  // Persist filter preferences to localStorage whenever filter changes
+  useEffect(() => {
+    if (filter) {
+      const preferences = extractPreferences(filter);
+      savePreferences(preferences);
+    }
+  }, [filter.sort, filter.topics, filter.author, filter.dates]);
 
   const filterQueryString = useMemo(() => {
     return Object.keys(filter)
@@ -91,7 +369,7 @@ const BlogArticles = () => {
     const base = filterQueryString || "";
     // convert internal 0-based page to 1-based page for the URL
     const pageNumber = typeof pageVal === "number" ? pageVal + 1 : page + 1;
-    const pagePart = pageNumber > 1 ? `page=${pageNumber}` : "";
+    const pagePart = `page=${pageNumber}`;
     if (base && pagePart) return `${base}&${pagePart}`;
     if (base) return base;
     if (pagePart) return pagePart;
@@ -99,31 +377,37 @@ const BlogArticles = () => {
   };
 
   const getBlogData = async () => {
-    setLoading(true);
-    const response = await getBlogArticles();
-    setLoading(false);
+    try {
+      setLoading(true);
+      const response = await getBlogArticles();
+      setLoading(false);
 
-    let returnedBlogArticles = response?.items ?? [];
-    let blogTopics =
-      window?.setTopics.topics ?? getBlogArticleTopics(returnedBlogArticles);
+      let returnedBlogArticles = response?.items ?? [];
 
-    if (typeof blogTopics === "string") {
-      blogTopics = JSON.parse(blogTopics);
+      let blogTopics = (topicsGlobal?.topics && topicsGlobal.topics.length)
+        ? topicsGlobal.topics
+        : getBlogArticleTopics(returnedBlogArticles);
+
+      if (typeof blogTopics === "string") {
+        blogTopics = JSON.parse(blogTopics);
+      }
+
+      setBlogCategories(blogTopics);
+
+      // Note: Do NOT filter articles here based on blogTopics.
+      // blogTopics represents the available categories, not the active filter.
+      // Filtering should only happen based on filter.topics state.
+
+      setReturnedBlogArticles(returnedBlogArticles);
+      setAuthors(getAuthors(returnedBlogArticles));
+      const chunked = chunkArray(returnedBlogArticles, 5);
+      setBlogArticles(chunked);
+    } catch (e) {
+      setLoading(false);
     }
-
-    setBlogCategories(blogTopics);
-
-    returnedBlogArticles = returnedBlogArticles.filter((prop) =>
-      prop.properties.tags.some((tags) => blogTopics.includes(tags)),
-    );
-
-    setReturnedBlogArticles(returnedBlogArticles);
-    setAuthors(getAuthors(returnedBlogArticles));
-    setBlogArticles(chunk(returnedBlogArticles, 5));
   };
 
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
+  const queryParams = new URLSearchParams(hasWindow ? win.location.search : '');
 
   const dates = queryParams.get("dates");
   const sort = queryParams.get("sort");
@@ -156,10 +440,76 @@ const BlogArticles = () => {
         dates: null,
         dateRangeSet: undefined,
       }));
+      
+      // Clear stored preferences and reset pagination when filters are reset
+      clearPreferences();
+      setPage(0);
 
       setClearFilters(false);
     }
   }, [clearFilters]);
+
+  // Initialize debounced search term on mount to ensure articles display immediately
+  useEffect(() => {
+    setDebouncedSearchTerm(searchTerm);
+  }, []);
+
+  // Debounce search term updates (wait 500ms after user stops typing)
+  useEffect(() => {
+    // Clear previous timer if one exists
+    if (searchDebounceTimerRef.current) {
+      clearTimeout(searchDebounceTimerRef.current);
+    }
+
+    // Set a new timer to update the debounced search term
+    searchDebounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    // Cleanup: clear timer on unmount or before setting a new one
+    return () => {
+      if (searchDebounceTimerRef.current) {
+        clearTimeout(searchDebounceTimerRef.current);
+      }
+    };
+  }, [searchTerm]);
+
+  // Notify host (web component) when topics change so the
+  // host can keep its URL in sync with the current topics.
+  useEffect(() => {
+    if (!hasWindow) return;
+    try {
+      const currentTopics = filter.topics && filter.topics.length > 0 ? filter.topics : [];
+      
+      // If embedded in a host iframe, post to parent
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'wmca:topicChange', topics: currentTopics }, '*');
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [filter.topics, hasWindow]);
+
+  // Read topics from URL query parameter and apply to filter on page load
+  // This allows topics to be preserved when returning from an article page
+  useEffect(() => {
+    if (!hasWindow) return;
+    try {
+      const topicsParam = new URLSearchParams(win.location.search).get('topics');
+      if (topicsParam) {
+        // Parse topics from slash-separated string (e.g., "security/transport/housing")
+        const parsedTopics = topicsParam.split('/').filter(t => t.trim());
+        if (parsedTopics.length > 0) {
+          setFilter(prev => ({ ...prev, topics: parsedTopics }));
+        }
+      } else {
+        // No URL topics parameter - ensure filter.topics is empty to show all articles
+        setFilter(prev => ({ ...prev, topics: [] }));
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [hasWindow]);
 
   useEffect(() => {
     // (was previously updating search params here) — combined into a single effect below
@@ -171,15 +521,19 @@ const BlogArticles = () => {
     let mounted = true;
     const rafCleanup = { raf: null, timeout: null };
 
-    if (window.requestAnimationFrame) {
-      rafCleanup.raf = window.requestAnimationFrame(() => {
+    if (hasWindow && win.requestAnimationFrame) {
+      rafCleanup.raf = win.requestAnimationFrame(() => {
         rafCleanup.timeout = setTimeout(() => {
-          if (mounted) getBlogData();
+          if (mounted) {
+            getBlogData();
+          }
         }, 0);
       });
     } else {
       rafCleanup.timeout = setTimeout(() => {
-        if (mounted) getBlogData();
+        if (mounted) {
+          getBlogData();
+        }
       }, 0);
     }
 
@@ -229,28 +583,129 @@ const BlogArticles = () => {
       urlRestorePending.current = true;
     }
 
-    // Debug trace: log restoration values (remove this in production)
-    /* eslint-disable no-console */
-    console.debug("BlogArticles mount restore", {
-      topics,
-      author,
-      dates,
-      sort,
-      dateRangeSet,
-      qpPage,
-      initialPage: page,
-      urlRestorePending: urlRestorePending.current,
-    });
-    /* eslint-enable no-console */
     // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => {
       mounted = false;
-      if (rafCleanup.raf && window.cancelAnimationFrame) {
-        window.cancelAnimationFrame(rafCleanup.raf);
+      if (rafCleanup.raf && hasWindow && win.cancelAnimationFrame) {
+        win.cancelAnimationFrame(rafCleanup.raf);
       }
       if (rafCleanup.timeout) clearTimeout(rafCleanup.timeout);
     };
   }, []);
+
+    // Ensure the search/list refreshes when navigating back from an article
+    useEffect(() => {
+      if (!hasWindow) return;
+
+      const handleBackNavigation = () => {
+        try {
+          // If we're on the list page, refresh data to reflect any state changes
+          const path = win.location.pathname || '';
+          if (path === '/' || path === '/demo-topics') {
+            // Re-fetch data and re-apply filters from URL
+            getBlogData();
+            // Re-apply all URL parameters to filter state to ensure consistency
+            const qp = new URLSearchParams(win.location.search);
+            
+            const dates = qp.get("dates");
+            const sort = qp.get("sort");
+            const author = qp.get("author");
+            const topics = qp.get("topics");
+            const dateRangeSet = qp.get("dateRangeSet");
+            const pageParam = qp.get("page");
+
+            // Reset and reapply filters from URL
+            setFilter((prev) => {
+              const updated = { ...prev };
+              if (sort) updated.sort = sort;
+              if (topics) updated.topics = topics.split("/");
+              if (author) updated.author = author.split("/");
+              if (dates) updated.dates = dates;
+              if (dateRangeSet) {
+                try {
+                  updated.dateRangeSet = JSON.parse(dateRangeSet);
+                } catch (e) {
+                  // ignore parsing errors
+                }
+              }
+              return updated;
+            });
+
+            // Reset page from URL if present
+            if (pageParam !== null) {
+              const parsed = parseInt(pageParam, 10);
+              if (!Number.isNaN(parsed)) setPage(Math.max(0, parsed - 1));
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      };
+
+      // popstate covers back/forward navigation; pageshow handles bfcache restores
+      win.addEventListener('popstate', handleBackNavigation);
+      win.addEventListener('pageshow', handleBackNavigation);
+      // Also listen for Next.js router events bridged to the window so
+      // client-side navigation and back inside the iframe are handled.
+      const routeChangeHandler = (ev) => {
+        try {
+          const url = ev?.detail?.url;
+          if (!url) return;
+          if (url === '/' || url === '/demo-topics') {
+            getBlogData();
+            // Re-apply filters from the URL in the event
+            const qp = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+            
+            const dates = qp.get("dates");
+            const sort = qp.get("sort");
+            const author = qp.get("author");
+            const topics = qp.get("topics");
+            const dateRangeSet = qp.get("dateRangeSet");
+            const pageParam = qp.get("page");
+
+            setFilter((prev) => {
+              const updated = { ...prev };
+              if (sort) updated.sort = sort;
+              if (topics) updated.topics = topics.split("/");
+              if (author) updated.author = author.split("/");
+              if (dates) updated.dates = dates;
+              if (dateRangeSet) {
+                try {
+                  updated.dateRangeSet = JSON.parse(dateRangeSet);
+                } catch (e) {
+                  // ignore parsing errors
+                }
+              }
+              return updated;
+            });
+
+            if (pageParam !== null) {
+              const parsed = parseInt(pageParam, 10);
+              if (!Number.isNaN(parsed)) setPage(Math.max(0, parsed - 1));
+            }
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      };
+      win.addEventListener('wmca:routeChange', routeChangeHandler);
+
+      return () => {
+        win.removeEventListener('popstate', handleBackNavigation);
+        win.removeEventListener('pageshow', handleBackNavigation);
+        win.removeEventListener('wmca:routeChange', routeChangeHandler);
+      };
+      // intentionally not including getBlogData in deps to avoid double-fetch on mount
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+  // Re-fetch articles when topicsGlobal changes from web component
+  useEffect(() => {
+    if (!hasWindow) return;
+    // Always fetch blog data, regardless of whether topicsGlobal.topics is set
+    // topicsGlobal.topics is just a way to configure available categories, not a filter
+    getBlogData();
+  }, [topicsGlobal?.topics, hasWindow]);
 
   // When the visible page of results changes, scroll the main results area into view
   // and focus it so keyboard and screen-reader users are taken to the updated results.
@@ -271,8 +726,8 @@ const BlogArticles = () => {
         } catch (e) {
           // fallback to window scroll
           const rect = resultsCountEl.getBoundingClientRect();
-          const absoluteTop = window.scrollY + rect.top;
-          window.scrollTo({ top: absoluteTop, behavior: "smooth" });
+          const absoluteTop = (hasWindow ? win.scrollY : 0) + rect.top;
+          if (hasWindow) win.scrollTo({ top: absoluteTop, behavior: "smooth" });
         }
 
         // adjust for fixed header overlap if necessary
@@ -280,10 +735,10 @@ const BlogArticles = () => {
         const cookieBannerEl = document.querySelector(".wmcads-cookies-banner");
         const headerHeight =
           (headerEl?.offsetHeight || 0) + (cookieBannerEl?.offsetHeight || 0);
-        if (headerHeight > 0) {
+        if (headerHeight > 0 && hasWindow && win.requestAnimationFrame) {
           // run another frame then nudge up by headerHeight + small gap
-          window.requestAnimationFrame(() => {
-            window.scrollBy({
+          win.requestAnimationFrame(() => {
+            win.scrollBy({
               top: -(headerHeight + 8),
               left: 0,
               behavior: "smooth",
@@ -301,7 +756,7 @@ const BlogArticles = () => {
         try {
           fallbackEl.scrollIntoView({ behavior: "smooth", block: "start" });
         } catch (e) {
-          window.scrollTo({
+          if (hasWindow) win.scrollTo({
             top: fallbackEl.offsetTop || 0,
             behavior: "smooth",
           });
@@ -312,15 +767,15 @@ const BlogArticles = () => {
         fallbackEl.focus();
         if (!hadTabIndex) fallbackEl.removeAttribute("tabindex");
       } else {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        if (hasWindow) win.scrollTo({ top: 0, behavior: "smooth" });
       }
     };
 
     // Wait for the next paint/layout to ensure the newly rendered results are in the DOM
     // Use double requestAnimationFrame as a robust way to run after layout is settled.
-    if (typeof window !== "undefined" && window.requestAnimationFrame) {
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => {
+    if (hasWindow && win.requestAnimationFrame) {
+      win.requestAnimationFrame(() => {
+        win.requestAnimationFrame(() => {
           scrollAndFocusResults();
         });
       });
@@ -330,13 +785,36 @@ const BlogArticles = () => {
     }
   }, [page, blogArticles]);
 
+  // Track when page changes come from the host vs user interaction.
+  useEffect(() => {
+    if (applyingHostPageRef.current) {
+      // This change was applied from the host; clear the applying flag.
+      applyingHostPageRef.current = false;
+      return;
+    }
+    // If the host had previously provided a page but the page now changed
+    // without the applying flag, assume user interaction and clear the host flag.
+    if (hostProvidedPageRef.current) {
+      hostProvidedPageRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
   useEffect(() => {
     let filteredBlogArticles = returnedBlogArticles;
 
-    if (searchTerm) {
+    // First, apply topicsGlobal as a default scope (configured topics from web component)
+    if (topicsGlobal?.topics && Array.isArray(topicsGlobal.topics) && topicsGlobal.topics.length > 0) {
+      filteredBlogArticles = filterBlogArticlesByTopic(
+        filteredBlogArticles,
+        topicsGlobal.topics,
+      );
+    }
+
+    if (debouncedSearchTerm) {
       filteredBlogArticles = searchBlogArticles(
-        returnedBlogArticles,
-        searchTerm,
+        filteredBlogArticles,
+        debouncedSearchTerm,
       );
     }
 
@@ -371,46 +849,26 @@ const BlogArticles = () => {
       );
     }
 
-    // sort values
-    const currentParams = Object.fromEntries([...searchParams]);
-
-    if (currentParams.sort == "ascending") {
-      setsortDefault("ascending");
-      setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
-    } else if (currentParams.sort == "descending") {
-      setsortDefault("descending");
-      setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles), 5));
-    } else if (currentParams.sort == "name") {
-      setsortDefault("name");
-      setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, "name"), 5));
-    } else {
-      setsortDefault("descending");
-    }
-
+    // Sort the filtered articles and update display
+    // Apply sort order to the filtered results (which already have topic, author, date filters applied)
+    let sortedArticles = filteredBlogArticles;
+    
     if (filter.sort === "ascending") {
-      setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
-      // search params are updated by the combined effect below
-      // setFilter({ sort: "ascending" });
+      setsortDefault("ascending");
+      sortedArticles = sortBlogArticles(filteredBlogArticles, true);
     } else if (filter.sort === "descending") {
-      setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles), 5));
+      setsortDefault("descending");
+      sortedArticles = sortBlogArticles(filteredBlogArticles);
     } else if (filter.sort === "name") {
-      setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, "name"), 5));
+      setsortDefault("name");
+      sortedArticles = sortBlogArticles(filteredBlogArticles, "name");
     } else {
-      setBlogArticles(chunk(filteredBlogArticles, 5));
+      setsortDefault("descending");
     }
 
-    // topic values
-    if (
-      filter.topics.length !== 0 ||
-      filter.author.length !== 0 ||
-      filter.dates !== null ||
-      clearFilters
-    ) {
-      // setBlogArticles(chunk(sortBlogArticles(filteredBlogArticles, true), 5));
-      // search params are updated by the combined effect below
-    } else {
-      setBlogArticles(chunk(filteredBlogArticles, 5));
-    }
+    // Update blog articles with sorted and filtered results
+    const chunkedResults = chunkArray(sortedArticles, 5);
+    setBlogArticles(chunkedResults);
 
     // Recompute available authors based on the currently filtered set (respecting topics)
     const availableAuthors = getAuthors(returnedBlogArticles, filter.topics);
@@ -463,9 +921,9 @@ const BlogArticles = () => {
     returnedBlogArticles,
     searchButtonClicked,
     searchParams,
-    searchTerm,
-    setSearchParams,
+    debouncedSearchTerm,
     sortDefault,
+    topicsGlobal,
   ]);
 
   // Keep a ref of previous filter query string so we can detect filter changes.
@@ -494,16 +952,22 @@ const BlogArticles = () => {
       // don't treat it as a user change — just preserve the current page and
       // clear the pending flag.
       if (urlRestorePending.current) {
-        setSearchParams(buildSearchString(page));
+        const qs = buildSearchString(page);
+        setSearchParams(qs);
         urlRestorePending.current = false;
       } else {
-        // If a filter changed due to user interaction, ensure page is reset to 0.
-        if (page !== 0) setPage(0);
+        // If a filter changed due to user interaction, ensure page is reset to 0
+        // unless the host explicitly provided a page to respect.
+        if (!hostProvidedPageRef.current) {
+          if (page !== 0) setPage(0);
+        }
         // Write URL using page 0 (buildSearchString will convert to 1-based)
-        setSearchParams(buildSearchString(0));
+        const qs0 = buildSearchString(0);
+        setSearchParams(qs0);
       }
     } else {
-      setSearchParams(buildSearchString(page));
+      const qs = buildSearchString(page);
+      setSearchParams(qs);
     }
 
     prevFilterQueryRef.current = filterQueryString;
@@ -543,60 +1007,171 @@ const BlogArticles = () => {
       : setSearchButtonClicked("tick");
   };
 
-  const noOfResults = flatten(blogArticles).length;
+  // When a search is performed (either via search button or clear button), 
+  // immediately apply the search without waiting for debounce
+  useEffect(() => {
+    setDebouncedSearchTerm(searchTerm);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchButtonClicked]);
+
+  // When a search is performed (either via search button or live input),
+  // reset pagination to the first page (internal 0-based = 0).
+  useEffect(() => {
+    if (!hasWindow) return;
+    // Reset page when the explicit search button is clicked, unless host provided the page
+    if (!hostProvidedPageRef.current) setPage(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchButtonClicked]);
+
+  useEffect(() => {
+    if (!hasWindow) return;
+    try {
+      if (searchTerm !== null && String(searchTerm).trim() !== "") {
+        if (!hostProvidedPageRef.current) setPage(0);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [searchTerm]);
+
+  const noOfResults = blogArticles.flat().length;
 
   // set url params for article breadcrumb
   const urlParams = filterQueryString;
   useEffect(() => {
-    sessionStorage.setItem("urlParams", urlParams);
+    if (hasWindow) {
+      try {
+        if (win.sessionStorage) {
+          win.sessionStorage.setItem("urlParams", urlParams);
+        }
+      } catch (e) {
+        // sessionStorage may not be available in sandboxed iframes
+        // This is expected when iframe lacks allow-same-origin for security
+      }
+    }
   }, [urlParams]); // reset params if filters updated
 
   useEffect(() => {
     analyticsSend({
       hitType: "pageview",
-      page: window.location.pathname,
-      title: window?.setTopics?.name,
+      page: hasWindow ? win.location.pathname : "/",
+      title: topicsGlobal.name,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [topicsGlobal.name]);
 
   return (
     <>
-      <Helmet>
-        <title>{window?.setTopics?.name || "WMCA blog"}</title>
+      {showProductionError && (
+        <div className="wmcads-container wmcads-m-t-lg wmcads-m-b-lg">
+          <main className="wmcads-container--main" role="main" aria-label="Error message">
+            <div className="wmcads-col-1">
+              <div className="wmcads-msg-summary wmcads-msg-summary--error wmcads-m-b-lg" role="alert" aria-live="assertive">
+                <div className="wmcads-msg-summary__header">
+                  <svg className="wmcads-msg-summary__icon" aria-hidden="true" focusable="false">
+                    <use href="#wmcads-general-warning-triangle"></use>
+                  </svg>
+                  <h3 className="wmcads-msg-summary__title" id="prod-error-title">Something went wrong</h3>
+                </div>
+                <div className="wmcads-msg-summary__info" aria-describedby="prod-error-title">
+                  <p>We encountered an unexpected error while displaying this content. Our team has been notified. Please try refreshing the page.</p>
+                </div>
+              </div>
 
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setShowProductionError(false)}
+                  className="wmcads-btn wmcads-btn--primary"
+                  aria-label="Try again to reload the content"
+                >
+                  Try Again
+                </button>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="wmcads-btn wmcads-btn--secondary"
+                  aria-label="Refresh the entire page"
+                >
+                  Refresh Page
+                </button>
+              </div>
+            </div>
+          </main>
+        </div>
+      )}
+      {!showProductionError && (
+        <>
+      <Head>
+        <title>{topicsGlobal.name || 'WMCA blog'}</title>
+        
+        {/* Preconnect and DNS prefetch for external CDNs to improve font loading */}
+        <link rel="preconnect" href="https://cloudcdn.wmca.org.uk" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.wmca.org.uk" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        
+        {/* Canonical URL for SEO */}
+        <link rel="canonical" href={topicsGlobal.url} />
+        
+        {/* Enhanced meta tags */}
+        <meta name="description" content={topicsGlobal.summary || 'WMCA blog'} />
+        <meta name="keywords" content={topicsGlobal.name || 'WMCA, blog'} />
+        <meta name="author" content="West Midlands Combined Authority" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="index, follow" />
+        <meta name="language" content="en-GB" />
+
+        {/* Open Graph */}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content={window?.setTopics?.name || "WMCA blog"} />
-        <meta property="og:description" content={window?.setTopics?.summary || ""} />
-        <meta property="og:url" content={window?.setTopics?.url} />
-        <meta property="og:image" content={window?.setBanner?.bannerimg} />
-
-        <meta property="og:site_name" content={window?.setBanner?.name} />
+        <meta property="og:title" content={topicsGlobal.name || 'WMCA blog'} />
+        <meta property="og:description" content={topicsGlobal.summary || ''} />
+        <meta property="og:url" content={topicsGlobal.url} />
+        <meta property="og:image" content={bannerGlobal.bannerimg} />
+        <meta property="og:image:alt" content={topicsGlobal.name || 'WMCA blog'} />
+        <meta property="og:site_name" content={bannerGlobal.name} />
         <meta property="og:locale" content="en_GB" />
 
+        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={window?.setTopics?.name || "WMCA blog"} />
-        <meta name="twitter:description" content={window?.setTopics?.summary || ""} />
-        <meta name="twitter:image" content={window?.setBanner?.bannerimg} />
-      </Helmet>
+        <meta name="twitter:title" content={topicsGlobal.name || 'WMCA blog'} />
+        <meta name="twitter:description" content={topicsGlobal.summary || ''} />
+        <meta name="twitter:image" content={bannerGlobal.bannerimg} />
+        <meta name="twitter:image:alt" content={topicsGlobal.name || 'WMCA blog'} />
+
+        {/* JSON-LD Structured Data */}
+        {generateBreadcrumbSchema(topicsGlobal.breadcrumbs?.breadcrumb || [], topicsGlobal.name) && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ 
+              __html: JSON.stringify(generateBreadcrumbSchema(topicsGlobal.breadcrumbs?.breadcrumb || [], topicsGlobal.name)) 
+            }}
+          />
+        )}
+        {generateOrganizationSchema() && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ 
+              __html: JSON.stringify(generateOrganizationSchema()) 
+            }}
+          />
+        )}
+      </Head>
       <div className="template-search">
         <Breadcrumb
-          current={window?.setTopics?.url}
-          name={window?.setTopics?.name}
-          parent={window?.setTopics?.breadcrumbs?.breadcrumb[0]}
-          parent2={window?.setTopics?.breadcrumbs?.breadcrumb[1]}
-          parent3={window?.setTopics?.breadcrumbs?.breadcrumb[2]}
-          parent4={window?.setTopics?.breadcrumbs?.breadcrumb[3]}
-          parent5={window?.setTopics?.breadcrumbs?.breadcrumb[4]}
-          parent6={window?.setTopics?.breadcrumbs?.breadcrumb[5]}
-          parent7={window?.setTopics?.breadcrumbs?.breadcrumb[6]}
-          parent8={window?.setTopics?.breadcrumbs?.breadcrumb[7]}
+          current={topicsGlobal.url}
+          name={topicsGlobal.name}
+          parent={topicsGlobal.breadcrumbs?.breadcrumb?.[0]}
+          parent2={topicsGlobal.breadcrumbs?.breadcrumb?.[1]}
+          parent3={topicsGlobal.breadcrumbs?.breadcrumb?.[2]}
+          parent4={topicsGlobal.breadcrumbs?.breadcrumb?.[3]}
+          parent5={topicsGlobal.breadcrumbs?.breadcrumb?.[4]}
+          parent6={topicsGlobal.breadcrumbs?.breadcrumb?.[5]}
+          parent7={topicsGlobal.breadcrumbs?.breadcrumb?.[6]}
+          parent8={topicsGlobal.breadcrumbs?.breadcrumb?.[7]}
         />
         <Banner
-          image={window?.setBanner?.bannerimg}
-          title={window?.setBanner?.name}
-          summary={window?.setBanner?.summary}
-          position={window?.setBanner?.position}
+          image={bannerGlobal.bannerimg}
+          title={bannerGlobal.name}
+          summary={bannerGlobal.summary}
+          position={bannerGlobal.position}
         />
         <div className="wmcads-container">
           <main
@@ -611,6 +1186,40 @@ const BlogArticles = () => {
                 changeCallback={setSearchTerm}
                 searchButtonClickedCallback={searchButtonClickedFn}
               />
+              {process.env.NODE_ENV === 'development' && (
+                <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => setTestError(true)}
+                    style={{
+                      padding: '8px 12px',
+                      backgroundColor: '#c41e3a',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    🧪 Dev Error (w/ details)
+                  </button>
+                  <button
+                    onClick={() => setShowProductionError(true)}
+                    style={{
+                      padding: '8px 12px',
+                      backgroundColor: '#0066cc',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    👁️ Prod Error Preview
+                  </button>
+                </div>
+              )}
             </div>
             <a
               href="#search_filter"
@@ -823,12 +1432,15 @@ const BlogArticles = () => {
                   blogCategories={blogCategories}
                   authors={authors}
                   setDateRanges={setDateRanges}
+                  topicsGlobal={topicsGlobal}
                 />
               </aside>
             </div>
           </main>
         </div>
       </div>
+        </>
+      )}
     </>
   );
 };

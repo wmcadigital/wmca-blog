@@ -4,8 +4,8 @@
 
 [build]
   command = "npm run next:build"
-  # Don't set publish - plugin handles this
-  functions = "netlify/functions"
+  # Plugin handles the publish directory automatically
+  # Default is .next/public for standalone, but we're using default export
 
 [env.production]
   NODE_ENV = "production"

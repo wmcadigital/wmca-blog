@@ -1,5 +1,5 @@
-# Netlify Next.js plugin handles routing automatically
-# This file is not needed with @netlify/plugin-nextjs
+# Netlify Next.js plugin handles all routing automatically
+# No additional redirects needed for @netlify/plugin-nextjs
 
 
 

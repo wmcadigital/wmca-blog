@@ -2,8 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  // Enable standalone build for web component/iframe embedding
-  output: 'standalone',
+  // For Netlify: use default export instead of standalone to work with @netlify/plugin-nextjs
+  // output: 'standalone' breaks Netlify routing
   // Optimize images: enable automatic image optimization
   images: {
     remotePatterns: [

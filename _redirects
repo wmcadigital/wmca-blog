@@ -1,5 +1,5 @@
-# Catch-all for client-side routing
-# All requests to non-existent routes go to index.html
+# SPA routing: redirect all non-file requests to index.html
+# Next.js client-side router will handle the actual route
 /*    /index.html    200
 
 

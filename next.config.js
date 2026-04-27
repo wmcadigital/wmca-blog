@@ -2,8 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  // Export as static site for Netlify - all data fetching happens client-side
+  // Export as static site for Netlify - routes handled by client-side router
   output: 'export',
+  // Disable static optimization for dynamic routes (fallback: false)
+  trailingSlash: false,
   // Optimize images: enable automatic image optimization
   images: {
     remotePatterns: [

@@ -10,24 +10,24 @@ export default function ArticlePage(props) {
   );
 }
 
+// For static export: don't generate paths at build time
+// The page will be rendered client-side by Next.js router
 export async function getStaticPaths() {
-  // Generate paths for recent articles at build time
-  // Use fallback: 'blocking' for on-demand generation of new articles
   return {
-    paths: [], // No pre-generated paths at build time (can be empty or populated from CMS)
-    fallback: 'blocking', // Blocking: generate page on first request, then cache
+    paths: [],
+    fallback: false, // Render statically, let client-side router handle it
   };
 }
 
-export async function getStaticProps(context) {
-  const { articleTitle } = context.params;
-  
-  try {
-    // Fetch from internal API route (same host)
-    const host = process.env.VERCEL_URL || process.env.NETLIFY_URL || 'localhost:3000';
-    // Always use http for localhost (no valid cert), https for real domains
-    const proto = host.includes('localhost') ? 'http' : 'https';
-    const base = `${proto}://${host}`;
+// Skip getStaticProps for dynamic routes in static export
+// Data will be fetched client-side
+export async function getStaticProps() {
+  // Return empty props - all data is fetched client-side
+  return {
+    props: {},
+    revalidate: false,
+  };
+}
     
     const r = await fetch(`${base}/api/getBlogArticle?id=${encodeURIComponent(articleTitle)}`, {
       headers: {

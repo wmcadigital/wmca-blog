@@ -7,7 +7,7 @@
 [env.production]
   NODE_ENV = "production"
 
-# Static file caching
+# Static asset caching
 [[headers]]
   for = "/_next/static/*"
   [headers.values]

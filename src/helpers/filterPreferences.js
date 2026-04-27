@@ -71,6 +71,6 @@ export const restoreFilterState = (storedPreferences = {}) => {
     topics: storedPreferences.topics || [],
     author: storedPreferences.author || [],
     dates: storedPreferences.dates || null,
-    dateRangeSet: storedPreferences.dates ? true : undefined,
+    dateRangeSet: undefined, // Date range set is never stored in localStorage
   };
 };

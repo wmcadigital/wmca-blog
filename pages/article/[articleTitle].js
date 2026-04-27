@@ -24,8 +24,9 @@ export async function getStaticProps(context) {
   
   try {
     // Fetch from internal API route (same host)
-    const proto = process.env.NODE_ENV === 'production' ? 'https' : 'http';
     const host = process.env.VERCEL_URL || process.env.NETLIFY_URL || 'localhost:3000';
+    // Always use http for localhost (no valid cert), https for real domains
+    const proto = host.includes('localhost') ? 'http' : 'https';
     const base = `${proto}://${host}`;
     
     const r = await fetch(`${base}/api/getBlogArticle?id=${encodeURIComponent(articleTitle)}`, {

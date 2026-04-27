@@ -25,6 +25,7 @@ const BlogFilter = ({
   blogCategories = [],
   setDateRanges = () => {},
   topicsGlobal = {},
+  setPage = () => {},
 }) => {
   const dates = useMemo(() => {
     // Start with all returned articles and apply the same topic/author filtering
@@ -174,6 +175,7 @@ const BlogFilter = ({
         options={topicOptions}
         forceOpen={filter.topics && filter.topics.length > 0}
         optionSelected={useCallback((optionValue) => {
+          setPage(0);
           setFilter((prev) => {
             const topics = prev.topics || [];
             if (topics.includes(optionValue)) {
@@ -181,7 +183,7 @@ const BlogFilter = ({
             }
             return { ...prev, topics: [...topics, optionValue] };
           });
-        }, [setFilter])}
+        }, [setFilter, setPage])}
         optionSelectedFn={useCallback((value) =>
           filter.topics.includes(value) ? true : undefined
         , [filter.topics])}
@@ -191,6 +193,7 @@ const BlogFilter = ({
         options={authorOptions}
         forceOpen={filter.author && filter.author.length > 0}
         optionSelected={useCallback((optionValue) => {
+          setPage(0);
           setFilter((prev) => {
             const authors = prev.author || [];
             if (authors.includes(optionValue)) {
@@ -198,7 +201,7 @@ const BlogFilter = ({
             }
             return { ...prev, author: [...authors, optionValue] };
           });
-        }, [setFilter])}
+        }, [setFilter, setPage])}
         optionSelectedFn={useCallback((value) =>
           filter.author.includes(value) ? true : undefined
         , [filter.author])}
@@ -212,8 +215,9 @@ const BlogFilter = ({
         clearFilters={clearFilters}
         forceOpen={filter.dates != null}
         optionSelected={useCallback((optionValue) => {
+          setPage(0);
           setFilter((prev) => ({ ...prev, dates: optionValue }));
-        }, [setFilter])}
+        }, [setFilter, setPage])}
         optionSelectedFn={useCallback((value) =>
           filter.dates === value ? true : undefined
         , [filter.dates])}
@@ -272,6 +276,7 @@ BlogFilter.propTypes = {
   setDateRanges: PropTypes.func,
   setClearFilters: PropTypes.func,
   topicsGlobal: PropTypes.object,
+  setPage: PropTypes.func,
 };
 
 // Defaults provided in the function signature to avoid using defaultProps on a function component

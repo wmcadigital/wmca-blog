@@ -92,9 +92,6 @@ const BlogArticle = (props) => {
   }, [router.events, router.isReady]);
 
   const hasWindow = typeof window !== "undefined";
-  const [articleContentItems, setArticleContentItems] = useState([]);
-  const [articleSidebarContentItems, setArticleSidebarContentItems] = useState([]);
-  const [articleAccordionBlockItems, setArticleAccordionBlockItems] = useState([]);
   // Accept server-provided props: props.initialArticle and props.articleTitle
   const loaderData = props.loaderData || { article: props.initialArticle || null, articleTitle: props.articleTitle || null };
   const [articleData, setArticleData] = useState(loaderData?.article ?? null);
@@ -102,6 +99,38 @@ const BlogArticle = (props) => {
 
   // alias used throughout the component to minimise other edits
   const article = articleData;
+
+  // Derive content items from article using useMemo to avoid hydration mismatch
+  // These are computed synchronously during render, not set by effects
+  const { articleContentItems, articleSidebarContentItems, articleAccordionBlockItems } = useMemo(() => {
+    if (!article?.properties?.grid?.items) {
+      return {
+        articleContentItems: [],
+        articleSidebarContentItems: [],
+        articleAccordionBlockItems: [],
+      };
+    }
+
+    let contentItems = [];
+    let sidebarItems = [];
+    let accordionItems = [];
+
+    article.properties.grid.items.forEach((items) => {
+      items.content.properties?.content.items?.forEach((item) => {
+        if (item.content.contentType === "accordionBlock") {
+          accordionItems.push(item);
+        }
+      });
+      contentItems = items.content.properties?.content?.items || [];
+      sidebarItems = items.content.properties?.sidebar?.items || [];
+    });
+
+    return {
+      articleContentItems: contentItems,
+      articleSidebarContentItems: sidebarItems,
+      articleAccordionBlockItems: accordionItems,
+    };
+  }, [article?.properties?.grid?.items]);
 
   // `blogBannerImage` holds the canonical image URL used by meta tags and preload
   const [blogBannerImage, setBlogBannerImage] = useState("https://cloudcdn.wmca.org.uk/img/wmca/wmca-default.png");
@@ -152,47 +181,36 @@ const BlogArticle = (props) => {
   const SetContent = (data) => {
     switch (data.contentType) {
       case "videoBlock":
-        // console.log(data.properties.youtube, 'videoBlock')
         return <VideoComponent url={data.properties.video[0].url} />;
       case "textboxBlock":
         return <TextComponent htmlContent={data.properties.textbox.markup} />;
       case "imageBlock":
         return <ImageComponent imageUrls={data.properties.image} />;
       case "accordionBlock":
-        // console.log(data, 'accordionBlock')
-        return "<h1>Video Block</h1>";
+        // Handled separately in render, should not reach here
+        return null;
       default:
-        return <h1>Video Block</h1>;
+        return null; // Return null for unknown types instead of placeholder
     }
   };
 
   useEffect(() => {
-    // Send pageview with a custom path
-    analyticsSend({
-      hitType: "pageview",
-      page: window.location.pathname + window.location.hash,
-      title: article?.name,
-    });
+    // Send pageview with a custom path (client-side only)
+    if (typeof window !== "undefined") {
+      analyticsSend({
+        hitType: "pageview",
+        page: window.location.pathname + window.location.hash,
+        title: article?.name,
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!article) return; // wait for article to be available
-    document.title = article.name;
-    let accordion = [];
-
-    article?.properties.grid?.items.map((items) => {
-      items.content.properties?.content.items.map((items) => {
-        if (items.content.contentType === "accordionBlock") {
-          accordion.push(items);
-        }
-      });
-
-      setArticleContentItems(items.content.properties.content.items);
-      setArticleSidebarContentItems(items.content.properties?.sidebar?.items);
-    });
-    setArticleAccordionBlockItems(accordion);
-  }, [article]);
+    if (typeof window !== "undefined") {
+      document.title = article?.name || "Blog Article";
+    }
+  }, [article?.name]);
 
   useEffect(() => {
     // match check to mark which topics should be linked
@@ -390,7 +408,7 @@ const BlogArticle = (props) => {
         )}
 
         {/* Enhanced meta tags */}
-        <meta name="description" content={description || setTopicsGlobal?.summary || 'WMCA blog'} />
+        <meta name="description" content={description || setTopicsGlobal?.summary || 'WMCA blog'} suppressHydrationWarning />
         <meta name="keywords" content={article?.properties?.tags?.map(t => t.trim()).join(', ') || 'WMCA, blog'} />
         <meta name="author" content={article?.properties?.author?.[0]?.name || 'West Midlands Combined Authority'} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -404,7 +422,7 @@ const BlogArticle = (props) => {
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={blogImg} />
         <meta property="og:image:alt" content={title} />
-        <meta property="og:site_name" content={setBannerGlobal?.name || 'WMCA Blog'} />
+        <meta property="og:site_name" content={setBannerGlobal?.name || 'WMCA Blog'} suppressHydrationWarning />
         <meta property="og:locale" content="en_GB" />
         {article?.properties?.createDate && (
           <meta property="article:published_time" content={article.properties.createDate} />
@@ -447,25 +465,27 @@ const BlogArticle = (props) => {
       </Head>
       <ScrollToTop />
       <BackToTopButton />
-      <Breadcrumb
-        article={article?.name}
-        current={setTopicsGlobal?.url}
-        name={setTopicsGlobal?.name}
-        parent={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[0]}
-        parent2={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[1]}
-        parent3={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[2]}
-        parent4={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[3]}
-        parent5={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[4]}
-        parent6={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[5]}
-        parent7={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[6]}
-        parent8={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[7]}
-      />
-      <Banner
-        image={setBannerGlobal?.bannerimg}
-        title={setBannerGlobal?.name}
-        summary={setBannerGlobal?.summary}
-        article={true}
-      />
+      <div suppressHydrationWarning>
+        <Breadcrumb
+          article={article?.name}
+          current={setTopicsGlobal?.url}
+          name={setTopicsGlobal?.name}
+          parent={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[0]}
+          parent2={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[1]}
+          parent3={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[2]}
+          parent4={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[3]}
+          parent5={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[4]}
+          parent6={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[5]}
+          parent7={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[6]}
+          parent8={setTopicsGlobal?.breadcrumbs?.breadcrumb?.[7]}
+        />
+        <Banner
+          image={setBannerGlobal?.bannerimg}
+          title={setBannerGlobal?.name}
+          summary={setBannerGlobal?.summary}
+          article={true}
+        />
+      </div>
       <div className="wmcads-container">
         <main
           id="wmcads-main-content"
@@ -556,11 +576,11 @@ const BlogArticle = (props) => {
                 : null}
 
               {articleContentItems.map((item, index) => {
-                return (
-                  item.content.contentType !== "accordionBlock" && (
-                    <SetContent key={index} {...item.content} />
-                  )
-                );
+                // Filter out accordion blocks (they're rendered separately below)
+                if (item.content.contentType === "accordionBlock") {
+                  return null;
+                }
+                return <SetContent key={index} {...item.content} />;
               })}
               <AccordionComponent data={articleAccordionBlockItems} />
               <hr />

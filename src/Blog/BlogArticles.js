@@ -79,17 +79,8 @@ const BlogArticles = () => {
   const [blogCategories, setBlogCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(() => {
-    try {
-      // URL page param is 1-based (user-facing). Internal state is 0-based.
-      const qp = new URLSearchParams(hasWindow ? win.location.search : "").get("page");
-      const asNumber = qp !== null ? parseInt(qp, 10) : 1;
-      if (Number.isNaN(asNumber)) return 0;
-      return Math.max(0, asNumber - 1);
-    } catch (e) {
-      return 0;
-    }
-  });
+  // Initialize to 0 to match server render; update from URL in useEffect only
+  const [page, setPage] = useState(0);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -116,10 +107,22 @@ const BlogArticles = () => {
       }
     }
     
+    // Sync page from URL (only on client to avoid hydration mismatch)
+    try {
+      const qp = new URLSearchParams(window.location.search).get("page");
+      const asNumber = qp !== null ? parseInt(qp, 10) : 1;
+      if (!Number.isNaN(asNumber)) {
+        const newPage = Math.max(0, asNumber - 1);
+        setPage(newPage);
+      }
+    } catch (e) {
+      // ignore
+    }
+    
     // If the host provided a page number via the web component, apply it.
     try {
       const injectedPage = window.setTopics?.page;
-      const qp = new URLSearchParams(hasWindow ? win.location.search : "").get("page");
+      const qp = new URLSearchParams(window.location.search).get("page");
       // Only apply injected page if URL doesn't explicitly set page
       if (injectedPage && !qp) {
         const p = Number(injectedPage);
@@ -161,6 +164,31 @@ const BlogArticles = () => {
     };
     window.addEventListener('wmca:setTopics', handler);
     return () => window.removeEventListener('wmca:setTopics', handler);
+  }, []);
+
+  // Restore filter preferences from localStorage and search params from URL after hydration
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    
+    // Restore filter preferences from localStorage
+    const stored = getStoredPreferences();
+    if (Object.keys(stored).length > 0) {
+      setFilter({
+        sort: stored.sort || "descending",
+        topics: stored.topics || [],
+        author: stored.author || [],
+        dates: stored.dates || null,
+        dateRangeSet: undefined, // Date range set comes from URL or filter UI, not localStorage
+      });
+    }
+    
+    // Restore search params from URL
+    try {
+      const qp = new URLSearchParams(window.location.search);
+      setSearchParamsState(qp);
+    } catch (e) {
+      // ignore
+    }
   }, []);
 
   // Sync page state with URL query parameter whenever router is ready
@@ -288,24 +316,19 @@ const BlogArticles = () => {
 
   const [clearFilters, setClearFilters] = useState(false);
 
-  const [filter, setFilter] = useState(() => {
-    const stored = getStoredPreferences();
-    return {
-      sort: stored.sort || "descending",
-      topics: stored.topics || [],
-      author: stored.author || [],
-      dates: stored.dates || null,
-      dateRangeSet: stored.dates ? true : undefined,
-    };
+  // Initialize with default filter state; sync from localStorage only in useEffect (client-only)
+  const [filter, setFilter] = useState({
+    sort: "descending",
+    topics: [],
+    author: [],
+    dates: null,
+    dateRangeSet: undefined,
   });
 
   // shim for react-router `useSearchParams`
+  // Initialize with empty search params; sync from URL only in useEffect (client-only)
   const [searchParams, setSearchParamsState] = useState(() => {
-    try {
-      return new URLSearchParams(hasWindow ? win.location.search : '');
-    } catch (e) {
-      return new URLSearchParams('');
-    }
+    return new URLSearchParams('');
   });
   const setSearchParams = (qs) => {
     // `qs` is expected to be a query-string (no leading '?')
@@ -1112,8 +1135,8 @@ const BlogArticles = () => {
         <link rel="canonical" href={topicsGlobal.url} />
         
         {/* Enhanced meta tags */}
-        <meta name="description" content={topicsGlobal.summary || 'WMCA blog'} />
-        <meta name="keywords" content={topicsGlobal.name || 'WMCA, blog'} />
+        <meta name="description" content={topicsGlobal.summary || 'WMCA blog'} suppressHydrationWarning />
+        <meta name="keywords" content={topicsGlobal.name || 'WMCA, blog'} suppressHydrationWarning />
         <meta name="author" content="West Midlands Combined Authority" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="robots" content="index, follow" />
@@ -1121,20 +1144,20 @@ const BlogArticles = () => {
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content={topicsGlobal.name || 'WMCA blog'} />
-        <meta property="og:description" content={topicsGlobal.summary || ''} />
-        <meta property="og:url" content={topicsGlobal.url} />
-        <meta property="og:image" content={bannerGlobal.bannerimg} />
-        <meta property="og:image:alt" content={topicsGlobal.name || 'WMCA blog'} />
-        <meta property="og:site_name" content={bannerGlobal.name} />
+        <meta property="og:title" content={topicsGlobal.name || 'WMCA blog'} suppressHydrationWarning />
+        <meta property="og:description" content={topicsGlobal.summary || ''} suppressHydrationWarning />
+        <meta property="og:url" content={topicsGlobal.url} suppressHydrationWarning />
+        <meta property="og:image" content={bannerGlobal.bannerimg} suppressHydrationWarning />
+        <meta property="og:image:alt" content={topicsGlobal.name || 'WMCA blog'} suppressHydrationWarning />
+        <meta property="og:site_name" content={bannerGlobal.name} suppressHydrationWarning />
         <meta property="og:locale" content="en_GB" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={topicsGlobal.name || 'WMCA blog'} />
-        <meta name="twitter:description" content={topicsGlobal.summary || ''} />
-        <meta name="twitter:image" content={bannerGlobal.bannerimg} />
-        <meta name="twitter:image:alt" content={topicsGlobal.name || 'WMCA blog'} />
+        <meta name="twitter:title" content={topicsGlobal.name || 'WMCA blog'} suppressHydrationWarning />
+        <meta name="twitter:description" content={topicsGlobal.summary || ''} suppressHydrationWarning />
+        <meta name="twitter:image" content={bannerGlobal.bannerimg} suppressHydrationWarning />
+        <meta name="twitter:image:alt" content={topicsGlobal.name || 'WMCA blog'} suppressHydrationWarning />
 
         {/* JSON-LD Structured Data */}
         {generateBreadcrumbSchema(topicsGlobal.breadcrumbs?.breadcrumb || [], topicsGlobal.name) && (
@@ -1154,7 +1177,7 @@ const BlogArticles = () => {
           />
         )}
       </Head>
-      <div className="template-search">
+      <div className="template-search" suppressHydrationWarning>
         <Breadcrumb
           current={topicsGlobal.url}
           name={topicsGlobal.name}
@@ -1433,6 +1456,7 @@ const BlogArticles = () => {
                   authors={authors}
                   setDateRanges={setDateRanges}
                   topicsGlobal={topicsGlobal}
+                  setPage={setPage}
                 />
               </aside>
             </div>

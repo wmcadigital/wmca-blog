@@ -196,13 +196,13 @@ const FilterAccordion = ({
 
   // Method get the date ranges from the URL and splits the string values back into the required object type before setting the local states
   const setDateValuesFromUrl = useCallback(() => {
-    const to = filter?.dateRangeSet?.to.split("/");
+    const to = filter?.dateRangeSet?.to?.split("/");
     if (to?.length === 3) {
       const [year, month, day] = to;
       setDateBefore({ day, month, year });
     }
 
-    const from = filter?.dateRangeSet?.from.split("/");
+    const from = filter?.dateRangeSet?.from?.split("/");
     if (from?.length === 3) {
       const [year, month, day] = from;
       setDateAfter({ day, month, year });

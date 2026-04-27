@@ -6,6 +6,7 @@ import Head from 'next/head';
 
 const ImageComponent = ({ imageUrls }) => {
   const [mediaMap, setMediaMap] = useState({});
+  const [loadingImages, setLoadingImages] = useState({});
 
   useEffect(() => {
     let mounted = true;
@@ -31,6 +32,14 @@ const ImageComponent = ({ imageUrls }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imageUrls]);
 
+  const handleImageLoad = (key) => {
+    setLoadingImages((prev) => ({ ...prev, [key]: false }));
+  };
+
+  const handleImageError = (key) => {
+    setLoadingImages((prev) => ({ ...prev, [key]: false }));
+  };
+
   if (!Array.isArray(imageUrls) || imageUrls.length === 0) return null;
 
   return (
@@ -53,29 +62,74 @@ const ImageComponent = ({ imageUrls }) => {
         const alt = media?.properties?.altText || "";
 
         const isPriority = !!imageUrl?.priority;
+        const imageKey = imageUrl?.id || imageUrl?.url || index;
+        const isLoading = loadingImages[imageKey] !== false;
 
         return (
-          <React.Fragment key={imageUrl?.id || imageUrl?.url || index}>
+          <React.Fragment key={imageKey}>
             {isPriority && (
               // inject preload for LCP / priority images so the browser can fetch earlier
               <Head>
                 <link rel="preload" as="image" href={fallbackSrc} />
               </Head>
             )}
-            <picture>
-            <source type="image/webp" srcSet={webpSrcSet} sizes="(max-width: 600px) 100vw, 600px" />
-            <source srcSet={srcSet} sizes="(max-width: 600px) 100vw, 600px" />
-            <img
-              src={fallbackSrc}
-              alt={alt}
-              // allow callers to mark an image as priority to opt-out of lazy loading
-              loading={isPriority ? "eager" : "lazy"}
-              decoding="async"
-              width={imgWidth}
-              height={imgHeight}
-              style={{ maxWidth: "100%", height: "auto" }}
-            />
-          </picture>
+            <div
+              style={{
+                position: "relative",
+                maxWidth: "100%",
+                display: "inline-block",
+              }}
+            >
+              <picture>
+                <source type="image/webp" srcSet={webpSrcSet} sizes="(max-width: 600px) 100vw, 600px" />
+                <source srcSet={srcSet} sizes="(max-width: 600px) 100vw, 600px" />
+                <img
+                  src={fallbackSrc}
+                  alt={alt}
+                  // allow callers to mark an image as priority to opt-out of lazy loading
+                  loading={isPriority ? "eager" : "lazy"}
+                  decoding="async"
+                  width={imgWidth}
+                  height={imgHeight}
+                  style={{ maxWidth: "100%", height: "auto", display: "block" }}
+                  onLoad={() => handleImageLoad(imageKey)}
+                  onError={() => handleImageError(imageKey)}
+                />
+              </picture>
+              {isLoading && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "rgba(255, 255, 255, 0.8)",
+                    borderRadius: "4px",
+                  }}
+                >
+                  <div
+                    style={{
+                      border: "3px solid #f3f3f3",
+                      borderTop: "3px solid #007dc3",
+                      borderRadius: "50%",
+                      width: "40px",
+                      height: "40px",
+                      animation: "spin 1s linear infinite",
+                    }}
+                  />
+                  <style>{`
+                    @keyframes spin {
+                      0% { transform: rotate(0deg); }
+                      100% { transform: rotate(360deg); }
+                    }
+                  `}</style>
+                </div>
+              )}
+            </div>
           </React.Fragment>
         );
       })}

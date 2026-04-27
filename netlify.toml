@@ -1,8 +1,11 @@
+# Use Netlify's official Next.js plugin for proper runtime support
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
 [build]
-  # Build command for Next.js
   command = "npm run next:build"
-  # Output directory - publish .next for Netlify to serve Next.js
-  publish = ".next"
+  # Don't set publish - plugin handles this
+  functions = "netlify/functions"
 
 [env.production]
   NODE_ENV = "production"
@@ -20,6 +23,7 @@
 [[headers]]
   for = "/api/*"
   [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Cache-Control = "public, max-age=60, s-maxage=60, stale-while-revalidate=86400"
+
 
 

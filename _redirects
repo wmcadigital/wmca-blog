@@ -1,6 +1,5 @@
-# Netlify routing for Next.js (non-ISR mode for Netlify)
-# All requests route to Next.js for handling
+# Netlify Next.js plugin handles routing automatically
+# This file is not needed with @netlify/plugin-nextjs
 
-/* /index.html 200
 
 

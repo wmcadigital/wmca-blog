@@ -25,7 +25,7 @@ export async function getStaticProps(context) {
   try {
     // Fetch from internal API route (same host)
     const proto = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-    const host = process.env.VERCEL_URL || process.env.NETLIFY_HOST || 'localhost:3000';
+    const host = process.env.VERCEL_URL || process.env.NETLIFY_URL || 'localhost:3000';
     const base = `${proto}://${host}`;
     
     const r = await fetch(`${base}/api/getBlogArticle?id=${encodeURIComponent(articleTitle)}`, {
@@ -37,8 +37,7 @@ export async function getStaticProps(context) {
     if (!r.ok) {
       return {
         notFound: true,
-        // For Netlify: don't use revalidate, just cache indefinitely
-        // ISR is not fully supported on Netlify
+        revalidate: 60,
       };
     }
     
@@ -49,9 +48,7 @@ export async function getStaticProps(context) {
         initialArticle: data,
         articleTitle,
       },
-      // For Netlify: disable ISR revalidate
-      // Use fallback: 'blocking' for on-demand generation instead
-      revalidate: false, // This disables ISR on static hosts
+      revalidate: 60, // ISR: regenerate every 60 seconds
     };
   } catch (e) {
     console.error(`Error fetching article ${articleTitle}:`, e);

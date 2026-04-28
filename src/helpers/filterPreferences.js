@@ -5,16 +5,33 @@
 const STORAGE_KEY = 'wmca-blog-preferences';
 
 /**
+ * Check if localStorage is accessible
+ * @returns {boolean} Whether localStorage can be safely used
+ */
+const isLocalStorageAvailable = () => {
+  try {
+    if (typeof window === 'undefined') return false;
+    const test = '__test__';
+    window.localStorage?.setItem(test, test);
+    window.localStorage?.removeItem(test);
+    return true;
+  } catch {
+    // localStorage is blocked (sandboxed environment, private mode, etc.)
+    return false;
+  }
+};
+
+/**
  * Get preferences from localStorage
  * @returns {Object} Stored preferences or empty object if none exist
  */
 export const getStoredPreferences = () => {
   try {
-    if (typeof window === 'undefined') return {};
+    if (!isLocalStorageAvailable()) return {};
     const stored = window.localStorage?.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : {};
   } catch (error) {
-    console.error('Error reading preferences from localStorage:', error);
+    // Silently fail - localStorage may be blocked in sandboxed environments
     return {};
   }
 };
@@ -25,10 +42,10 @@ export const getStoredPreferences = () => {
  */
 export const savePreferences = (preferences) => {
   try {
-    if (typeof window === 'undefined') return;
+    if (!isLocalStorageAvailable()) return;
     window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(preferences));
   } catch (error) {
-    console.error('Error saving preferences to localStorage:', error);
+    // Silently fail - localStorage may be blocked in sandboxed environments
   }
 };
 
@@ -37,10 +54,10 @@ export const savePreferences = (preferences) => {
  */
 export const clearPreferences = () => {
   try {
-    if (typeof window === 'undefined') return;
+    if (!isLocalStorageAvailable()) return;
     window.localStorage?.removeItem(STORAGE_KEY);
   } catch (error) {
-    console.error('Error clearing preferences from localStorage:', error);
+    // Silently fail - localStorage may be blocked in sandboxed environments
   }
 };
 

@@ -67,7 +67,7 @@ const ImageComponent = ({ imageUrls }) => {
 
         return (
           <React.Fragment key={imageKey}>
-            {isPriority && (
+            {isPriority && fallbackSrc && (
               // inject preload for LCP / priority images so the browser can fetch earlier
               <Head>
                 <link rel="preload" as="image" href={fallbackSrc} />

@@ -40,6 +40,12 @@ jobs:
         run: npm ci
       - name: Build Next.js app
         run: npm run next:build
+        env:
+          REACT_APP_UMBRACO_API_KEY: ${{ secrets.REACT_APP_UMBRACO_API_KEY }}
+          NEXT_PUBLIC_UMBRACO_API_KEY: ${{ secrets.REACT_APP_UMBRACO_API_KEY }}
+          CMS_ENDPOINT: ${{ secrets.CMS_ENDPOINT }}
+          REACT_APP_UMBRACO_MANAGEMENT_ENDPOINT: ${{ secrets.REACT_APP_UMBRACO_MANAGEMENT_ENDPOINT }}
+          NEXT_PUBLIC_UMBRACO_API_URL: ${{ secrets.NEXT_PUBLIC_UMBRACO_API_URL }}
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -53,13 +59,6 @@ jobs:
           output_location: "out" # Built app content directory - optional
           github_id_token: ${{ steps.idtoken.outputs.result }}
           ###### End of Repository/Build Configurations ######
-        env:
-          NODE_OPTIONS: --max-old-space-size=4096
-          REACT_APP_UMBRACO_API_KEY: ${{ secrets.REACT_APP_UMBRACO_API_KEY }}
-          NEXT_PUBLIC_UMBRACO_API_KEY: ${{ secrets.REACT_APP_UMBRACO_API_KEY }}
-          CMS_ENDPOINT: ${{ secrets.CMS_ENDPOINT }}
-          REACT_APP_UMBRACO_MANAGEMENT_ENDPOINT: ${{ secrets.REACT_APP_UMBRACO_MANAGEMENT_ENDPOINT }}
-          NEXT_PUBLIC_UMBRACO_API_URL: ${{ secrets.NEXT_PUBLIC_UMBRACO_API_URL }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'

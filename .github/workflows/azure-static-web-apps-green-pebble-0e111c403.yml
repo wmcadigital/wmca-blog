@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - nr/feat/next-js
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches:
-      - nr/feat/next-js
+  # pull_request:
+  #   types: [opened, synchronize, reopened, closed]
+  #   branches:
+  #     - nr/feat/next-js
 
 jobs:
   build_and_deploy_job:
